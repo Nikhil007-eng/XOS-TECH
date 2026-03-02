@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>XOS - Global System Feed</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --accent: #3b82f6;
+            --glass: rgba(10, 10, 12, 0.85);
+            --border: rgba(255, 255, 255, 0.08);
+            --bg-color: #000000;
+            --text-main: #ffffff;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+
+        html, body {
+            height: 100%; width: 100%; overflow: hidden; position: fixed;
+            background-color: var(--bg-color); color: var(--text-main); font-family: 'Inter', sans-serif;
+        }
+
+        .font-brand { font-family: 'Orbitron', sans-serif; letter-spacing: 2px; }
+
+        .glass-panel {
+            background: var(--glass);
+            backdrop-filter: blur(25px) saturate(180%);
+            -webkit-backdrop-filter: blur(25px) saturate(180%);
+            border: 1px solid var(--border);
+        }
+
+        .main-container { height: 100dvh; overflow-y: auto; touch-action: pan-y; padding-bottom: 80px; }
+
+        /* Global Feed Grid Cards */
+        .global-card {
+            aspect-ratio: 1 / 1;
+            border-radius: 22px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid var(--border);
+            background: #0a0a0c;
+            cursor: pointer;
+        }
+
+        .global-card img.main-content, .global-card video.main-content {
+            width: 100%; height: 100%; object-fit: cover;
+            display: block;
+        }
+
+        /* Fixed PFP Overlay */
+        .card-pfp-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 12px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.5));
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .card-pfp-img {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 1.5px solid rgba(255, 255, 255, 0.4);
+            object-fit: cover;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        /* The Zoomed Window */
+        .floating-modal {
+            position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,0.92);
+            backdrop-filter: blur(15px); display: none; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.3s ease;
+        }
+
+        .floating-modal.active { display: flex; opacity: 1; }
+
+        .modal-box {
+            width: 85vw; 
+            aspect-ratio: 3 / 5; 
+            max-width: 380px; 
+            max-height: 85vh;
+            background: #000; 
+            border: 1px solid var(--border); 
+            border-radius: 32px;
+            overflow: hidden; 
+            position: relative; 
+            transform: scale(0.9);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+        }
+
+        .floating-modal.active .modal-box { transform: scale(1); }
+
+        /* GLASS THEMED BAR */
+        .window-header {
+            position: absolute; 
+            top: 15px; 
+            left: 15px; 
+            right: 15px; 
+            height: 48px;
+            padding: 0 12px; 
+            z-index: 100;
+            /* Glassmorphism Effect */
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px) saturate(160%);
+            -webkit-backdrop-filter: blur(15px) saturate(160%);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 18px;
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .caption-container { 
+            position: absolute; bottom: 0; left: 0; right: 0; 
+            padding: 25px 20px; background: linear-gradient(transparent, rgba(0,0,0,0.95)); 
+            z-index: 10; 
+        }
+
+        .loader { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: #000; z-index: 5; }
+        .spinner { width: 22px; height: 22px; border: 2px solid rgba(255,255,255,0.1); border-top: 2px solid var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div class="main-container">
+        <div class="flex justify-between items-center px-6 py-8">
+            <button onclick="window.history.back()" class="glass-panel w-10 h-10 rounded-full flex items-center justify-center text-gray-400 active:scale-90 transition-transform">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <span class="font-brand text-[9px] text-blue-500 tracking-[0.4em]">XOS // GLOBAL FEED</span>
+            <div class="w-10"></div>
+        </div>
+
+        <div class="px-6">
+            <div id="global-grid" class="grid grid-cols-2 gap-3"></div>
+        </div>
+    </div>
+
+    <div id="global-zoom-modal" class="floating-modal" onclick="closeGlobalPost()">
+        <div class="modal-box glass-panel" onclick="event.stopPropagation()">
+            <div id="zoom-loader" class="loader"><div class="spinner"></div></div>
+            
+            <div class="window-header">
+                <div class="flex items-center gap-2.5">
+                    <img id="modal-pfp" src="" class="w-7 h-7 rounded-full border border-white/20 object-cover">
+                    <a id="modal-name-link" href="#" class="font-brand text-[8px] text-white tracking-widest uppercase hover:text-blue-400 transition-colors">USER</a>
+                </div>
+                <button onclick="closeGlobalPost()" class="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center text-white border border-white/10 active:scale-75 transition-transform">
+                    <i class="fas fa-times text-[9px]"></i>
+                </button>
+            </div>
+
+            <div class="h-full w-full relative">
+                <div id="zoom-content" class="w-full h-full"></div>
+                <audio id="zoom-audio-player"></audio>
+                
+                <div class="caption-container">
+                    <p class="font-brand text-[8px] text-blue-500 tracking-widest mb-1">SYSTEM RECORD</p>
+                    <p id="zoom-caption-text" class="text-[10px] font-light text-gray-400 leading-relaxed"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const GLOBAL_DATA = [
+            { 
+                name: "Nikhil", 
+                pfp: "https://nikhil007-eng.github.io/Developer-xos-/file_00000000f4f47208a731ff7b47a3b568.png", 
+                url: "https://nikhil007-eng.github.io/Developer-xos-/Nikhilprof.html", 
+                type: "image", 
+                src: "https://nikhil007-eng.github.io/Developer-xos-/Picsart_26-02-28_14-41-10-477.jpg",
+                audio: "From_The_Start(256k).mp3", 
+                caption: "Nothing phone 4a" 
+            },
+            { 
+                name: "Niranjan", 
+                pfp: "https://nikhil007-eng.github.io/xosint/IMG-20260222-WA0034%20(1).jpg", 
+                url: "https://nikhil007-eng.github.io/xosint/", 
+                type: "video", 
+                src: "https://nikhil007-eng.github.io/xosint/nirup1.mp4", 
+                audio: "anushpost2audio.mp3", 
+                caption: "Mahashivratri" 
+            }
+        ];
+
+        function initGlobalFeed() {
+            const grid = document.getElementById('global-grid');
+            grid.innerHTML = GLOBAL_DATA.map((post, index) => `
+                <div class="global-card active:scale-95 transition-transform" onclick="openGlobalPost(${index})">
+                    ${post.type === 'video' 
+                        ? `<video src="${post.src}" class="main-content" muted loop playsinline></video>` 
+                        : `<img src="${post.src}" class="main-content">`
+                    }
+                    <div class="card-pfp-overlay">
+                        <img src="${post.pfp}" class="card-pfp-img">
+                    </div>
+                </div>
+            `).join('');
+
+            const videos = document.querySelectorAll('.global-card video');
+            videos.forEach(v => v.play().catch(() => {}));
+        }
+
+        window.openGlobalPost = (index) => {
+            const data = GLOBAL_DATA[index];
+            const modal = document.getElementById('global-zoom-modal');
+            const content = document.getElementById('zoom-content');
+            const audio = document.getElementById('zoom-audio-player');
+            const loader = document.getElementById('zoom-loader');
+
+            loader.style.display = 'flex';
+
+            document.getElementById('modal-pfp').src = data.pfp;
+            document.getElementById('modal-name-link').innerText = data.name;
+            document.getElementById('modal-name-link').href = data.url;
+            document.getElementById('zoom-caption-text').innerText = data.caption;
+
+            if(data.type === 'video') {
+                content.innerHTML = `<video src="${data.src}" class="w-full h-full object-cover" autoplay loop playsinline onplay="document.getElementById('zoom-loader').style.display='none'"></video>`;
+            } else {
+                content.innerHTML = `<img src="${data.src}" class="w-full h-full object-cover" onload="document.getElementById('zoom-loader').style.display='none'">`;
+            }
+
+            if(data.audio) {
+                audio.src = data.audio;
+                audio.play().catch(() => console.log("Audio Playback Blocked"));
+            }
+
+            modal.classList.add('active');
+            history.pushState({ modalActive: true }, ""); 
+        };
+
+        window.closeGlobalPost = () => {
+            const modal = document.getElementById('global-zoom-modal');
+            const audio = document.getElementById('zoom-audio-player');
+            const content = document.getElementById('zoom-content');
+            
+            modal.classList.remove('active');
+            audio.pause();
+            audio.src = "";
+            content.innerHTML = "";
+
+            if(history.state && history.state.modalActive) {
+                history.back();
+            }
+        };
+
+        window.addEventListener('popstate', () => {
+            const modal = document.getElementById('global-zoom-modal');
+            if(modal.classList.contains('active')) {
+                closeGlobalPost();
+            }
+        });
+
+        initGlobalFeed();
+    </script>
+</body>
+</html>
