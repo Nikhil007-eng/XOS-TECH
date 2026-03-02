@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>XOS INT | Status</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Orbitron:wght@500;700&family=Fira+Code:wght@400&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #030303;
+            color: white;
+            touch-action: manipulation;
+            overflow: hidden;
+            height: 100dvh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .font-brand { font-family: 'Orbitron', sans-serif; }
+        .font-mono { font-family: 'Fira Code', monospace; }
+
+        .board-container {
+            background: linear-gradient(145deg, rgba(15, 15, 15, 0.9), rgba(5, 5, 5, 0.9));
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            width: 90%;
+            max-width: 400px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .glitch-text {
+            position: relative;
+            color: #3b82f6;
+        }
+
+        .glitch-text::after {
+            content: 'INT';
+            position: absolute;
+            left: 2px;
+            text-shadow: -1px 0 red;
+            top: 0;
+            background: #030303;
+            overflow: hidden;
+            clip: rect(0, 900px, 0, 0);
+            animation: glitch 2s infinite linear alternate-reverse;
+        }
+
+        @keyframes glitch {
+            0% { clip: rect(10px, 9999px, 5px, 0); }
+            100% { clip: rect(30px, 9999px, 40px, 0); }
+        }
+
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background: #3b82f6;
+            box-shadow: 0 0 15px #3b82f6;
+            animation: load 4s ease-in-out infinite;
+        }
+
+        @keyframes load {
+            0% { width: 0%; }
+            50% { width: 70%; }
+            100% { width: 100%; }
+        }
+
+        /* Glassy Liquid Button Effect */
+        .glass-btn {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: inset 0 0 12px rgba(255, 255, 255, 0.05);
+            padding: 4px 10px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+        }
+
+        .glass-btn:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: rgba(59, 130, 246, 0.4);
+            box-shadow: inset 0 0 20px rgba(59, 130, 246, 0.1), 0 0 15px rgba(59, 130, 246, 0.2);
+            transform: scale(1.02);
+        }
+
+        .code-symbol {
+            color: #3b82f6;
+            font-weight: bold;
+            font-size: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="board-container">
+        <div class="p-8 border-b border-white/5 bg-white/[0.02]">
+            <div class="flex items-center justify-between mb-4">
+                <div class="h-2 w-2 rounded-full bg-red-500 shadow-[0_0_8px_red]"></div>
+                <div class="text-[9px] font-mono text-gray-500 uppercase tracking-widest">System Protocol: Active</div>
+            </div>
+            
+            <h1 class="font-brand text-3xl font-bold tracking-tighter mb-1">
+                XOS <span class="glitch-text">INT</span>
+            </h1>
+            
+            <div class="flex items-center justify-between">
+                <p class="text-blue-500/80 text-[10px] font-mono uppercase tracking-widest">
+                    Social interface 
+       (Personalised)
+                </p>
+                
+                <a href="https://nikhil007-eng.github.io/xos-social-Id/" target="_blank" class="glass-btn">
+                    <span class="code-symbol font-mono">&lt;/&gt;</span>
+                    <span class="text-[9px] font-mono text-gray-300 uppercase tracking-tighter">Developer</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="p-8 bg-black/40">
+            <h2 class="font-brand text-xl mb-4 tracking-[0.2em] text-gray-300">COMING SOON</h2>
+            
+            <div class="space-y-3">
+                <div class="flex justify-between font-mono text-[9px] text-gray-500 uppercase">
+                    <span>Deploying Modules</span>
+                    <span>88%</span>
+                </div>
+                <div class="w-full h-1 bg-white/10 rounded-full overflow-hidden">
+                    <div class="progress-bar"></div>
+                </div>
+            </div>
+
+            <div class="mt-8 pt-6 border-t border-white/5">
+                <p class="text-[11px] text-gray-500 leading-relaxed italic">
+                    "Tailoring the digital experience to the core user."
+                </p>
+            </div>
+        </div>
+
+        <div class="absolute bottom-0 right-0 w-12 h-12 bg-blue-600/10 [clip-path:polygon(100%_0,100%_100%,0_100%)]"></div>
+    </div>
+
+</body>
+</html>
