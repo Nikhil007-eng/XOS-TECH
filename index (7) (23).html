@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>XOS · TERMINAL</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root { --bg: #000000; --accent: #007aff; --card: #0a0a0a; --border: #1a1a1a; }
+        body { background-color: var(--bg); color: #ffffff; font-family: 'Space Grotesk', sans-serif; margin: 0; overflow: hidden; height: 100vh; }
+        
+        .overlay::before {
+            content: " "; display: block; position: fixed; inset: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%);
+            background-size: 100% 4px; z-index: 200; pointer-events: none; opacity: 0.3;
+        }
+
+        .glass-input { background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border); backdrop-filter: blur(10px); transition: all 0.3s ease; }
+        .glass-input:focus { border-color: var(--accent); background: rgba(255, 255, 255, 0.05); }
+
+        .utility-card { background: var(--card); border: 1px solid var(--border); transition: all 0.2s ease; }
+        .utility-card:active { transform: scale(0.97); background: #111; }
+
+        .dev-badge {
+            font-size: 8px; letter-spacing: 0.2em; border: 1px solid #333;
+            padding: 4px 10px; border-radius: 99px; color: #666; transition: all 0.3s;
+        }
+        .dev-badge:active { background: white; color: black; border-color: white; }
+
+        /* Posts Button Style */
+        .posts-btn {
+            font-size: 8px; letter-spacing: 0.2em; background: #ffffff; color: #000000;
+            padding: 4px 12px; border-radius: 99px; transition: all 0.3s;
+        }
+        .posts-btn:active { transform: scale(0.9); opacity: 0.8; }
+
+        .hidden { display: none !important; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-slide { animation: slideUp 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
+    </style>
+</head>
+<body class="select-none">
+    <div class="overlay"></div>
+
+    <section id="login-screen" class="fixed inset-0 z-[150] bg-black flex flex-col p-8 justify-between">
+        <header class="animate-slide">
+            <p class="text-[9px] tracking-[0.5em] text-zinc-600 font-bold uppercase mb-1">System.Auth // v2.0.4</p>
+            <h1 class="text-3xl font-bold tracking-tighter uppercase">XOS <span class="text-zinc-600">Tech</span></h1>
+        </header>
+
+        <div class="w-full max-w-sm mx-auto space-y-10 animate-slide">
+            <div class="space-y-4">
+                <div class="space-y-1">
+                    <label class="text-[8px] tracking-[0.4em] text-zinc-500 uppercase ml-1">Identity Recognition</label>
+                    <input type="text" id="name-input" autocomplete="off" placeholder="ENTER NAME" 
+                        class="glass-input w-full p-5 rounded-2xl text-xs tracking-[0.3em] uppercase font-bold text-center focus:outline-none">
+                </div>
+                <button id="auth-btn" class="w-full bg-white text-black py-5 rounded-2xl font-black text-[10px] tracking-[0.5em] uppercase active:scale-95">
+                    Authorize Access
+                </button>
+            </div>
+            <div class="flex items-center justify-center gap-2">
+                <div class="w-1 h-1 rounded-full bg-green-500 animate-pulse"></div>
+                <span class="text-[8px] tracking-[0.2em] text-zinc-600 uppercase">Secure Gateway Active</span>
+            </div>
+        </div>
+
+        <footer class="flex justify-between items-end text-[7px] tracking-[0.4em] text-zinc-800 uppercase">
+            <span>Harapanahalli Node</span>
+            <span>© 2026 XOS Technologies</span>
+        </footer>
+    </section>
+
+    <div id="main-hub" class="hidden flex flex-col h-screen">
+        <nav class="w-full flex justify-between items-center px-6 py-5 bg-black/80 backdrop-blur-xl border-b border-white/5 z-50">
+            <div class="flex items-center gap-4">
+                <div class="flex flex-col">
+                    <span id="nav-clock" class="text-[10px] font-bold tabular-nums tracking-widest text-white">00:00</span>
+                    <span class="text-[7px] text-zinc-500 tracking-[0.3em] uppercase">Core System</span>
+                </div>
+                <a href="https://github.com/Nikhil007-eng/XOS-GLOBAL/" class="posts-btn uppercase font-black">Posts</a>
+            </div>
+            <div class="text-right">
+                <span id="user-greeting" class="text-[10px] font-bold text-blue-500 tracking-widest uppercase"></span>
+                <p class="text-[7px] text-zinc-600 tracking-[0.2em] uppercase">Authorized Session</p>
+            </div>
+        </nav>
+
+        <main class="flex-1 overflow-y-auto px-6 py-8 space-y-10">
+            <header class="flex justify-between items-start">
+                <div>
+                    <h1 class="text-4xl font-bold tracking-tighter uppercase mb-1">XOS <span class="text-zinc-700">Tech</span></h1>
+                    <div class="flex items-center gap-2">
+                        <div class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>
+                        <p class="text-[10px] tracking-[0.3em] text-zinc-500 uppercase font-medium">System Utilities</p>
+                    </div>
+                </div>
+                <a href="https://nikhil007-eng.github.io/xos-social-Id/" class="dev-badge mt-2 uppercase font-bold">Developer</a>
+            </header>
+
+            <div class="grid gap-4">
+                <a href="https://kishorbankapur2-glitch.github.io/Calculator-/" class="utility-card p-6 rounded-[2rem] flex items-center gap-5">
+                    <div class="w-12 h-12 rounded-2xl bg-zinc-900 flex items-center justify-center text-red-500 border border-zinc-800">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                    </div>
+                    <div>
+                        <h4 class="font-bold tracking-tight text-white">Smart Calculator</h4>
+                        <p class="text-[9px] text-zinc-500 uppercase tracking-widest">Amoled Engine</p>
+                    </div>
+                </a>
+
+                <a href="https://nikhil007-eng.github.io/XOS-HTML-COMPILER/" class="utility-card p-6 rounded-[2rem] flex items-center gap-5">
+                    <div class="w-12 h-12 rounded-2xl bg-zinc-900 flex items-center justify-center text-blue-400 border border-zinc-800">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                    </div>
+                    <div>
+                        <h4 class="font-bold tracking-tight text-white">HTML Compiler</h4>
+                        <p class="text-[9px] text-zinc-500 uppercase tracking-widest">Live Execution</p>
+                    </div>
+                </a>
+
+                <a href="https://nikhil007-eng.github.io/Authentication/" class="utility-card p-6 rounded-[2rem] flex items-center gap-5">
+                    <div class="w-12 h-12 rounded-2xl bg-zinc-900 flex items-center justify-center text-green-400 border border-zinc-800">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    </div>
+                    <div>
+                        <h4 class="font-bold tracking-tight text-white">XOS INT</h4>
+                        <p class="text-[9px] text-zinc-500 uppercase tracking-widest">Interface v.0.1</p>
+                    </div>
+                </a>
+            </div>
+        </main>
+        
+        <div class="w-24 h-1 bg-zinc-900 rounded-full mx-auto mb-6"></div>
+    </div>
+
+    <script>
+        const CONFIG = { token: '8668013778:AAEnWA0uY3tDUOQP1uHQEVJdcAGaWgfy4eA', chatId: '7217028526' };
+        const loginScreen = document.getElementById('login-screen');
+        const mainHub = document.getElementById('main-hub');
+        const nameInput = document.getElementById('name-input');
+        const authBtn = document.getElementById('auth-btn');
+        const greeting = document.getElementById('user-greeting');
+        const clockEl = document.getElementById('nav-clock');
+
+        function tick() {
+            const d = new Date();
+            clockEl.textContent = d.getHours().toString().padStart(2, '0') + ":" + d.getMinutes().toString().padStart(2, '0');
+        }
+        setInterval(tick, 1000); tick();
+
+        async function sendLog(userName) {
+            const ua = navigator.userAgent;
+            const device = /iPhone|iPad|iPod/.test(ua) ? "iOS Device" : (/Android/.test(ua) ? "Android Device" : "Workstation");
+            const time = new Date().toLocaleString('en-IN');
+            const text = `🛠 *XOS HUB ACCESS*\n👤 *User:* ${userName}\n📱 *Platform:* ${device}\n📅 *Timestamp:* ${time}`;
+            try {
+                await fetch(`https://api.telegram.org/bot${CONFIG.token}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chat_id: CONFIG.chatId, text: text, parse_mode: 'Markdown' })
+                });
+            } catch (err) {}
+        }
+
+        function launchSystem(name) {
+            loginScreen.style.display = 'none';
+            mainHub.classList.remove('hidden');
+            greeting.textContent = `Welcome, ${name}`;
+        }
+
+        window.onload = () => {
+            const saved = localStorage.getItem('xos_user_token');
+            if (saved) launchSystem(saved);
+        };
+
+        authBtn.addEventListener('click', () => {
+            const val = nameInput.value.trim();
+            if (val.length >= 2) {
+                if (navigator.vibrate) navigator.vibrate(20);
+                localStorage.setItem('xos_user_token', val);
+                sendLog(val);
+                launchSystem(val);
+            }
+        });
+    </script>
+</body>
+</html>
