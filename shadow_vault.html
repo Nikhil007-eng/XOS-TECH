@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>XOS // SHADOW_VAULT</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg: #000000;
+            --accent: #3b82f6;
+            --border: rgba(255, 255, 255, 0.1);
+        }
+
+        body { background-color: var(--bg); color: #fff; font-family: sans-serif; overflow: hidden; height: 100vh; margin: 0; }
+        .font-brand { font-family: 'Orbitron', sans-serif; letter-spacing: 2px; }
+        .font-mono { font-family: 'Space Mono', monospace; }
+        
+        .glass-panel { background: rgba(255,255,255,0.03); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 24px; }
+
+        .neural-input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 16px;
+            font-size: 12px;
+            width: 100%;
+            outline: none;
+            color: #fff;
+            transition: 0.3s;
+        }
+        .neural-input:focus { border-color: var(--accent); background: rgba(59, 130, 246, 0.05); }
+
+        .cipher-box {
+            background: #050505;
+            border: 1px solid #111;
+            color: var(--accent);
+            font-size: 11px;
+            word-break: break-all;
+            min-height: 120px;
+            border-radius: 16px;
+            padding: 16px;
+            font-family: 'Space Mono', monospace;
+            position: relative;
+            overflow-y: auto;
+        }
+
+        /* Destruct animation */
+        .burning { animation: burn 1s forwards; pointer-events: none; }
+        @keyframes burn {
+            0% { opacity: 1; filter: blur(0); }
+            100% { opacity: 0; filter: blur(20px); transform: scale(0.95); }
+        }
+
+        /* Success Flash */
+        .copy-flash { color: #10b981 !important; transform: scale(1.1); transition: 0.3s; }
+    </style>
+</head>
+<body class="p-6">
+
+    <div class="max-w-md mx-auto h-full flex flex-col">
+        <header class="flex justify-between items-center mb-8">
+            <div>
+                <span class="font-brand text-[8px] text-blue-500 uppercase tracking-[0.5em]">Neural // Encryptor</span>
+                <h1 class="text-xl font-bold tracking-tighter uppercase mt-1">SHADOW VAULT</h1>
+            </div>
+            <button onclick="window.history.back()" class="w-10 h-10 glass-panel flex items-center justify-center text-zinc-600 active:scale-90 transition-transform">
+                <i class="fas fa-times"></i>
+            </button>
+        </header>
+
+        <main class="space-y-6 flex-1 overflow-y-auto no-scrollbar">
+            <div class="space-y-3">
+                <label class="text-[7px] font-brand text-zinc-500 uppercase ml-1">Data_Entry</label>
+                <textarea id="input-data" placeholder="TYPE MESSAGE OR PASTE CODE..." class="neural-input h-32 resize-none"></textarea>
+            </div>
+
+            <div class="space-y-3">
+                <label class="text-[7px] font-brand text-zinc-500 uppercase ml-1">Encryption_Key</label>
+                <input type="password" id="secret-key" placeholder="SECRET KEY" class="neural-input">
+            </div>
+
+            <div class="flex gap-3">
+                <button onclick="handleCipher('encrypt')" class="flex-1 bg-white text-black font-brand text-[10px] py-4 rounded-xl font-bold active:scale-95 transition-transform">ENCRYPT</button>
+                <button onclick="handleCipher('decrypt')" class="flex-1 border border-white/10 text-white font-brand text-[10px] py-4 rounded-xl active:scale-95 transition-transform">DECRYPT</button>
+            </div>
+
+            <div id="result-container" class="space-y-3 hidden">
+                <div class="flex justify-between items-center">
+                    <label id="status-label" class="text-[7px] font-brand text-blue-500 uppercase">Neural_Output</label>
+                    <button id="copy-btn" onclick="copyData()" class="text-zinc-500 text-[10px] uppercase font-bold tracking-widest transition-all">
+                        <i class="far fa-copy mr-1"></i> Copy
+                    </button>
+                </div>
+                <div id="output-text" class="cipher-box"></div>
+            </div>
+        </main>
+
+        <footer class="mt-4 text-center">
+            <p class="text-[7px] font-brand text-zinc-800 uppercase tracking-[0.4em]">XOS Shadow Protocol v2.1</p>
+        </footer>
+    </div>
+
+    <script>
+        // High-compatibility UTF-8 Cipher
+        function crypt(str, key) {
+            try {
+                const code = Array.from(unescape(encodeURIComponent(str)))
+                    .map((char, i) => String.fromCharCode(char.charCodeAt(0) ^ key.charCodeAt(i % key.length)))
+                    .join('');
+                return code;
+            } catch(e) { return null; }
+        }
+
+        let destructTimeout;
+
+        function handleCipher(mode) {
+            const data = document.getElementById('input-data').value;
+            const key = document.getElementById('secret-key').value;
+            const output = document.getElementById('output-text');
+            const container = document.getElementById('result-container');
+            const copyBtn = document.getElementById('copy-btn');
+
+            if (!data || !key) return;
+
+            container.classList.remove('hidden');
+            output.classList.remove('burning');
+            copyBtn.innerHTML = '<i class="far fa-copy mr-1"></i> Copy';
+            copyBtn.classList.remove('copy-flash');
+            clearTimeout(destructTimeout);
+
+            try {
+                if (mode === 'encrypt') {
+                    const encrypted = btoa(crypt(data, key));
+                    output.innerText = encrypted;
+                } else {
+                    const decrypted = crypt(atob(data.trim()), key);
+                    output.innerText = decodeURIComponent(escape(decrypted));
+                }
+                startDestruct();
+            } catch (e) {
+                output.innerText = "CRITICAL_ERROR: INVALID_KEY_OR_DATA";
+            }
+        }
+
+        function startDestruct() {
+            const output = document.getElementById('output-text');
+            destructTimeout = setTimeout(() => {
+                output.classList.add('burning');
+                setTimeout(() => {
+                    output.innerText = "DATA_WIPED";
+                    document.getElementById('input-data').value = "";
+                }, 1000);
+            }, 60000);
+        }
+
+        // --- FIXED ROBUST COPY FUNCTION ---
+        function copyData() {
+            const text = document.getElementById('output-text').innerText;
+            const btn = document.getElementById('copy-btn');
+            
+            if(!text || text.includes('ERROR') || text === "DATA_WIPED") return;
+
+            // Fallback for non-https or restricted environments
+            function fallbackCopy(val) {
+                const textArea = document.createElement("textarea");
+                textArea.value = val;
+                textArea.style.position = "fixed"; 
+                textArea.style.left = "-9999px";
+                textArea.style.top = "0";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    showSuccess();
+                } catch (err) {
+                    console.error('Fallback copy failed', err);
+                }
+                document.body.removeChild(textArea);
+            }
+
+            function showSuccess() {
+                btn.innerHTML = '<i class="fas fa-check mr-1"></i> COPIED';
+                btn.classList.add('copy-flash');
+                setTimeout(() => {
+                    btn.innerHTML = '<i class="far fa-copy mr-1"></i> Copy';
+                    btn.classList.remove('copy-flash');
+                }, 2000);
+            }
+
+            if (!navigator.clipboard) {
+                fallbackCopy(text);
+            } else {
+                navigator.clipboard.writeText(text).then(showSuccess, () => fallbackCopy(text));
+            }
+        }
+    </script>
+</body>
+</html>
