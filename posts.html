@@ -12,299 +12,188 @@
     <style>
         :root {
             --accent: #3b82f6;
-            --glass: rgba(10, 10, 12, 0.85);
-            --border: rgba(255, 255, 255, 0.08);
+            --glass: rgba(10, 10, 12, 0.9);
+            --border: rgba(255, 255, 255, 0.1);
             --bg-color: #000000;
             --text-main: #ffffff;
         }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
 
-        html, body {
-            height: 100%; width: 100%; overflow: hidden; position: fixed;
-            background-color: var(--bg-color); color: var(--text-main); font-family: 'Inter', sans-serif;
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            height: 100vh;
         }
 
         .font-brand { font-family: 'Orbitron', sans-serif; letter-spacing: 2px; }
 
-        .glass-panel {
-            background: var(--glass);
-            backdrop-filter: blur(25px) saturate(180%);
-            -webkit-backdrop-filter: blur(25px) saturate(180%);
-            border: 1px solid var(--border);
-        }
-
-        .main-container { height: 100dvh; overflow-y: auto; touch-action: pan-y; padding-bottom: 80px; }
+        .main-container { height: 100dvh; overflow-y: auto; padding-bottom: 100px; -webkit-overflow-scrolling: touch; }
 
         .global-card {
-            aspect-ratio: 1 / 1; border-radius: 22px; overflow: hidden;
-            position: relative; border: 1px solid var(--border); background: #0a0a0c; cursor: pointer;
+            aspect-ratio: 1 / 1; border-radius: 20px; overflow: hidden;
+            position: relative; border: 1px solid var(--border); background: #050505;
         }
 
-        .global-card .main-content { width: 100%; height: 100%; object-fit: cover; display: block; }
-
-        .card-pfp-overlay {
-            position: absolute; bottom: 0; left: 0; right: 0; padding: 12px;
-            background: linear-gradient(transparent, rgba(0,0,0,0.5));
-            pointer-events: none; display: flex; align-items: center;
-        }
-
-        .card-pfp-img {
-            width: 28px; height: 28px; border-radius: 50%;
-            border: 1.5px solid rgba(255, 255, 255, 0.4);
-            object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-        }
+        .main-content { width: 100%; height: 100%; object-fit: cover; }
 
         .floating-modal {
-            position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,0.92);
-            backdrop-filter: blur(15px); display: none; align-items: center; justify-content: center;
-            opacity: 0; transition: opacity 0.3s ease;
+            position: fixed; inset: 0; z-index: 999; background: rgba(0,0,0,0.95);
+            display: none; align-items: center; justify-content: center;
+            backdrop-filter: blur(10px);
         }
 
-        .floating-modal.active { display: flex; opacity: 1; }
+        .floating-modal.active { display: flex; }
 
         .modal-box {
-            width: 85vw; aspect-ratio: 3 / 5; max-width: 380px; max-height: 85vh;
-            background: #000; border: 1px solid var(--border); border-radius: 32px;
-            overflow: hidden; position: relative; transform: scale(0.9);
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+            width: 90vw; aspect-ratio: 3 / 5; max-width: 380px; max-height: 80vh;
+            background: #000; border: 1px solid var(--border); border-radius: 28px;
+            overflow: hidden; position: relative;
         }
-
-        .floating-modal.active .modal-box { transform: scale(1); }
 
         .window-header {
-            position: absolute; top: 15px; left: 15px; right: 15px; height: 48px;
-            padding: 0 12px; z-index: 100;
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(15px) saturate(160%);
-            -webkit-backdrop-filter: blur(15px) saturate(160%);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 18px; display: flex; justify-content: space-between; align-items: center;
+            position: absolute; top: 12px; left: 12px; right: 12px; height: 44px;
+            padding: 0 10px; z-index: 100;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px; display: flex; justify-content: space-between; align-items: center;
         }
 
-        .caption-container { 
+        .caption-area { 
             position: absolute; bottom: 0; left: 0; right: 0; 
-            padding: 25px 20px; background: linear-gradient(transparent, rgba(0,0,0,0.95)); 
+            padding: 20px; background: linear-gradient(transparent, #000 80%); 
             z-index: 10; 
         }
 
-        .caption-text-group { padding-right: 55px; }
-
-        .like-btn-group {
-            position: absolute; bottom: 20px; right: 20px;
-            display: flex; flex-direction: column; align-items: center; gap: 2px; z-index: 20;
+        /* EXTREME BOTTOM RIGHT */
+        .like-zone {
+            position: absolute; bottom: 15px; right: 15px;
+            display: flex; flex-direction: column; align-items: center; z-index: 50;
         }
 
-        .btn-action-like {
-            width: 40px; height: 40px; border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.15);
+        .heart-btn {
+            width: 42px; height: 42px; border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             display: flex; align-items: center; justify-content: center;
-            color: white; transition: all 0.2s ease;
+            color: white; transition: 0.2s;
         }
 
-        .btn-action-like:active { transform: scale(0.8); }
-        .btn-action-like.liked { color: #ff3b3b; background: rgba(255, 59, 59, 0.1); border-color: rgba(255, 59, 59, 0.3); }
+        .heart-btn.liked { color: #ff3b3b; background: rgba(255, 59, 59, 0.1); border-color: #ff3b3b; }
 
-        .hit-count-text {
-            font-family: 'Orbitron', sans-serif; font-size: 7px; font-weight: 700;
-            color: rgba(255, 255, 255, 0.5); text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-        }
+        .hit-txt { font-family: 'Orbitron'; font-size: 8px; margin-top: 4px; color: #666; font-weight: bold; }
 
         .loader { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: #000; z-index: 5; }
-        .spinner { width: 22px; height: 22px; border: 2px solid rgba(255,255,255,0.1); border-top: 2px solid var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
     <div class="main-container">
-        <div class="flex justify-between items-center px-6 py-8">
-            <button onclick="window.history.back()" class="glass-panel w-10 h-10 rounded-full flex items-center justify-center text-gray-400 active:scale-90 transition-transform">
-                <i class="fas fa-chevron-left"></i>
+        <div class="flex justify-between items-center px-6 py-10">
+            <button onclick="window.history.back()" class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-gray-400">
+                <i class="fas fa-arrow-left"></i>
             </button>
-            <span class="font-brand text-[9px] text-blue-500 tracking-[0.4em]">XOS // GLOBAL FEED</span>
+            <span class="font-brand text-[9px] text-blue-500">XOS // GLOBAL</span>
             <div class="w-10"></div>
         </div>
 
-        <div class="px-6">
-            <div id="global-grid" class="grid grid-cols-2 gap-3"></div>
-        </div>
+        <div class="px-6 grid grid-cols-2 gap-4" id="grid"></div>
     </div>
 
-    <div id="global-zoom-modal" class="floating-modal" onclick="closeGlobalPost()">
-        <div class="modal-box glass-panel" onclick="event.stopPropagation()">
-            <div id="zoom-loader" class="loader"><div class="spinner"></div></div>
+    <div id="modal" class="floating-modal" onclick="closeModal()">
+        <div class="modal-box" onclick="event.stopPropagation()">
+            <div id="loader" class="loader"><i class="fas fa-circle-notch fa-spin text-blue-500"></i></div>
             
             <div class="window-header">
-                <div class="flex items-center gap-2.5">
-                    <img id="modal-pfp" src="" alt="pfp" class="w-7 h-7 rounded-full border border-white/20 object-cover">
-                    <a id="modal-name-link" href="#" class="font-brand text-[8px] text-white tracking-widest uppercase hover:text-blue-400 transition-colors">USER</a>
+                <div class="flex items-center gap-2">
+                    <img id="m-pfp" src="" class="w-6 h-6 rounded-full border border-white/20">
+                    <span id="m-user" class="font-brand text-[8px] uppercase">USER</span>
                 </div>
-                <button onclick="closeGlobalPost()" class="w-7 h-7 rounded-full bg-white/5 flex items-center justify-center text-white border border-white/10 active:scale-75 transition-transform">
-                    <i class="fas fa-times text-[9px]"></i>
+                <button onclick="closeModal()" class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-[10px]">
+                    <i class="fas fa-times"></i>
                 </button>
             </div>
 
             <div class="h-full w-full relative">
-                <div id="zoom-content" class="w-full h-full"></div>
-                <audio id="zoom-audio-player"></audio>
+                <div id="m-content" class="w-full h-full"></div>
                 
-                <div class="caption-container">
-                    <div class="caption-text-group">
-                        <p class="font-brand text-[8px] text-blue-500 tracking-widest mb-1">SYSTEM RECORD</p>
-                        <p id="zoom-caption-text" class="text-[10px] font-light text-gray-400 leading-relaxed"></p>
-                    </div>
+                <div class="caption-area">
+                    <p class="font-brand text-[7px] text-blue-400 mb-1">RECORD_STAMP</p>
+                    <p id="m-cap" class="text-[10px] text-gray-400 font-light pr-12"></p>
                 </div>
 
-                <div class="like-btn-group">
-                    <button id="like-btn" onclick="handleLike()" class="btn-action-like">
-                        <i class="fas fa-heart text-[14px]"></i>
+                <div class="like-zone">
+                    <button id="l-btn" onclick="hitLike()" class="heart-btn">
+                        <i class="fas fa-heart text-[16px]"></i>
                     </button>
-                    <span id="hit-counter" class="hit-count-text">0</span>
+                    <span id="h-count" class="hit-txt">0</span>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        const TELEGRAM_CONFIG = {
-            token: '8668013778:AAEnWA0uY3tDUOQP1uHQEVJdcAGaWgfy4eA',
-            chatId: '7217028526'
-        };
+        const BOT = "8668013778:AAEnWA0uY3tDUOQP1uHQEVJdcAGaWgfy4eA";
+        const CID = "7217028526";
 
-        const GLOBAL_DATA = [
-            { 
-                id: 1, 
-                name: "Nikhil", 
-                pfp: "https://nikhil007-eng.github.io/Developer-xos-/file_00000000f4f47208a731ff7b47a3b568.png", 
-                url: "progress.html", 
-                type: "image", 
-                src: "Picsart_26-03-02_23-21-48-780.jpg", 
-                audio: "UP1.mp3", 
-                caption: "Nothing phone 4a" 
-            },
-            { 
-                id: 2, 
-                name: "Nikhil", 
-                pfp: "https://nikhil007-eng.github.io/Developer-xos-/file_00000000f4f47208a731ff7b47a3b568.png", 
-                url: "progress.html", 
-                type: "image", 
-                src: "https://nikhil007-eng.github.io/Developer-xos-/Picsart_26-02-28_14-41-10-477.jpg", 
-                audio: "From_The_Start(256k).mp3", 
-                caption: "image/audio test" 
-            }
+        const POSTS = [
+            { id: 1, name: "Nikhil", pfp: "https://nikhil007-eng.github.io/Developer-xos-/file_00000000f4f47208a731ff7b47a3b568.png", src: "Picsart_26-03-02_23-21-48-780.jpg", cap: "Nothing phone 4a" },
+            { id: 2, name: "Nikhil", pfp: "https://nikhil007-eng.github.io/Developer-xos-/file_00000000f4f47208a731ff7b47a3b568.png", src: "https://nikhil007-eng.github.io/Developer-xos-/Picsart_26-02-28_14-41-10-477.jpg", cap: "image/audio test" }
         ];
 
-        let currentPostId = null;
+        let activeId = null;
 
-        function initGlobalFeed() {
-            const grid = document.getElementById('global-grid');
-            grid.innerHTML = GLOBAL_DATA.map((post, index) => `
-                <div class="global-card active:scale-95 transition-transform" onclick="openGlobalPost(${index})">
-                    ${post.type === 'video' 
-                        ? `<video src="${post.src}" class="main-content" muted loop playsinline></video>` 
-                        : `<img src="${post.src}" class="main-content" alt="post">`
-                    }
-                    <div class="card-pfp-overlay">
-                        <img src="${post.pfp}" class="card-pfp-img" alt="user">
+        function init() {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = POSTS.map((p, i) => `
+                <div class="global-card" onclick="openModal(${i})">
+                    <img src="${p.src}" class="main-content">
+                    <div style="position:absolute; bottom:8px; left:8px;">
+                        <img src="${p.pfp}" class="w-6 h-6 rounded-full border border-white/30">
                     </div>
                 </div>
             `).join('');
-
-            document.querySelectorAll('.global-card video').forEach(v => {
-                v.play().catch(() => {});
-            });
         }
 
-        window.openGlobalPost = (index) => {
-            const data = GLOBAL_DATA[index];
-            currentPostId = data.id;
+        window.openModal = (i) => {
+            const p = POSTS[i];
+            activeId = p.id;
+            document.getElementById('m-pfp').src = p.pfp;
+            document.getElementById('m-user').innerText = p.name;
+            document.getElementById('m-cap').innerText = p.cap;
+            document.getElementById('m-content').innerHTML = `<img src="${p.src}" class="w-full h-full object-cover" onload="document.getElementById('loader').style.display='none'">`;
+            document.getElementById('h-count').innerText = localStorage.getItem('h_'+p.id) || 0;
+            document.getElementById('l-btn').classList.remove('liked');
+            document.getElementById('modal').classList.add('active');
+            document.getElementById('loader').style.display = 'flex';
+        };
+
+        window.closeModal = () => {
+            document.getElementById('modal').classList.remove('active');
+        };
+
+        window.hitLike = () => {
+            const btn = document.getElementById('l-btn');
+            if(btn.classList.contains('liked')) return;
+            btn.classList.add('liked');
+
+            let count = parseInt(localStorage.getItem('h_'+activeId)) || 0;
+            count++;
+            localStorage.setItem('h_'+activeId, count);
+            document.getElementById('h-count').innerText = count;
+
+            const user = localStorage.getItem('xos_user_token') || "Guest";
+            const msg = `❤️ LIKE: ${user}%0APost: ${activeId}%0AHits: ${count}`;
             
-            const modal = document.getElementById('global-zoom-modal');
-            const content = document.getElementById('zoom-content');
-            const audio = document.getElementById('zoom-audio-player');
-            const loader = document.getElementById('zoom-loader');
-            const likeBtn = document.getElementById('like-btn');
-
-            likeBtn.classList.remove('liked');
-            document.getElementById('hit-counter').innerText = localStorage.getItem(`hits_post_${currentPostId}`) || 0;
-            loader.style.display = 'flex';
-
-            document.getElementById('modal-pfp').src = data.pfp;
-            document.getElementById('modal-name-link').innerText = data.name;
-            document.getElementById('modal-name-link').href = data.url;
-            document.getElementById('zoom-caption-text').innerText = data.caption;
-
-            if(data.type === 'video') {
-                content.innerHTML = `<video src="${data.src}" class="w-full h-full object-cover" autoplay loop playsinline onplay="document.getElementById('zoom-loader').style.display='none'"></video>`;
-            } else {
-                content.innerHTML = `<img src="${data.src}" class="w-full h-full object-cover" onload="document.getElementById('zoom-loader').style.display='none'" alt="content">`;
-            }
-
-            if(data.audio) {
-                audio.src = data.audio;
-                audio.play().catch(() => {});
-            }
-
-            modal.classList.add('active');
-            history.pushState({ modalActive: true }, ""); 
+            // Simplified Fetch to avoid CORS/Policy issues
+            fetch(`https://api.telegram.org/bot${BOT}/sendMessage?chat_id=${CID}&text=${msg}&parse_mode=Markdown`)
+            .catch(e => console.log("Silent Log"));
         };
 
-        window.handleLike = async () => {
-            const likeBtn = document.getElementById('like-btn');
-            if (likeBtn.classList.contains('liked')) return; 
-
-            likeBtn.classList.add('liked');
-
-            let currentHits = parseInt(localStorage.getItem(`hits_post_${currentPostId}`)) || 0;
-            currentHits++;
-            localStorage.setItem(`hits_post_${currentPostId}`, currentHits);
-            document.getElementById('hit-counter').innerText = currentHits;
-
-            // Identity extraction from Terminal page
-            const savedName = localStorage.getItem('xos_user_token') || "Guest User";
-            const now = new Date();
-            const payload = {
-                chat_id: TELEGRAM_CONFIG.chatId,
-                text: `❤️ *XOS FEED LIKE*\n👤 *Name:* ${savedName}\n🖼️ *Post:* ${currentPostId}\n📈 *Hits:* ${currentHits}\n📅 *Date:* ${now.toLocaleDateString()}\n🕒 *Time:* ${now.toLocaleTimeString()}`,
-                parse_mode: 'Markdown'
-            };
-
-            try {
-                await fetch(`https://api.telegram.org/bot${TELEGRAM_CONFIG.token}/sendMessage`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-            } catch (err) {
-                console.error("Telemetry error:", err);
-            }
-        };
-
-        window.closeGlobalPost = () => {
-            const modal = document.getElementById('global-zoom-modal');
-            const audio = document.getElementById('zoom-audio-player');
-            const content = document.getElementById('zoom-content');
-            
-            modal.classList.remove('active');
-            audio.pause();
-            audio.src = "";
-            content.innerHTML = "";
-            currentPostId = null;
-
-            if(history.state && history.state.modalActive) {
-                history.back();
-            }
-        };
-
-        window.addEventListener('popstate', (e) => {
-            const modal = document.getElementById('global-zoom-modal');
-            if(modal.classList.contains('active')) {
-                closeGlobalPost();
-            }
-        });
-
-        initGlobalFeed();
+        init();
     </script>
 </body>
 </html>
