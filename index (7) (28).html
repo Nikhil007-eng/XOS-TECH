@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XOS AI · TERMINAL</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root { --bg: #000000; --accent: #007aff; --card: #0a0a0a; }
+        body { background-color: var(--bg); color: #fff; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        .chat-container { flex: 1; overflow-y: auto; padding: 20px; scroll-behavior: smooth; }
+        .msg { margin-bottom: 15px; padding: 12px 18px; border-radius: 15px; max-width: 80%; font-size: 14px; line-height: 1.5; word-wrap: break-word; }
+        .user { background: var(--accent); align-self: flex-end; margin-left: auto; border-bottom-right-radius: 2px; }
+        .bot { background: #1a1a1a; align-self: flex-start; border-bottom-left-radius: 2px; border: 1px solid #333; }
+        .input-area { background: #0a0a0a; padding: 20px; border-top: 1px solid #1a1a1a; display: flex; gap: 10px; }
+        input { flex: 1; background: #151515; border: 1px solid #222; padding: 12px; border-radius: 10px; color: #fff; outline: none; }
+        input:focus { border-color: var(--accent); }
+        button { background: var(--accent); color: #fff; padding: 0 20px; border-radius: 10px; font-weight: bold; transition: opacity 0.2s; }
+        button:active { opacity: 0.8; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+    <header class="p-5 border-b border-white/5 flex justify-between items-center">
+        <div>
+            <h1 class="font-bold tracking-tighter text-xl">XOS <span class="text-zinc-600">AI</span></h1>
+            <p class="text-[8px] tracking-[0.3em] text-zinc-500 uppercase">Neural Interface v1.0</p>
+        </div>
+        <div id="status" class="text-[10px] text-green-500 font-mono">● ONLINE</div>
+    </header>
+
+    <div class="chat-container flex flex-col" id="chatBox">
+        </div>
+
+    <div class="input-area">
+        <input type="text" id="userInput" placeholder="Type a message..." autocomplete="off">
+        <button onclick="sendMessage()">SEND</button>
+    </div>
+
+    <script>
+        // 1. EXTRACT USER NAME
+        // It checks the Parent Window first, then LocalStorage, then defaults to "User"
+        let userName = "User";
+        try {
+            userName = window.parent.userName || localStorage.getItem('userName') || "User";
+        } catch (e) {
+            userName = localStorage.getItem('userName') || "User";
+        }
+
+        const chatBox = document.getElementById('chatBox');
+
+        // Initial Greeting
+        window.onload = () => {
+            appendMessage(`System Initialized. How can I assist you, ${userName}?`, 'bot');
+        };
+
+        function appendMessage(text, side) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `msg ${side}`;
+            msgDiv.innerText = text;
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('userInput');
+            const text = input.value.trim();
+
+            if (!text) return;
+
+            // Append User Message
+            appendMessage(text, 'user');
+            input.value = '';
+
+            try {
+                // Dynamic System Prompt using the extracted Name
+                const systemPrompt = `You are XOS AI, a sleek, high-tech assistant for ${userName}. Keep responses concise and technical.`;
+                const response = await fetch(`https://text.pollinations.ai/${encodeURIComponent(text)}?model=openai&system=${encodeURIComponent(systemPrompt)}`);
+                
+                if (!response.ok) throw new Error();
+                const data = await response.text();
+
+                // Append Bot Message
+                appendMessage(data, 'bot');
+            } catch (err) {
+                appendMessage("System Error: Connection to Neural Link failed.", 'bot text-red-500');
+            }
+        }
+
+        // Allow 'Enter' key to send
+        document.getElementById('userInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+    </script>
+</body>
+</html>
