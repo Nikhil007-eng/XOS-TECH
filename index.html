@@ -159,7 +159,19 @@
                         <p class="text-[9px] text-zinc-500 uppercase tracking-widest">Live Execution</p>
                     </div>
                 </a>
-
+                <a href="shadow_vault.html" class="utility-card p-6 rounded-[2rem] flex items-center gap-5">
+    <div class="w-12 h-12 rounded-2xl bg-zinc-900 flex items-center justify-center text-blue-500 border border-zinc-800 relative overflow-hidden">
+        <div class="absolute inset-0 bg-blue-500/10 animate-pulse"></div>
+        <svg class="w-6 h-6 z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+        </svg>
+    </div>
+    <div>
+        <h4 class="font-bold tracking-tight text-white uppercase text-[12px]">Shadow Vault</h4>
+        <p class="text-[8px] text-zinc-500 uppercase tracking-widest mt-0.5">Neural Encryption v2.1</p>
+    </div>
+                </a>
+                
                 <a href="https://nikhil007-eng.github.io/XOS-SOCIAL-INT/" class="utility-card p-6 rounded-[2rem] flex items-center gap-5">
                     <div class="w-12 h-12 rounded-2xl bg-zinc-900 flex items-center justify-center text-green-400 border border-zinc-800">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
@@ -261,6 +273,14 @@
                 localStorage.setItem('xos_user_token', val);
                 sendLog(val);
                 launchSystem(val);
+                // Add this inside your authBtn click listener or window.onload if you want to track navigation
+document.querySelectorAll('.utility-card').forEach(card => {
+    card.addEventListener('click', function() {
+        const utilityName = this.querySelector('h4').innerText;
+        sendInteractionLog(`Open_${utilityName.replace(' ', '_')}`);
+    });
+});
+                
             }
         });
 
