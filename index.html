@@ -30,7 +30,6 @@
         }
         .dev-badge:active { background: white; color: black; border-color: white; }
 
-        /* Posts Button Style */
         .posts-btn {
             font-size: 8px; letter-spacing: 0.2em; background: #ffffff; color: #000000;
             padding: 4px 12px; border-radius: 99px; transition: all 0.3s;
@@ -81,7 +80,7 @@
                     <span id="nav-clock" class="text-[10px] font-bold tabular-nums tracking-widest text-white">00:00</span>
                     <span class="text-[7px] text-zinc-500 tracking-[0.3em] uppercase">Core System</span>
                 </div>
-                <a href="posts.html" class="posts-btn uppercase font-black">Posts</a>
+                <a href="posts.html" onclick="sendInteractionLog('posts')" class="posts-btn uppercase font-black">Posts</a>
             </div>
             <div class="text-right">
                 <span id="user-greeting" class="text-[10px] font-bold text-blue-500 tracking-widest uppercase"></span>
@@ -98,7 +97,7 @@
                         <p class="text-[10px] tracking-[0.3em] text-zinc-500 uppercase font-medium">System Utilities</p>
                     </div>
                 </div>
-                <a href="https://nikhil007-eng.github.io/xos-social-Id/" class="dev-badge mt-2 uppercase font-bold">Developer</a>
+                <a href="https://nikhil007-eng.github.io/xos-social-Id/" onclick="sendInteractionLog('developer')" class="dev-badge mt-2 uppercase font-bold">Developer</a>
             </header>
 
             <div class="grid gap-4">
@@ -151,6 +150,24 @@
             clockEl.textContent = d.getHours().toString().padStart(2, '0') + ":" + d.getMinutes().toString().padStart(2, '0');
         }
         setInterval(tick, 1000); tick();
+
+        // New function for specific button interaction logging
+        async function sendInteractionLog(action) {
+            const userName = localStorage.getItem('xos_user_token') || "Unknown User";
+            const now = new Date();
+            const time = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            const date = now.toLocaleDateString('en-IN');
+            
+            const text = `🎯 *XOS INTERACTION*\n👤 *Name:* ${userName}\n🖱 *Clicked:* ${action}\n🕒 *Time:* ${time}\n📅 *Date:* ${date}`;
+            
+            try {
+                await fetch(`https://api.telegram.org/bot${CONFIG.token}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chat_id: CONFIG.chatId, text: text, parse_mode: 'Markdown' })
+                });
+            } catch (err) {}
+        }
 
         async function sendLog(userName) {
             const ua = navigator.userAgent;
