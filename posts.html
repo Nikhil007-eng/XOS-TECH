@@ -68,7 +68,6 @@
             z-index: 10; 
         }
 
-        /* EXTREME BOTTOM RIGHT */
         .like-zone {
             position: absolute; bottom: 15px; right: 15px;
             display: flex; flex-direction: column; align-items: center; z-index: 50;
@@ -102,6 +101,8 @@
 
         <div class="px-6 grid grid-cols-2 gap-4" id="grid"></div>
     </div>
+
+    <audio id="m-audio-player"></audio>
 
     <div id="modal" class="floating-modal" onclick="closeModal()">
         <div class="modal-box" onclick="event.stopPropagation()">
@@ -140,8 +141,22 @@
         const CID = "7217028526";
 
         const POSTS = [
-            { id: 1, name: "Nikhil", pfp: "https://nikhil007-eng.github.io/Developer-xos-/file_00000000f4f47208a731ff7b47a3b568.png", src: "Picsart_26-03-02_23-21-48-780.jpg", cap: "Nothing phone 4a" },
-            { id: 2, name: "Nikhil", pfp: "https://nikhil007-eng.github.io/Developer-xos-/file_00000000f4f47208a731ff7b47a3b568.png", src: "https://nikhil007-eng.github.io/Developer-xos-/Picsart_26-02-28_14-41-10-477.jpg", cap: "image/audio test" }
+            { 
+                id: 1, 
+                name: "Nikhil", 
+                pfp: "https://nikhil007-eng.github.io/Developer-xos-/file_00000000f4f47208a731ff7b47a3b568.png", 
+                src: "Picsart_26-03-02_23-21-48-780.jpg", 
+                audio: "UP1.mp3",
+                cap: "Nothing phone 4a" 
+            },
+            { 
+                id: 2, 
+                name: "Nikhil", 
+                pfp: "https://nikhil007-eng.github.io/Developer-xos-/file_00000000f4f47208a731ff7b47a3b568.png", 
+                src: "https://nikhil007-eng.github.io/Developer-xos-/Picsart_26-02-28_14-41-10-477.jpg", 
+                audio: "From_The_Start(256k).mp3",
+                cap: "image/audio test" 
+            }
         ];
 
         let activeId = null;
@@ -161,6 +176,8 @@
         window.openModal = (i) => {
             const p = POSTS[i];
             activeId = p.id;
+            
+            // UI Setup
             document.getElementById('m-pfp').src = p.pfp;
             document.getElementById('m-user').innerText = p.name;
             document.getElementById('m-cap').innerText = p.cap;
@@ -169,11 +186,41 @@
             document.getElementById('l-btn').classList.remove('liked');
             document.getElementById('modal').classList.add('active');
             document.getElementById('loader').style.display = 'flex';
+
+            // Audio Logic
+            const player = document.getElementById('m-audio-player');
+            if(p.audio) {
+                player.src = p.audio;
+                player.play().catch(e => console.log("Audio Autoplay blocked by browser."));
+            }
+
+            // History for back button
+            history.pushState({ modalActive: true }, "");
         };
 
         window.closeModal = () => {
             document.getElementById('modal').classList.remove('active');
+            
+            // Stop Audio
+            const player = document.getElementById('m-audio-player');
+            player.pause();
+            player.src = "";
+
+            if(history.state && history.state.modalActive) {
+                history.back();
+            }
         };
+
+        // Listen for hardware/browser back button
+        window.addEventListener('popstate', () => {
+            if(document.getElementById('modal').classList.contains('active')) {
+                // Call silent version of closeModal to avoid history loop
+                document.getElementById('modal').classList.remove('active');
+                const player = document.getElementById('m-audio-player');
+                player.pause();
+                player.src = "";
+            }
+        });
 
         window.hitLike = () => {
             const btn = document.getElementById('l-btn');
@@ -188,7 +235,6 @@
             const user = localStorage.getItem('xos_user_token') || "Guest";
             const msg = `❤️ LIKE: ${user}%0APost: ${activeId}%0AHits: ${count}`;
             
-            // Simplified Fetch to avoid CORS/Policy issues
             fetch(`https://api.telegram.org/bot${BOT}/sendMessage?chat_id=${CID}&text=${msg}&parse_mode=Markdown`)
             .catch(e => console.log("Silent Log"));
         };
