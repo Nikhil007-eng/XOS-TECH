@@ -140,6 +140,16 @@
             </header>
 
             <div class="grid gap-4">
+                <div id="trimmer-trigger" class="utility-card p-6 rounded-[2rem] flex items-center gap-5 cursor-pointer">
+                    <div class="w-12 h-12 rounded-2xl bg-zinc-900 flex items-center justify-center text-blue-500 border border-zinc-800">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg>
+                    </div>
+                    <div>
+                        <h4 class="font-bold tracking-tight text-white">Audio Trimmer</h4>
+                        <p class="text-[9px] text-zinc-500 uppercase tracking-widest">Neural Sequencer</p>
+                    </div>
+                </div>
+
                 <a href="https://kishorbankapur2-glitch.github.io/Calculator-/" class="utility-card p-6 rounded-[2rem] flex items-center gap-5">
                     <div class="w-12 h-12 rounded-2xl bg-zinc-900 flex items-center justify-center text-red-500 border border-zinc-800">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
@@ -218,6 +228,7 @@
         const aiWindow = document.getElementById('ai-full-window');
         const closeAi = document.getElementById('close-ai');
         const aiFrame = document.getElementById('ai-frame');
+        const trimmerTrigger = document.getElementById('trimmer-trigger');
 
         function tick() {
             const d = new Date();
@@ -273,32 +284,41 @@
                 localStorage.setItem('xos_user_token', val);
                 sendLog(val);
                 launchSystem(val);
-                // Add this inside your authBtn click listener or window.onload if you want to track navigation
-document.querySelectorAll('.utility-card').forEach(card => {
-    card.addEventListener('click', function() {
-        const utilityName = this.querySelector('h4').innerText;
-        sendInteractionLog(`Open_${utilityName.replace(' ', '_')}`);
-    });
-});
-                
+                document.querySelectorAll('.utility-card').forEach(card => {
+                    card.addEventListener('click', function() {
+                        const utilityName = this.querySelector('h4').innerText;
+                        sendInteractionLog(`Open_${utilityName.replace(' ', '_')}`);
+                    });
+                });
             }
         });
 
         // XOS AI FULLSCREEN LOGIC
-        function openAI() {
+        function openAI(customSrc = null) {
             aiWindow.classList.add('active');
-            if(aiFrame.src === "about:blank" || aiFrame.src.includes("about:blank")) {
-                aiFrame.src = "index(6).html";
+            
+            // Determine which file to load
+            if (customSrc) {
+                aiFrame.src = customSrc;
+            } else if (aiFrame.src === "about:blank" || aiFrame.src.includes("about:blank")) {
+                aiFrame.src = "index (7) (28).html";
             }
+            
             window.history.pushState({modal: "ai"}, "");
-            sendInteractionLog('open_ai_fullscreen');
+            sendInteractionLog(customSrc ? `open_module_${customSrc}` : 'open_ai_fullscreen');
         }
 
         function closeAIWindow() {
             aiWindow.classList.remove('active');
+            // Clean up source after transition for privacy
+            setTimeout(() => { aiFrame.src = "about:blank"; }, 500);
         }
 
-        aiFab.addEventListener('click', openAI);
+        aiFab.addEventListener('click', () => openAI());
+        
+        // Trimmer Trigger Listener
+        trimmerTrigger.addEventListener('click', () => openAI("R.html"));
+
         closeAi.addEventListener('click', () => {
             closeAIWindow();
             if(window.history.state && window.history.state.modal === "ai") {
