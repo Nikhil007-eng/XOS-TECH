@@ -1364,5 +1364,85 @@ function audioBufferToWav(buffer) {
   return new Blob([ab], { type: 'audio/wav' });
 }
 </script>
+  <div class="visualizer-container" style="margin-top: 20px;">
+  <span class="section-label" style="display: block; margin-bottom: 12px;">Live Frequency Runtime</span>
+  <div id="runtimeVisualizer" style="display: flex; align-items: flex-end; gap: 2px; height: 60px; width: 100%; padding-bottom: 4px; border-bottom: 1px solid var(--border);">
+    </div>
+</div>
+
+<script>
+// --- ADD THESE VARIABLES TO THE STATE SECTION ---
+let audioSourceNode;
+let audioAnalyzer;
+let visualData;
+const visualBars = [];
+const BAR_COUNT = 32;
+
+// --- ADD THIS INITIALIZATION LOGIC ---
+function initLiveVisualizer() {
+  const container = document.getElementById('runtimeVisualizer');
+  container.innerHTML = ''; // Clear
+  for (let i = 0; i < BAR_COUNT; i++) {
+    const bar = document.createElement('div');
+    bar.style.flex = "1";
+    bar.style.background = "linear-gradient(to top, var(--accent) 0%, #00d2ff 100%)";
+    bar.style.borderRadius = "1px 1px 0 0";
+    bar.style.height = "2px";
+    bar.style.opacity = "0.4";
+    bar.style.transition = "height 0.05s ease, opacity 0.2s ease";
+    container.appendChild(bar);
+    visualBars.push(bar);
+  }
+}
+
+// --- MODIFY THE WAVESURFER 'DECODE' EVENT ---
+ws.on('decode', () => {
+  // Existing decode logic ...
+  initLiveVisualizer();
+  
+  // Connect Web Audio nodes for live analysis
+  if (!audioAnalyzer) {
+    const audioCtx = ws.getAudioContext();
+    audioAnalyzer = audioCtx.createAnalyser();
+    audioAnalyzer.fftSize = 128; // Higher resolution for smooth bars
+    visualData = new Uint8Array(audioAnalyzer.frequencyBinCount);
+    
+    // Connect Wavesurfer's internal output to our analyzer
+    ws.on('play', () => {
+        const media = ws.getMediaElement();
+        if(!audioSourceNode) {
+            audioSourceNode = audioCtx.createMediaElementSource(media);
+            audioSourceNode.connect(audioAnalyzer);
+            audioAnalyzer.connect(audioCtx.destination);
+        }
+        renderVisualizer();
+    });
+  }
+});
+
+// --- THE RENDER LOOP ---
+function renderVisualizer() {
+  if (!ws.isPlaying()) {
+    visualBars.forEach(bar => { 
+        bar.style.height = "2px"; 
+        bar.style.opacity = "0.2";
+    });
+    return;
+  }
+
+  requestAnimationFrame(renderVisualizer);
+  audioAnalyzer.getByteFrequencyData(visualData);
+
+  for (let i = 0; i < BAR_COUNT; i++) {
+    // We skip the very low and very high frequencies for better visual balance
+    const val = visualData[i + 2] || 0; 
+    const height = (val / 255) * 60;
+    
+    visualBars[i].style.height = `${Math.max(2, height)}px`;
+    visualBars[i].style.opacity = 0.2 + (height / 60);
+  }
+}
+      </script>
+  
 </body>
 </html>
