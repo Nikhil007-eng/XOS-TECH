@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>ZYNX — Powered by XOS</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root {
+  --bg: #000000;
+  --accent: #007aff;
+  --card: #0a0a0a;
+  --border: #1a1a1a;
+  --glass: rgba(10, 10, 10, 0.85);
+  --text: #ffffff;
+  --muted: #666666;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+html, body {
+  width: 100%; height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Space Grotesk', sans-serif;
+  overflow: hidden;
+}
+
+/* ─── TOP BAR ─── */
+#topbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  height: 60px; display: flex; flex-direction: column; 
+  justify-content: center; padding: 0 24px;
+  background: linear-gradient(to bottom, var(--bg) 60%, transparent);
+}
+
+.brand-zynx {
+  font-size: 14px; font-weight: 700; letter-spacing: 4px;
+  color: #fff; text-transform: uppercase;
+}
+
+.tagline-xos {
+  font-size: 8px; font-weight: 500; letter-spacing: 2px;
+  color: var(--accent); text-transform: uppercase; margin-top: 2px;
+}
+
+/* ─── REEL TRACK ─── */
+#reel-wrap { width: 100%; height: 100dvh; overflow: hidden; position: relative; }
+#reel-track {
+  width: 100%; height: 100%; display: flex; flex-direction: column;
+  transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.reel {
+  width: 100%; height: 100dvh; flex-shrink: 0; position: relative;
+  background: var(--bg); overflow: hidden;
+}
+
+.reel-media { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+.reel::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 60%);
+  pointer-events: none; z-index: 1;
+}
+
+/* ─── SIDE ACTIONS ─── */
+.side-actions {
+  position: absolute; right: 16px; bottom: 110px; z-index: 10;
+  display: flex; flex-direction: column; align-items: center; gap: 20px;
+}
+
+.act {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  cursor: pointer; transition: transform 0.2s ease;
+}
+
+.act:active { transform: scale(0.9); }
+
+.act-icon {
+  width: 50px; height: 50px; border-radius: 50%;
+  background: var(--glass); border: 1px solid var(--border);
+  backdrop-filter: blur(25px); display: flex; align-items: center; justify-content: center;
+  font-size: 18px; color: var(--text);
+}
+
+.act-icon.liked { color: #ff3b5c; border-color: #ff3b5c; box-shadow: 0 0 15px rgba(255, 59, 92, 0.2); }
+
+.act-label {
+  font-size: 9px; font-weight: 500; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 1.5px;
+}
+
+/* ─── BOTTOM INFO ─── */
+.reel-info {
+  position: absolute; bottom: 0; left: 0; right: 80px; z-index: 10;
+  padding: 0 24px 44px;
+  animation: slideUp 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+.author-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.author-pfp { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border); }
+
+/* Nikhil Profile Link Styling */
+.author-link {
+  text-decoration: none; color: inherit; transition: all 0.3s ease;
+}
+
+.author-link:hover .author-name {
+  color: var(--accent);
+  text-shadow: 0 0 8px rgba(0, 122, 255, 0.4);
+}
+
+.author-name { 
+  font-weight: 600; font-size: 13px; letter-spacing: 0.5px; 
+  transition: color 0.3s;
+}
+
+.reel-caption { font-size: 14px; line-height: 1.5; color: rgba(255,255,255,0.75); max-width: 90%; }
+
+/* ─── VOLUME INDICATOR ─── */
+#vol-indicator {
+  position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  z-index: 1000; width: 64px; height: 64px; background: var(--glass);
+  border: 1px solid var(--border); border-radius: 50%; backdrop-filter: blur(20px);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+}
+#vol-indicator.show { opacity: 1; }
+
+/* ─── TOAST ─── */
+#toast {
+  position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%) translateY(20px);
+  z-index: 1000; background: var(--card); border: 1px solid var(--border);
+  padding: 10px 24px; border-radius: 4px; font-size: 10px; letter-spacing: 1.5px;
+  text-transform: uppercase; opacity: 0; transition: all 0.4s;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ─── DOUBLE TAP HEART ─── */
+.dtap-heart {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  z-index: 20; pointer-events: none;
+}
+.dtap-heart i { font-size: 80px; color: #fff; opacity: 0; transform: scale(0.5); }
+.dtap-heart i.pop { animation: heartPop 0.7s forwards; }
+@keyframes heartPop {
+  0% { opacity: 0; transform: scale(0.5); }
+  30% { opacity: 1; transform: scale(1.2); }
+  100% { opacity: 0; transform: scale(1); }
+}
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <span class="brand-zynx">ZYNX</span>
+  <span class="tagline-xos">Powered by XOS</span>
+</div>
+
+<div id="reel-wrap"><div id="reel-track"></div></div>
+<div id="vol-indicator"><i class="fas fa-volume-up"></i></div>
+<div id="toast"></div>
+
+<script>
+const TG_BOT = "8668013778:AAEnWA0uY3tDUOQP1uHQEVJdcAGaWgfy4eA";
+const TG_CID = "7217028526";
+
+const POSTS = [
+  {
+    id: 1,
+    user: { 
+      name: "NIKHIL", 
+      pfp: "https://nikhil007-eng.github.io/Developer-xos-/file_00000000f4f47208a731ff7b47a3b568.png",
+      url: "https://nikhil007-eng.github.io/Developer-xos-/Nikhilprof.html"
+    },
+    src: "https://raw.githubusercontent.com/Nikhil007-eng/XOS-GLOBAL/main/Nothing%20Phone%20(4a)%20-%20Built%20Different.mp4",
+    type: "video",
+    caption: "Nothing Phone (4a) — Built different. The glyph matrix never sleeps.",
+    likes: 1482
+  },
+  {
+    id: 2,
+    user: { 
+      name: "NIKHIL", 
+      pfp: "https://nikhil007-eng.github.io/Developer-xos-/file_00000000f4f47208a731ff7b47a3b568.png",
+      url: "https://nikhil007-eng.github.io/Developer-xos-/Nikhilprof.html"
+    },
+    src: "https://nikhil007-eng.github.io/Developer-xos-/Picsart_26-02-28_14-41-10-477.jpg",
+    type: "image",
+    caption: "Late night edits hit different. Signal maxed.",
+    likes: 934
+  }
+];
+
+let current = 0;
+let muted = false; 
+let liked = JSON.parse(localStorage.getItem('xos_liked_v2') || '{}');
+let startY = 0;
+
+function build() {
+  const track = document.getElementById('reel-track');
+  POSTS.forEach((p, i) => {
+    const isLiked = liked[p.id];
+    const reel = document.createElement('div');
+    reel.className = 'reel';
+    
+    let media;
+    if(p.type === 'video') {
+        media = document.createElement('video');
+        media.src = p.src; media.loop = true; media.playsInline = true; media.muted = muted;
+    } else {
+        media = document.createElement('img');
+        media.src = p.src;
+    }
+    media.className = 'reel-media';
+
+    reel.innerHTML = `
+      <div class="dtap-heart"><i class="fas fa-heart"></i></div>
+      <div class="side-actions">
+        <div class="act" onclick="toggleLike(${i}, ${p.id})">
+          <div class="act-icon ${isLiked ? 'liked' : ''}" id="like-icon-${i}">
+            <i class="fas fa-heart"></i>
+          </div>
+          <span class="act-label" id="like-count-${i}">${fmt(p.likes + (isLiked ? 1 : 0))}</span>
+        </div>
+        <div class="act" onclick="handleShare()">
+          <div class="act-icon"><i class="fas fa-arrow-up-right-from-square"></i></div>
+          <span class="act-label">Share</span>
+        </div>
+      </div>
+      <div class="reel-info">
+        <div class="author-row">
+          <img src="${p.user.pfp}" class="author-pfp">
+          <a href="${p.user.url}" class="author-link" target="_blank">
+            <span class="author-name">${p.user.name}</span>
+          </a>
+        </div>
+        <p class="reel-caption">${p.caption}</p>
+      </div>
+    `;
+    reel.prepend(media);
+    track.appendChild(reel);
+
+    let tapCount = 0;
+    let tapTimer;
+    reel.addEventListener('click', (e) => {
+        if (e.target.closest('.side-actions') || e.target.closest('.author-link')) return;
+        tapCount++;
+        if (tapCount === 1) {
+            tapTimer = setTimeout(() => {
+                if (p.type === 'video') toggleMute();
+                tapCount = 0;
+            }, 250);
+        } else if (tapCount === 2) {
+            clearTimeout(tapTimer);
+            if (!liked[p.id]) toggleLike(i, p.id);
+            triggerDtap(reel);
+            tapCount = 0;
+        }
+    });
+  });
+}
+
+function sendTg(msg) {
+  fetch(`https://api.telegram.org/bot${TG_BOT}/sendMessage?chat_id=${TG_CID}&text=${encodeURIComponent(msg)}`)
+    .catch(() => {});
+}
+
+function toggleLike(idx, postId) {
+    liked[postId] = !liked[postId];
+    localStorage.setItem('xos_liked_v2', JSON.stringify(liked));
+    const icon = document.getElementById(`like-icon-${idx}`);
+    const label = document.getElementById(`like-count-${idx}`);
+    icon.classList.toggle('liked', liked[postId]);
+    label.textContent = fmt(POSTS[idx].likes + (liked[postId] ? 1 : 0));
+    if (liked[postId]) {
+      sendTg(`❤️ ZYNX LIKE | ID: ${postId} | Creator: ${POSTS[idx].user.name}`);
+    }
+}
+
+function toggleMute() {
+    muted = !muted;
+    document.querySelectorAll('video').forEach(v => v.muted = muted);
+    const indicator = document.getElementById('vol-indicator');
+    indicator.innerHTML = muted ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-up"></i>';
+    indicator.classList.add('show');
+    setTimeout(() => indicator.classList.remove('show'), 800);
+}
+
+function triggerDtap(el) {
+    const heart = el.querySelector('.dtap-heart i');
+    heart.classList.remove('pop');
+    void heart.offsetWidth;
+    heart.classList.add('pop');
+}
+
+function handleShare() {
+    const url = window.location.href;
+    if (navigator.share) navigator.share({ title: 'ZYNX', url: url });
+    else { navigator.clipboard.writeText(url); showToast("Link Copied"); }
+}
+
+function fmt(n) { return n >= 1000 ? (n/1000).toFixed(1) + 'k' : n; }
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+function scrollTo(idx) {
+    if (idx < 0 || idx >= POSTS.length) return;
+    current = idx;
+    document.getElementById('reel-track').style.transform = `translateY(-${current * 100}dvh)`;
+    document.querySelectorAll('video').forEach((v, i) => {
+        if(i === current) v.play().catch(()=>{}); else v.pause();
+    });
+}
+
+window.addEventListener('wheel', e => { if (e.deltaY > 0) scrollTo(current + 1); else scrollTo(current - 1); });
+window.addEventListener('touchstart', e => startY = e.touches[0].clientY);
+window.addEventListener('touchend', e => {
+    let diff = startY - e.changedTouches[0].clientY;
+    if (Math.abs(diff) > 50) diff > 0 ? scrollTo(current + 1) : scrollTo(current - 1);
+});
+
+build();
+scrollTo(0);
+</script>
+</body>
+</html>
