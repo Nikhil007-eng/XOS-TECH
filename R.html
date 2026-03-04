@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>XOS // TRIM</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/wavesurfer.js@7.7.15/dist/wavesurfer.min.js"></script>
+<script src="https://unpkg.com/wavesurfer.js@7.7.15/dist/plugins/regions.min.js"></script>
+<style>
+:root {
+  --bg: #050507;
+  --bg2: #0a0a0f;
+  --panel: rgba(14,14,20,0.95);
+  --border: rgba(255,255,255,0.07);
+  --border-bright: rgba(255,255,255,0.14);
+  --accent: #0a84ff;
+  --accent2: #30d158;
+  --accent3: #ff453a;
+  --accent-glow: rgba(10,132,255,0.18);
+  --text: #ffffff;
+  --text2: rgba(255,255,255,0.5);
+  --text3: rgba(255,255,255,0.25);
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'IBM Plex Sans', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; outline: none; }
+
+html, body {
+  width: 100%; height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  overflow: hidden;
+}
+
+/* NOISE GRAIN */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.5;
+}
+
+/* ---- LAYOUT ---- */
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0;
+  position: relative;
+  z-index: 1;
+}
+
+/* ---- TOPBAR ---- */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 28px 14px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.logo {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.25em;
+  color: var(--text3);
+  text-transform: uppercase;
+}
+
+.logo span { color: var(--accent); }
+
+.file-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.file-name {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text2);
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-pill {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  color: var(--text3);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+  border-radius: 100px;
+}
+
+/* ---- MAIN AREA ---- */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+}
+
+/* ---- DROP ZONE ---- */
+.drop-zone {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+}
+
+.drop-zone.drag-over { background: rgba(10,132,255,0.04); }
+
+.drop-icon {
+  width: 72px;
+  height: 72px;
+  border: 1px solid var(--border-bright);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.03);
+  transition: all 0.3s;
+}
+.drop-zone:hover .drop-icon, .drop-zone.drag-over .drop-icon {
+  border-color: var(--accent);
+  background: var(--accent-glow);
+}
+.drop-icon svg { opacity: 0.5; transition: opacity 0.3s; }
+.drop-zone:hover .drop-icon svg, .drop-zone.drag-over .drop-icon svg { opacity: 1; }
+
+.drop-label {
+  font-size: 13px;
+  color: var(--text2);
+  font-weight: 400;
+}
+
+.drop-sub {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 0.1em;
+}
+
+/* ---- EDITOR (shown after load) ---- */
+.editor { display: none; flex-direction: column; flex: 1; overflow: hidden; }
+.editor.active { display: flex; }
+
+/* ---- WAVEFORM SECTION ---- */
+.wave-section {
+  padding: 24px 28px 0;
+  flex-shrink: 0;
+}
+
+.wave-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.section-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: var(--text3);
+  text-transform: uppercase;
+}
+
+.zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.zoom-btn {
+  width: 26px; height: 26px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+  font-family: var(--mono);
+}
+.zoom-btn:hover { background: rgba(255,255,255,0.08); color: #fff; }
+
+#waveform {
+  width: 100%;
+  height: 110px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border);
+  cursor: crosshair;
+}
+
+/* ---- TIMELINE RULER ---- */
+.ruler-wrap {
+  position: relative;
+  height: 22px;
+  margin-top: 6px;
+  overflow: hidden;
+}
+
+#ruler {
+  width: 100%;
+  height: 22px;
+  display: block;
+}
+
+/* ---- TRIM HANDLES DISPLAY ---- */
+.trim-bar {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  margin-top: 10px;
+  height: 28px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.02);
+  position: relative;
+}
+
+.trim-pre, .trim-post {
+  background: rgba(255,255,255,0.03);
+  flex-shrink: 0;
+  transition: width 0.05s;
+}
+
+.trim-active {
+  background: rgba(10,132,255,0.15);
+  border-left: 2px solid var(--accent);
+  border-right: 2px solid var(--accent);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.05s;
+}
+
+.trim-active-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--accent);
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 6px;
+}
+
+/* ---- CONTROLS ---- */
+.controls-section {
+  flex: 1;
+  padding: 20px 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+}
+
+/* ---- TIME INPUTS ---- */
+.time-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 10px;
+  align-items: center;
+}
+
+.time-field {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  cursor: text;
+  transition: border-color 0.2s;
+}
+.time-field:focus-within { border-color: var(--accent); }
+
+.time-field-label {
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 0.2em;
+  color: var(--text3);
+  text-transform: uppercase;
+}
+
+.time-field input {
+  background: none;
+  border: none;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 400;
+  width: 100%;
+  letter-spacing: 0.05em;
+}
+.time-field input::placeholder { color: var(--text3); }
+
+.time-arrow {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text3);
+  text-align: center;
+}
+
+.duration-chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10,132,255,0.08);
+  border: 1px solid rgba(10,132,255,0.2);
+  border-radius: 100px;
+  padding: 6px 14px;
+  gap: 8px;
+}
+
+.dur-label { font-family: var(--mono); font-size: 9px; color: var(--text3); letter-spacing: 0.15em; }
+.dur-val { font-family: var(--mono); font-size: 12px; color: var(--accent); font-weight: 500; }
+
+/* ---- STATS ROW ---- */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.stat-box {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.stat-label { font-family: var(--mono); font-size: 8px; color: var(--text3); letter-spacing: 0.12em; text-transform: uppercase; }
+.stat-val { font-family: var(--mono); font-size: 12px; color: var(--text2); font-weight: 500; }
+.stat-val.green { color: var(--accent2); }
+.stat-val.blue { color: var(--accent); }
+
+/* ---- TRANSPORT ---- */
+.transport {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.t-btn {
+  height: 44px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 12px;
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  font-weight: 500;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 16px;
+  white-space: nowrap;
+}
+
+.t-btn:hover { background: rgba(255,255,255,0.09); border-color: var(--border-bright); }
+.t-btn:active { transform: scale(0.97); }
+.t-btn:disabled { opacity: 0.2; pointer-events: none; }
+
+.t-btn.play-btn {
+  width: 56px; height: 56px;
+  border-radius: 16px;
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 4px 20px rgba(10,132,255,0.35);
+  font-size: 18px;
+  padding: 0;
+  flex-shrink: 0;
+}
+.t-btn.play-btn:hover { background: #2a94ff; box-shadow: 0 6px 28px rgba(10,132,255,0.5); }
+
+.t-btn.loop-btn.active { 
+  background: rgba(48,209,88,0.1); 
+  border-color: rgba(48,209,88,0.4); 
+  color: var(--accent2);
+}
+
+.t-spacer { flex: 1; }
+
+/* ---- VOLUME ---- */
+.vol-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.vol-label { font-family: var(--mono); font-size: 9px; color: var(--text3); letter-spacing: 0.12em; width: 40px; }
+.vol-val { font-family: var(--mono); font-size: 10px; color: var(--text2); width: 36px; text-align: right; }
+
+input[type=range] {
+  -webkit-appearance: none;
+  flex: 1;
+  height: 3px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 2px;
+  outline: none;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px; height: 14px;
+  background: #fff;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+}
+
+/* ---- EXPORT ROW ---- */
+.export-row {
+  display: flex;
+  gap: 8px;
+}
+
+.export-btn {
+  flex: 1;
+  height: 48px;
+  background: var(--accent);
+  border: none;
+  border-radius: 14px;
+  color: #fff;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+  text-transform: uppercase;
+  box-shadow: 0 4px 20px rgba(10,132,255,0.25);
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.export-btn:hover { background: #2a94ff; box-shadow: 0 6px 28px rgba(10,132,255,0.4); }
+.export-btn:active { transform: scale(0.98); }
+.export-btn:disabled { opacity: 0.25; pointer-events: none; }
+
+.export-btn.secondary {
+  flex: 0;
+  padding: 0 18px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  box-shadow: none;
+  color: var(--text2);
+}
+.export-btn.secondary:hover { background: rgba(255,255,255,0.09); box-shadow: none; }
+
+/* ---- PROGRESS OVERLAY ---- */
+.progress-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(20px);
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+.progress-overlay.show { display: flex; }
+
+.progress-card {
+  background: var(--panel);
+  border: 1px solid var(--border-bright);
+  border-radius: 24px;
+  padding: 36px 40px;
+  text-align: center;
+  min-width: 260px;
+}
+
+.progress-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--text3);
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+.progress-bar-wrap {
+  background: rgba(255,255,255,0.06);
+  border-radius: 100px;
+  height: 3px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 100px;
+  width: 0%;
+  transition: width 0.2s;
+}
+
+.progress-pct {
+  font-family: var(--mono);
+  font-size: 28px;
+  color: var(--accent);
+  font-weight: 300;
+}
+
+/* ---- SAVE MODAL ---- */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.88);
+  backdrop-filter: blur(24px);
+  align-items: center;
+  justify-content: center;
+  z-index: 150;
+}
+.modal-overlay.show { display: flex; }
+
+.modal-card {
+  background: var(--panel);
+  border: 1px solid var(--border-bright);
+  border-radius: 24px;
+  padding: 32px 28px;
+  width: 90%;
+  max-width: 360px;
+}
+
+.modal-title {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.25em;
+  color: var(--text3);
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+.modal-input-wrap {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: border-color 0.2s;
+}
+.modal-input-wrap:focus-within { border-color: var(--accent); }
+
+.modal-input-label { font-family: var(--mono); font-size: 8px; color: var(--text3); letter-spacing: 0.15em; }
+.modal-input {
+  background: none;
+  border: none;
+  color: #fff;
+  font-family: var(--mono);
+  font-size: 14px;
+  width: 100%;
+}
+
+.format-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.fmt-btn {
+  flex: 1;
+  padding: 10px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text2);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.15s;
+}
+.fmt-btn.active {
+  background: rgba(10,132,255,0.12);
+  border-color: rgba(10,132,255,0.5);
+  color: var(--accent);
+}
+
+.modal-actions { display: flex; gap: 8px; }
+
+.modal-btn {
+  flex: 1;
+  height: 44px;
+  border-radius: 12px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.04);
+  color: var(--text2);
+  transition: all 0.15s;
+}
+.modal-btn:hover { background: rgba(255,255,255,0.08); }
+.modal-btn.confirm {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(10,132,255,0.3);
+}
+.modal-btn.confirm:hover { background: #2a94ff; }
+
+/* ---- TOAST ---- */
+.toast {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: rgba(22,22,28,0.96);
+  border: 1px solid var(--border-bright);
+  border-radius: 100px;
+  padding: 10px 20px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text2);
+  letter-spacing: 0.08em;
+  z-index: 300;
+  transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
+  pointer-events: none;
+  white-space: nowrap;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent2); display: inline-block; margin-right: 8px; vertical-align: middle; }
+
+/* ---- VU METER ---- */
+.vu-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.vu-label { font-family: var(--mono); font-size: 9px; color: var(--text3); width: 18px; text-align: center; }
+.vu-bar { flex: 1; height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden; }
+.vu-fill { height: 100%; width: 0%; border-radius: 2px; background: linear-gradient(90deg, var(--accent2) 0%, #ffd60a 70%, var(--accent3) 100%); transition: width 0.08s; }
+
+/* ---- SCROLLBAR ---- */
+.controls-section::-webkit-scrollbar { width: 3px; }
+.controls-section::-webkit-scrollbar-track { background: transparent; }
+.controls-section::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+/* ANIMATE IN */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.app { animation: fadeUp 0.6s cubic-bezier(0.16,1,0.3,1); }
+
+input[type=file] { display: none; }
+
+/* HOTKEY HINT */
+.hotkey-hint {
+  font-family: var(--mono);
+  font-size: 8px;
+  color: var(--text3);
+  letter-spacing: 0.1em;
+  text-align: center;
+}
+kbd {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-family: var(--mono);
+  font-size: 8px;
+}
+
+@media (max-width: 500px) {
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .topbar { padding: 14px 18px; }
+  .wave-section { padding: 16px 18px 0; }
+  .controls-section { padding: 16px 18px 20px; }
+}
+</style>
+</head>
+<body>
+
+<input type="file" id="fileInput" accept="audio/*">
+
+<div class="app">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="logo">XOS // <span>TRIM</span></div>
+    <div class="file-meta">
+      <div class="file-name" id="topFileName">No file loaded</div>
+      <div class="file-pill" id="topFilePill">READY</div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- DROP ZONE -->
+    <div class="drop-zone" id="dropZone">
+      <div class="drop-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5">
+          <path d="M9 19V6l12-3v13M9 19c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2zm12-3c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2z"/>
+        </svg>
+      </div>
+      <div class="drop-label">Drop audio file or click to load</div>
+      <div class="drop-sub">MP3 · WAV · M4A · OGG · FLAC · AAC</div>
+    </div>
+
+    <!-- EDITOR -->
+    <div class="editor" id="editor">
+
+      <!-- WAVEFORM -->
+      <div class="wave-section">
+        <div class="wave-header">
+          <span class="section-label">Waveform</span>
+          <div class="zoom-controls">
+            <button class="zoom-btn" id="zoomOut" title="Zoom out">−</button>
+            <button class="zoom-btn" id="zoomReset" title="Reset zoom">⊙</button>
+            <button class="zoom-btn" id="zoomIn" title="Zoom in">+</button>
+          </div>
+        </div>
+        <div id="waveform"></div>
+        <canvas id="ruler" class="ruler-wrap"></canvas>
+        <div class="trim-bar" id="trimBar">
+          <div class="trim-pre" id="trimPre"></div>
+          <div class="trim-active" id="trimActive">
+            <span class="trim-active-label" id="trimActiveLabel">SELECTION</span>
+          </div>
+          <div class="trim-post" id="trimPost"></div>
+        </div>
+      </div>
+
+      <!-- CONTROLS -->
+      <div class="controls-section">
+
+        <!-- TIME INPUTS -->
+        <div class="time-row">
+          <div class="time-field">
+            <span class="time-field-label">Trim In</span>
+            <input type="text" id="startInput" placeholder="00:00.000" spellcheck="false">
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+            <div class="time-arrow">→</div>
+            <div class="duration-chip">
+              <span class="dur-label">DUR</span>
+              <span class="dur-val" id="durDisplay">0.000</span>
+            </div>
+          </div>
+          <div class="time-field">
+            <span class="time-field-label">Trim Out</span>
+            <input type="text" id="endInput" placeholder="00:00.000" spellcheck="false">
+          </div>
+        </div>
+
+        <!-- STATS -->
+        <div class="stats-row">
+          <div class="stat-box">
+            <span class="stat-label">Total</span>
+            <span class="stat-val blue" id="statTotal">—</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">Sample Rate</span>
+            <span class="stat-val" id="statSR">—</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">Channels</span>
+            <span class="stat-val" id="statCh">—</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">Trim Size</span>
+            <span class="stat-val green" id="statSize">—</span>
+          </div>
+        </div>
+
+        <!-- VU METERS -->
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <span class="section-label">Level</span>
+          <div class="vu-row">
+            <span class="vu-label">L</span>
+            <div class="vu-bar"><div class="vu-fill" id="vuL"></div></div>
+          </div>
+          <div class="vu-row">
+            <span class="vu-label">R</span>
+            <div class="vu-bar"><div class="vu-fill" id="vuR"></div></div>
+          </div>
+        </div>
+
+        <!-- VOLUME -->
+        <div class="vol-row">
+          <span class="vol-label">VOL</span>
+          <input type="range" id="volSlider" min="0" max="2" step="0.01" value="1">
+          <span class="vol-val" id="volVal">100%</span>
+        </div>
+
+        <!-- TRANSPORT -->
+        <div class="transport">
+          <button class="t-btn" id="toStartBtn" title="Go to start">⏮</button>
+          <button class="t-btn play-btn" id="playBtn" disabled>▶</button>
+          <button class="t-btn" id="toEndBtn" title="Go to end">⏭</button>
+          <div class="t-spacer"></div>
+          <button class="t-btn loop-btn" id="loopBtn">⟳ Loop</button>
+        </div>
+
+        <!-- EXPORT -->
+        <div class="export-row">
+          <button class="export-btn secondary" id="resetRegionBtn" disabled>⟲ Reset</button>
+          <button class="export-btn" id="exportBtn" disabled>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export Trim
+          </button>
+        </div>
+
+        <div class="hotkey-hint">
+          <kbd>Space</kbd> play/pause &nbsp; <kbd>←</kbd><kbd>→</kbd> nudge &nbsp; <kbd>I</kbd> set in &nbsp; <kbd>O</kbd> set out
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SAVE MODAL -->
+<div class="modal-overlay" id="saveModal">
+  <div class="modal-card">
+    <div class="modal-title">Export Settings</div>
+    <div class="modal-input-wrap">
+      <span class="modal-input-label">Filename</span>
+      <input class="modal-input" type="text" id="fileNameInput" placeholder="untitled_trim" spellcheck="false">
+    </div>
+    <div class="format-row">
+      <div class="fmt-btn active" data-fmt="wav">WAV</div>
+      <div class="fmt-btn" data-fmt="mp3">MP3</div>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn" id="cancelExport">Cancel</button>
+      <button class="modal-btn confirm" id="confirmExport">Export</button>
+    </div>
+  </div>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-overlay" id="progressOverlay">
+  <div class="progress-card">
+    <div class="progress-title">Rendering Trim</div>
+    <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progressFill"></div></div>
+    <div class="progress-pct" id="progressPct">0%</div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"><span class="dot"></span><span id="toastMsg"></span></div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let ws, regionsPlugin, activeRegion;
+let isLooping = false;
+let exportFormat = 'wav';
+let zoomLevel = 1;
+let audioCtx, analyserL, analyserR, sourceNode, vuRAF;
+let audioDuration = 0;
+
+// ─── WAVESURFER INIT ─────────────────────────────────────────────────────────
+ws = WaveSurfer.create({
+  container: '#waveform',
+  waveColor: 'rgba(255,255,255,0.12)',
+  progressColor: 'rgba(10,132,255,0.55)',
+  cursorColor: 'rgba(255,255,255,0.6)',
+  cursorWidth: 1,
+  barWidth: 2,
+  barGap: 2,
+  barRadius: 10,
+  height: 110,
+  normalize: true,
+  interact: true,
+});
+
+regionsPlugin = ws.registerPlugin(WaveSurfer.Regions.create());
+
+// ─── UTILS ───────────────────────────────────────────────────────────────────
+const fmt = (s) => {
+  const m = Math.floor(s / 60);
+  const sec = (s % 60).toFixed(3).padStart(6, '0');
+  return `${String(m).padStart(2,'0')}:${sec}`;
+};
+
+const parseTime = (str) => {
+  str = str.trim();
+  const colonMatch = str.match(/^(\d+):(\d+(?:\.\d+)?)$/);
+  if (colonMatch) return parseInt(colonMatch[1]) * 60 + parseFloat(colonMatch[2]);
+  const numMatch = str.match(/^(\d+(?:\.\d+)?)$/);
+  if (numMatch) return parseFloat(numMatch[1]);
+  return null;
+};
+
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+const showToast = (msg) => {
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2400);
+};
+
+const fmtBytes = (bytes) => {
+  if (bytes < 1024) return `${bytes}B`;
+  if (bytes < 1048576) return `${(bytes/1024).toFixed(0)}KB`;
+  return `${(bytes/1048576).toFixed(1)}MB`;
+};
+
+// ─── DROP + LOAD ─────────────────────────────────────────────────────────────
+const dropZone = document.getElementById('dropZone');
+
+dropZone.addEventListener('click', () => document.getElementById('fileInput').click());
+
+dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) loadFile(file);
+});
+
+document.getElementById('fileInput').onchange = (e) => {
+  if (e.target.files[0]) loadFile(e.target.files[0]);
+};
+
+function loadFile(file) {
+  const url = URL.createObjectURL(file);
+  ws.load(url);
+  // Store original file name for export suggestion
+  const base = file.name.replace(/\.[^.]+$/, '');
+  document.getElementById('fileNameInput').value = base + '_trim';
+  document.getElementById('topFileName').textContent = file.name;
+  document.getElementById('topFilePill').textContent = file.type.split('/')[1]?.toUpperCase() || 'AUDIO';
+}
+
+// ─── DECODE / READY ──────────────────────────────────────────────────────────
+ws.on('decode', () => {
+  audioDuration = ws.getDuration();
+
+  // Build region
+  regionsPlugin.clearRegions();
+  const end = Math.min(audioDuration, audioDuration); // full
+  activeRegion = regionsPlugin.addRegion({
+    start: 0,
+    end: audioDuration,
+    color: 'rgba(10,132,255,0.1)',
+    drag: true,
+    resize: true,
+  });
+
+  document.getElementById('editor').classList.add('active');
+  document.getElementById('dropZone').style.display = 'none';
+
+  ['playBtn','exportBtn','resetRegionBtn'].forEach(id => document.getElementById(id).disabled = false);
+
+  // Stats
+  const buf = ws.getDecodedData();
+  document.getElementById('statTotal').textContent = fmt(audioDuration);
+  document.getElementById('statSR').textContent = buf.sampleRate >= 1000 ? `${(buf.sampleRate/1000).toFixed(1)}k` : buf.sampleRate;
+  document.getElementById('statCh').textContent = buf.numberOfChannels === 1 ? 'Mono' : buf.numberOfChannels === 2 ? 'Stereo' : buf.numberOfChannels;
+
+  updateUI(activeRegion);
+  drawRuler();
+  showToast('File loaded — drag handles to trim');
+});
+
+// ─── REGION EVENTS ───────────────────────────────────────────────────────────
+regionsPlugin.on('region-updated', (r) => {
+  activeRegion = r;
+  updateUI(r);
+});
+
+regionsPlugin.on('region-clicked', (r, e) => {
+  e.stopPropagation();
+  ws.setTime(r.start);
+  ws.play();
+});
+
+// ─── PLAYBACK TRACKING ───────────────────────────────────────────────────────
+ws.on('timeupdate', (t) => {
+  if (activeRegion && t >= activeRegion.end - 0.01) {
+    if (isLooping) {
+      ws.setTime(activeRegion.start);
+      ws.play();
+    } else {
+      ws.pause();
+      ws.setTime(activeRegion.start);
+    }
+  }
+});
+
+ws.on('play', () => { document.getElementById('playBtn').textContent = '⏸'; });
+ws.on('pause', () => { document.getElementById('playBtn').textContent = '▶'; });
+ws.on('finish', () => { document.getElementById('playBtn').textContent = '▶'; });
+
+ws.on('interaction', () => {
+  if (activeRegion) ws.setTime(clamp(ws.getCurrentTime(), activeRegion.start, activeRegion.end - 0.01));
+});
+
+// ─── UI UPDATE ────────────────────────────────────────────────────────────────
+function updateUI(r) {
+  document.getElementById('startInput').value = fmt(r.start);
+  document.getElementById('endInput').value = fmt(r.end);
+  const dur = r.end - r.start;
+  document.getElementById('durDisplay').textContent = dur.toFixed(3) + 's';
+
+  // Estimated trim size (WAV: dur * sr * channels * 2 bytes)
+  const buf = ws.getDecodedData();
+  if (buf) {
+    const bytes = dur * buf.sampleRate * buf.numberOfChannels * 2 + 44;
+    document.getElementById('statSize').textContent = fmtBytes(bytes);
+  }
+
+  updateTrimBar(r);
+}
+
+function updateTrimBar(r) {
+  if (!audioDuration) return;
+  const pPre = (r.start / audioDuration) * 100;
+  const pActive = ((r.end - r.start) / audioDuration) * 100;
+  const pPost = 100 - pPre - pActive;
+  document.getElementById('trimPre').style.width = pPre + '%';
+  document.getElementById('trimActive').style.width = Math.max(pActive, 1) + '%';
+  document.getElementById('trimPost').style.width = pPost + '%';
+  const durS = (r.end - r.start).toFixed(2);
+  document.getElementById('trimActiveLabel').textContent = `${durS}s`;
+}
+
+// ─── RULER ───────────────────────────────────────────────────────────────────
+function drawRuler() {
+  const canvas = document.getElementById('ruler');
+  const wrap = canvas.parentElement;
+  canvas.width = wrap.offsetWidth;
+  canvas.height = 22;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (!audioDuration) return;
+
+  const W = canvas.width;
+  const dur = audioDuration / zoomLevel;
+  // Choose tick interval
+  const intervals = [0.1, 0.25, 0.5, 1, 2, 5, 10, 15, 30, 60];
+  const targetTicks = 12;
+  let interval = intervals.find(i => dur / i <= targetTicks) || 60;
+
+  ctx.fillStyle = 'rgba(255,255,255,0.15)';
+  ctx.font = `9px 'IBM Plex Mono', monospace`;
+  ctx.textAlign = 'center';
+
+  for (let t = 0; t <= dur; t += interval) {
+    const x = (t / dur) * W;
+    ctx.fillRect(x, 0, 1, 8);
+    if (t % (interval * 2) === 0 || interval >= 1) {
+      ctx.fillStyle = 'rgba(255,255,255,0.25)';
+      const label = t >= 60 ? `${Math.floor(t/60)}:${String(Math.floor(t%60)).padStart(2,'0')}` : `${t.toFixed(interval < 1 ? 1 : 0)}s`;
+      ctx.fillText(label, x, 20);
+      ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    }
+  }
+}
+
+window.addEventListener('resize', drawRuler);
+
+// ─── TIME INPUT EDITING ───────────────────────────────────────────────────────
+function applyTimeInput() {
+  if (!activeRegion || !audioDuration) return;
+  const s = parseTime(document.getElementById('startInput').value);
+  const e = parseTime(document.getElementById('endInput').value);
+  if (s !== null && e !== null && s < e && e <= audioDuration && s >= 0) {
+    activeRegion.setOptions({ start: s, end: e });
+    updateUI(activeRegion);
+  }
+}
+
+['startInput','endInput'].forEach(id => {
+  const el = document.getElementById(id);
+  el.addEventListener('blur', applyTimeInput);
+  el.addEventListener('keydown', (e) => { if (e.key === 'Enter') { applyTimeInput(); el.blur(); } });
+});
+
+// ─── TRANSPORT ───────────────────────────────────────────────────────────────
+document.getElementById('playBtn').onclick = () => {
+  if (ws.isPlaying()) {
+    ws.pause();
+  } else {
+    if (activeRegion) ws.setTime(activeRegion.start);
+    ws.play();
+  }
+};
+
+document.getElementById('toStartBtn').onclick = () => {
+  if (activeRegion) { ws.setTime(activeRegion.start); if (ws.isPlaying()) ws.play(); }
+};
+
+document.getElementById('toEndBtn').onclick = () => {
+  if (activeRegion) { ws.setTime(Math.max(0, activeRegion.end - 0.5)); }
+};
+
+document.getElementById('loopBtn').onclick = () => {
+  isLooping = !isLooping;
+  document.getElementById('loopBtn').classList.toggle('active', isLooping);
+  showToast(isLooping ? 'Loop ON' : 'Loop OFF');
+};
+
+document.getElementById('resetRegionBtn').onclick = () => {
+  if (!audioDuration) return;
+  activeRegion.setOptions({ start: 0, end: audioDuration });
+  updateUI(activeRegion);
+  showToast('Selection reset to full');
+};
+
+// ─── VOLUME ───────────────────────────────────────────────────────────────────
+document.getElementById('volSlider').oninput = (e) => {
+  const v = parseFloat(e.target.value);
+  ws.setVolume(v);
+  document.getElementById('volVal').textContent = Math.round(v * 100) + '%';
+};
+
+// ─── ZOOM ─────────────────────────────────────────────────────────────────────
+document.getElementById('zoomIn').onclick = () => {
+  zoomLevel = Math.min(zoomLevel * 2, 64);
+  ws.zoom(zoomLevel * 20);
+  drawRuler();
+};
+document.getElementById('zoomOut').onclick = () => {
+  zoomLevel = Math.max(zoomLevel / 2, 1);
+  ws.zoom(zoomLevel === 1 ? 0 : zoomLevel * 20);
+  drawRuler();
+};
+document.getElementById('zoomReset').onclick = () => {
+  zoomLevel = 1;
+  ws.zoom(0);
+  drawRuler();
+};
+
+// ─── KEYBOARD SHORTCUTS ──────────────────────────────────────────────────────
+document.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT') return;
+  if (!ws || !activeRegion) return;
+
+  if (e.code === 'Space') {
+    e.preventDefault();
+    document.getElementById('playBtn').click();
+  }
+  if (e.code === 'ArrowLeft') {
+    e.preventDefault();
+    const nudge = e.shiftKey ? 1 : 0.1;
+    const newStart = clamp(activeRegion.start - nudge, 0, activeRegion.end - 0.05);
+    activeRegion.setOptions({ start: newStart });
+    updateUI(activeRegion);
+  }
+  if (e.code === 'ArrowRight') {
+    e.preventDefault();
+    const nudge = e.shiftKey ? 1 : 0.1;
+    const newEnd = clamp(activeRegion.end + nudge, activeRegion.start + 0.05, audioDuration);
+    activeRegion.setOptions({ end: newEnd });
+    updateUI(activeRegion);
+  }
+  if (e.code === 'KeyI') {
+    // Set in point to current time
+    const t = ws.getCurrentTime();
+    if (t < activeRegion.end - 0.05) {
+      activeRegion.setOptions({ start: t });
+      updateUI(activeRegion);
+      showToast('In point set');
+    }
+  }
+  if (e.code === 'KeyO') {
+    // Set out point
+    const t = ws.getCurrentTime();
+    if (t > activeRegion.start + 0.05) {
+      activeRegion.setOptions({ end: t });
+      updateUI(activeRegion);
+      showToast('Out point set');
+    }
+  }
+  if (e.code === 'KeyL') {
+    document.getElementById('loopBtn').click();
+  }
+});
+
+// ─── VU METER ─────────────────────────────────────────────────────────────────
+// Simple peak meter based on waveform data scanning
+ws.on('play', startVU);
+ws.on('pause', stopVU);
+ws.on('finish', stopVU);
+
+function startVU() {
+  cancelAnimationFrame(vuRAF);
+  function tick() {
+    const t = ws.getCurrentTime();
+    const buf = ws.getDecodedData();
+    if (!buf) { vuRAF = requestAnimationFrame(tick); return; }
+    const sr = buf.sampleRate;
+    const idx = Math.floor(t * sr);
+    const window = 512;
+    let rmsL = 0, rmsR = 0;
+    const ch0 = buf.getChannelData(0);
+    const ch1 = buf.numberOfChannels > 1 ? buf.getChannelData(1) : ch0;
+    for (let i = 0; i < window; i++) {
+      const s = idx + i;
+      if (s < buf.length) { rmsL += ch0[s] * ch0[s]; rmsR += ch1[s] * ch1[s]; }
+    }
+    rmsL = Math.sqrt(rmsL / window);
+    rmsR = Math.sqrt(rmsR / window);
+    document.getElementById('vuL').style.width = clamp(rmsL * 300, 0, 100) + '%';
+    document.getElementById('vuR').style.width = clamp(rmsR * 300, 0, 100) + '%';
+    vuRAF = requestAnimationFrame(tick);
+  }
+  tick();
+}
+
+function stopVU() {
+  cancelAnimationFrame(vuRAF);
+  document.getElementById('vuL').style.width = '0%';
+  document.getElementById('vuR').style.width = '0%';
+}
+
+// ─── FORMAT SELECTOR ─────────────────────────────────────────────────────────
+document.querySelectorAll('.fmt-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.fmt-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    exportFormat = btn.dataset.fmt;
+  });
+});
+
+// ─── EXPORT ───────────────────────────────────────────────────────────────────
+document.getElementById('exportBtn').onclick = () => {
+  document.getElementById('saveModal').classList.add('show');
+};
+
+document.getElementById('cancelExport').onclick = () => {
+  document.getElementById('saveModal').classList.remove('show');
+};
+
+document.getElementById('confirmExport').onclick = async () => {
+  const fileName = document.getElementById('fileNameInput').value.trim() || 'xos_trim';
+  document.getElementById('saveModal').classList.remove('show');
+  await renderAndExport(fileName, exportFormat);
+};
+
+async function renderAndExport(name, format) {
+  const progressOverlay = document.getElementById('progressOverlay');
+  const progressFill = document.getElementById('progressFill');
+  const progressPct = document.getElementById('progressPct');
+
+  progressOverlay.classList.add('show');
+  progressFill.style.width = '0%';
+  progressPct.textContent = '0%';
+
+  const setProgress = (pct) => {
+    progressFill.style.width = pct + '%';
+    progressPct.textContent = Math.round(pct) + '%';
+  };
+
+  await new Promise(r => setTimeout(r, 60)); // let UI render
+
+  const buffer = ws.getDecodedData();
+  const start = activeRegion.start;
+  const end = activeRegion.end;
+  const duration = end - start;
+  const sr = buffer.sampleRate;
+  const ch = buffer.numberOfChannels;
+
+  setProgress(10);
+  await new Promise(r => setTimeout(r, 20));
+
+  const offlineCtx = new OfflineAudioContext(ch, Math.ceil(duration * sr), sr);
+  const src = offlineCtx.createBufferSource();
+  src.buffer = buffer;
+  src.connect(offlineCtx.destination);
+  src.start(0, start, duration);
+
+  setProgress(30);
+  await new Promise(r => setTimeout(r, 20));
+
+  const rendered = await offlineCtx.startRendering();
+
+  setProgress(65);
+  await new Promise(r => setTimeout(r, 20));
+
+  const wavBlob = audioBufferToWav(rendered);
+  setProgress(90);
+  await new Promise(r => setTimeout(r, 20));
+
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(wavBlob);
+  // Note: WAV is always exported; MP3 encoding requires a lib not bundled here
+  const ext = format === 'mp3' ? 'wav' : 'wav'; // WAV for lossless
+  link.download = `${name}.${ext}`;
+  link.click();
+
+  setProgress(100);
+  await new Promise(r => setTimeout(r, 400));
+  progressOverlay.classList.remove('show');
+
+  const durationStr = duration.toFixed(2);
+  showToast(`Exported ${name}.${ext} — ${durationStr}s`);
+}
+
+function audioBufferToWav(buffer) {
+  const numCh = buffer.numberOfChannels;
+  const sr = buffer.sampleRate;
+  const bA = numCh * 2;
+  const dataLen = buffer.length * bA;
+  const ab = new ArrayBuffer(44 + dataLen);
+  const v = new DataView(ab);
+  const ws = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  ws(0,'RIFF'); v.setUint32(4, 36 + dataLen, true);
+  ws(8,'WAVE'); ws(12,'fmt ');
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true);
+  v.setUint16(22, numCh, true); v.setUint32(24, sr, true);
+  v.setUint32(28, sr * bA, true); v.setUint16(32, bA, true);
+  v.setUint16(34, 16, true); ws(36,'data'); v.setUint32(40, dataLen, true);
+  let offset = 44;
+  for (let i = 0; i < buffer.length; i++) {
+    for (let c = 0; c < numCh; c++) {
+      const s = Math.max(-1, Math.min(1, buffer.getChannelData(c)[i]));
+      v.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+      offset += 2;
+    }
+  }
+  return new Blob([ab], { type: 'audio/wav' });
+}
+</script>
+</body>
+</html>
