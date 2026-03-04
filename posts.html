@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>XOS - Global System Feed</title>
+    <title>ZYNX — Powered by XOS</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            --accent: #3b82f6;
-            --glass: rgba(10, 10, 12, 0.9);
+            --accent: #007aff;
+            --glass: rgba(10, 10, 12, 0.95);
             --border: rgba(255, 255, 255, 0.1);
             --bg-color: #000000;
             --text-main: #ffffff;
@@ -23,7 +23,7 @@
         body {
             background-color: var(--bg-color);
             color: var(--text-main);
-            font-family: 'Inter', sans-serif;
+            font-family: 'Space Grotesk', sans-serif;
             overflow: hidden;
             height: 100vh;
         }
@@ -35,18 +35,37 @@
         .global-card {
             aspect-ratio: 1 / 1; border-radius: 20px; overflow: hidden;
             position: relative; border: 1px solid var(--border); background: #050505;
+            transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
+        .global-card:active { transform: scale(0.95); }
 
         .main-content { width: 100%; height: 100%; object-fit: cover; }
 
+        /* ─── ZYNX PANEL (Bottom to Up) ─── */
+        #zynx-view {
+            position: fixed; inset: 0; z-index: 2000;
+            background: #000;
+            transform: translateY(100%);
+            transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+            display: flex; flex-direction: column;
+        }
+        #zynx-view.active { transform: translateY(0); }
+
+        .zynx-header {
+            height: 70px; display: flex; align-items: center; justify-content: space-between;
+            padding: 0 24px; border-bottom: 1px solid var(--border);
+            background: var(--glass); backdrop-filter: blur(20px);
+        }
+
+        #zynx-frame { flex: 1; width: 100%; border: none; background: #000; }
+
+        /* Existing Modal Styles */
         .floating-modal {
             position: fixed; inset: 0; z-index: 999; background: rgba(0,0,0,0.95);
             display: none; align-items: center; justify-content: center;
             backdrop-filter: blur(10px);
         }
-
         .floating-modal.active { display: flex; }
-
         .modal-box {
             width: 90vw; aspect-ratio: 3 / 5; max-width: 380px; max-height: 80vh;
             background: #000; border: 1px solid var(--border); border-radius: 28px;
@@ -55,37 +74,50 @@
 
         .window-header {
             position: absolute; top: 12px; left: 12px; right: 12px; height: 44px;
-            padding: 0 10px; z-index: 100;
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0 10px; z-index: 100; background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 15px; display: flex; justify-content: space-between; align-items: center;
         }
 
         .caption-area { 
             position: absolute; bottom: 0; left: 0; right: 0; 
-            padding: 20px; background: linear-gradient(transparent, #000 80%); 
+            padding: 24px; background: linear-gradient(transparent, #000 70%); 
             z-index: 10; 
         }
 
         .like-zone {
-            position: absolute; bottom: 15px; right: 15px;
+            position: absolute; bottom: 20px; right: 20px;
             display: flex; flex-direction: column; align-items: center; z-index: 50;
         }
 
         .heart-btn {
-            width: 42px; height: 42px; border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            width: 46px; height: 46px; border-radius: 50%;
+            background: var(--glass); border: 1px solid var(--border);
             display: flex; align-items: center; justify-content: center;
-            color: white; transition: 0.2s;
+            color: white; transition: 0.3s;
         }
+        .heart-btn.liked { color: #ff3b3b; border-color: #ff3b3b; text-shadow: 0 0 10px rgba(255, 59, 59, 0.3); }
 
-        .heart-btn.liked { color: #ff3b3b; background: rgba(255, 59, 59, 0.1); border-color: #ff3b3b; }
+        .hit-txt { font-family: 'Orbitron'; font-size: 8px; margin-top: 6px; color: var(--accent); font-weight: bold; }
 
-        .hit-txt { font-family: 'Orbitron'; font-size: 8px; margin-top: 4px; color: #666; font-weight: bold; }
-
-        .loader { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: #000; z-index: 5; }
+        /* ✦ UPDATED BUTTON: fully glassy, transparent, soft edges ✦ */
+        .zynx-btn {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            color: white;
+            font-family: 'Orbitron';
+            font-size: 9px;
+            letter-spacing: 2px;
+            padding: 8px 16px;
+            border-radius: 40px;           /* softer, less edgy */
+            border: 0.5px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        .zynx-btn:active {
+            transform: scale(0.94);
+            background: rgba(255, 255, 255, 0.15);
+        }
     </style>
 </head>
 <body>
@@ -95,11 +127,27 @@
             <button onclick="window.history.back()" class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-gray-400">
                 <i class="fas fa-arrow-left"></i>
             </button>
-            <span class="font-brand text-[9px] text-blue-500">XOS // GLOBAL</span>
-            <div class="w-10"></div>
+            <div class="flex flex-col items-center">
+                <span class="font-brand text-[10px] text-white">ZYNX</span>
+                <span class="font-brand text-[7px] text-blue-500">POWERED BY XOS</span>
+            </div>
+            <button onclick="openZynx()" class="zynx-btn">ZYNX</button>
         </div>
 
         <div class="px-6 grid grid-cols-2 gap-4" id="grid"></div>
+    </div>
+
+    <div id="zynx-view">
+        <div class="zynx-header">
+            <div class="flex flex-col">
+                <span class="font-brand text-[10px] text-white">ZYNX MODULE</span>
+                <span class="text-[8px] text-blue-500 uppercase tracking-widest">Live Instance</span>
+            </div>
+            <button onclick="closeZynx()" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
+                <i class="fas fa-times text-white text-sm"></i>
+            </button>
+        </div>
+        <iframe id="zynx-frame" src=""></iframe>
     </div>
 
     <audio id="m-audio-player"></audio>
@@ -111,7 +159,7 @@
             <div class="window-header">
                 <div class="flex items-center gap-2">
                     <img id="m-pfp" src="" class="w-6 h-6 rounded-full border border-white/20">
-                    <span id="m-user" class="font-brand text-[8px] uppercase">USER</span>
+                    <a id="m-user-link" href="https://nikhil007-eng.github.io/Developer-xos-/Nikhilprof.html" target="_blank" class="font-brand text-[8px] uppercase hover:text-blue-500 transition-colors">NIKHIL</a>
                 </div>
                 <button onclick="closeModal()" class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-[10px]">
                     <i class="fas fa-times"></i>
@@ -122,13 +170,13 @@
                 <div id="m-content" class="w-full h-full"></div>
                 
                 <div class="caption-area">
-                    <p class="font-brand text-[7px] text-blue-400 mb-1">RECORD_STAMP</p>
-                    <p id="m-cap" class="text-[10px] text-gray-400 font-light pr-12"></p>
+                    <p class="font-brand text-[7px] text-blue-400 mb-1">RECORD_STAMP_ACTIVE</p>
+                    <p id="m-cap" class="text-[11px] text-gray-300 font-light pr-14"></p>
                 </div>
 
                 <div class="like-zone">
                     <button id="l-btn" onclick="hitLike()" class="heart-btn">
-                        <i class="fas fa-heart text-[16px]"></i>
+                        <i class="fas fa-heart text-[18px]"></i>
                     </button>
                     <span id="h-count" class="hit-txt">0</span>
                 </div>
@@ -143,21 +191,21 @@
         const POSTS = [
             { 
                 id: 1, 
-                name: "Nikhil", 
+                name: "NIKHIL", 
                 pfp: "https://nikhil007-eng.github.io/Developer-xos-/file_00000000f4f47208a731ff7b47a3b568.png", 
                 src: "https://raw.githubusercontent.com/Nikhil007-eng/XOS-GLOBAL/main/Nothing%20Phone%20(4a)%20-%20Built%20Different.mp4", 
                 type: "video",
                 audio: "",
-                cap: "Nothing phone 4a" 
+                cap: "Nothing Phone (4a) — Built different. The glyph matrix never sleeps." 
             },
             { 
                 id: 2, 
-                name: "Nikhil", 
+                name: "NIKHIL", 
                 pfp: "https://nikhil007-eng.github.io/Developer-xos-/file_00000000f4f47208a731ff7b47a3b568.png", 
                 src: "https://nikhil007-eng.github.io/Developer-xos-/Picsart_26-02-28_14-41-10-477.jpg", 
                 type: "image",
                 audio: "audiotest.mp3",
-                cap: "image/audio test" 
+                cap: "ZYNX Visual Test: High-fidelity image and audio synchronization." 
             }
         ];
 
@@ -173,7 +221,7 @@
                 return `
                     <div class="global-card" onclick="openModal(${i})">
                         ${mediaTag}
-                        <div style="position:absolute; bottom:8px; left:8px;">
+                        <div style="position:absolute; bottom:12px; left:12px;">
                             <img src="${p.pfp}" class="w-6 h-6 rounded-full border border-white/30">
                         </div>
                     </div>
@@ -181,13 +229,29 @@
             }).join('');
         }
 
+        // ─── ZYNX CONTROLS ───
+        window.openZynx = () => {
+            const view = document.getElementById('zynx-view');
+            const frame = document.getElementById('zynx-frame');
+            frame.src = "ZYNX.html";
+            view.classList.add('active');
+            history.pushState({ zynxActive: true }, "");
+        };
+
+        window.closeZynx = () => {
+            const view = document.getElementById('zynx-view');
+            const frame = document.getElementById('zynx-frame');
+            view.classList.remove('active');
+            setTimeout(() => { frame.src = ""; }, 600); // Clear after animation
+        };
+
+        // ─── POST MODAL CONTROLS ───
         window.openModal = (i) => {
             const p = POSTS[i];
             activeId = p.id;
             const contentArea = document.getElementById('m-content');
             
             document.getElementById('m-pfp').src = p.pfp;
-            document.getElementById('m-user').innerText = p.name;
             document.getElementById('m-cap').innerText = p.cap;
 
             if (p.type === 'video') {
@@ -204,7 +268,7 @@
             const player = document.getElementById('m-audio-player');
             if(p.audio) {
                 player.src = p.audio;
-                player.play().catch(e => console.log("Audio Autoplay blocked by browser."));
+                player.play().catch(e => console.log("Audio Autoplay required user interaction."));
             }
 
             history.pushState({ modalActive: true }, "");
@@ -212,24 +276,18 @@
 
         window.closeModal = () => {
             document.getElementById('modal').classList.remove('active');
-            document.getElementById('m-content').innerHTML = ""; // Stop video playback
-            
+            document.getElementById('m-content').innerHTML = "";
             const player = document.getElementById('m-audio-player');
             player.pause();
             player.src = "";
-
-            if(history.state && history.state.modalActive) {
-                history.back();
-            }
         };
 
-        window.addEventListener('popstate', () => {
-            if(document.getElementById('modal').classList.contains('active')) {
-                document.getElementById('modal').classList.remove('active');
-                document.getElementById('m-content').innerHTML = "";
-                const player = document.getElementById('m-audio-player');
-                player.pause();
-                player.src = "";
+        window.addEventListener('popstate', (event) => {
+            if (document.getElementById('zynx-view').classList.contains('active')) {
+                closeZynx();
+            }
+            if (document.getElementById('modal').classList.contains('active')) {
+                closeModal();
             }
         });
 
@@ -243,11 +301,9 @@
             localStorage.setItem('h_'+activeId, count);
             document.getElementById('h-count').innerText = count;
 
-            const user = localStorage.getItem('xos_user_token') || "Guest";
-            const msg = `❤️ LIKE: ${user}%0APost: ${activeId}%0AHits: ${count}`;
-            
-            fetch(`https://api.telegram.org/bot${BOT}/sendMessage?chat_id=${CID}&text=${msg}&parse_mode=Markdown`)
-            .catch(e => console.log("Silent Log"));
+            const msg = `❤️ ZYNX LIKE | Post: ${activeId} | Hits: ${count}`;
+            fetch(`https://api.telegram.org/bot${BOT}/sendMessage?chat_id=${CID}&text=${msg}`)
+            .catch(e => console.log("Log Sent"));
         };
 
         init();
