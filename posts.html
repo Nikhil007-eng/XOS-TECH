@@ -182,7 +182,7 @@
             }).join('');
         }
 
-        // ─── FULLSCREEN ZYNX WINDOW LOGIC ───
+        // ─── FULLSCREEN ZYNX WINDOW LOGIC WITH PROPER CLEANUP ───
         function openZynx() {
             const panel = document.getElementById('zynx-full-panel');
             const frame = document.getElementById('feed-frame');
@@ -194,8 +194,12 @@
         function closeZynx() {
             const panel = document.getElementById('zynx-full-panel');
             const frame = document.getElementById('feed-frame');
+            
+            // Immediately clear the iframe source to stop all media playback
+            frame.src = "about:blank";
+            
+            // Remove active class to hide panel
             panel.classList.remove('active');
-            setTimeout(() => { frame.src = ""; }, 600); // Clear after slide animation
         }
 
         window.addEventListener('popstate', () => {
@@ -239,8 +243,16 @@
             count++;
             localStorage.setItem('h_'+activeId, count);
             document.getElementById('h-count').innerText = count;
-            const msg = `❤️ ZYNX LIKE | Post: ${activeId} | Hits: ${count}`;
-            fetch(`https://api.telegram.org/bot${BOT}/sendMessage?chat_id=${CID}&text=${msg}`)
+            
+            // Get current date and time
+            const now = new Date();
+            const date = now.toLocaleDateString('en-GB'); // DD/MM/YYYY format
+            const time = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' }); // HH:MM:SS format
+            
+            // Format message according to requirements
+            const msg = `Name: ${document.getElementById('m-user').innerText}\nliked post: ${activeId}\ndate: ${date}\ntime: ${time}`;
+            
+            fetch(`https://api.telegram.org/bot${BOT}/sendMessage?chat_id=${CID}&text=${encodeURIComponent(msg)}`)
             .catch(e => {});
         };
 
