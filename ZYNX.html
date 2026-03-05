@@ -49,41 +49,65 @@ const TG_CID = "7217028526";
 const EXTRACTED_USER = sessionStorage.getItem('userName') || "Guest User";
 
 const POSTS = [
-  { id: 1, user: { name: "NIKHIL", pfp: "https://nikhil007-eng.github.io/Developer-xos-/file_00000000f4f47208a731ff7b47a3b568.png", url: "https://nikhil007-eng.github.io/Developer-xos-/Nikhilprof.html" }, src: "https://raw.githubusercontent.com/Nikhil007-eng/XOS-GLOBAL/main/Nothing%20Phone%20(4a)%20-%20Built%20Different.mp4", type: "video", caption: "Nothing Phone (4a) — Built different.", likes: 1 },
-  { id: 2, user: { name: "NIKHIL", pfp: "https://nikhil007-eng.github.io/Developer-xos-/file_00000000f4f47208a731ff7b47a3b568.png", url: "https://nikhil007-eng.github.io/Developer-xos-/Nikhilprof.html" }, src: "https://nikhil007-eng.github.io/Developer-xos-/Picsart_26-02-28_14-41-10-477.jpg", type: "image", audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", caption: "Late night edits hit different.", likes: 1 }
+  { id: 1, user: { name: "NIKHIL", pfp: "https://nikhil007-eng.github.io/Developer-xos-/file_00000000f4f47208a731ff7b47a3b568.png", url: "https://nikhil007-eng.github.io/Developer-xos-/Nikhilprof.html" }, src: "https://raw.githubusercontent.com/Nikhil007-eng/XOS-GLOBAL/main/Nothing%20Phone%20(4a)%20-%20Built%20Different.mp4", type: "video", caption: "Nothing Phone (4a) — Built different.", likes: 1482 },
+  { id: 2, user: { name: "NIKHIL", pfp: "https://nikhil007-eng.github.io/Developer-xos-/file_00000000f4f47208a731ff7b47a3b568.png", url: "https://nikhil007-eng.github.io/Developer-xos-/Nikhilprof.html" }, src: "https://nikhil007-eng.github.io/Developer-xos-/Picsart_26-02-28_14-41-10-477.jpg", type: "image", audio: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3", caption: "Late night edits hit different.", likes: 934 }
 ];
 
-let muted = true; let hasInteracted = false; let liked = JSON.parse(localStorage.getItem('xos_liked_v2') || '{}');
+// Audio allowed by default since user clicks the ZYNX button to load this iframe
+let muted = false; 
+let hasInteracted = true; 
+let liked = JSON.parse(localStorage.getItem('xos_liked_v2') || '{}');
+
 const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
         const video = entry.target.querySelector('video'), audio = entry.target.querySelector('audio'), bar = entry.target.querySelector('.progress-bar');
         if (entry.isIntersecting) {
-            if (video) { video.currentTime = 0; video.play().catch(() => {}); video.ontimeupdate = () => bar.style.width = (video.currentTime / video.duration * 100) + '%'; }
-            if (audio) { audio.currentTime = 0; audio.play().catch(() => {}); audio.ontimeupdate = () => bar.style.width = (audio.currentTime / audio.duration * 100) + '%'; }
+            // PLAY ONLY IF IN VIEW
+            if (video) { 
+                video.muted = muted;
+                video.currentTime = 0; 
+                video.play().catch(() => {}); 
+                video.ontimeupdate = () => bar.style.width = (video.currentTime / video.duration * 100) + '%'; 
+            }
+            if (audio) { 
+                audio.muted = muted;
+                audio.currentTime = 0; 
+                audio.play().catch(() => {}); 
+                audio.ontimeupdate = () => bar.style.width = (audio.currentTime / audio.duration * 100) + '%'; 
+            }
         } else {
-            if (video) { video.pause(); video.ontimeupdate = null; }
-            if (audio) { audio.pause(); audio.ontimeupdate = null; }
+            // STOP AND MUTE IMMEDIATELY WHEN OUT OF VIEW
+            if (video) { video.pause(); video.muted = true; video.ontimeupdate = null; }
+            if (audio) { audio.pause(); audio.muted = true; audio.ontimeupdate = null; }
         }
     });
-}, { threshold: 0.7 });
+}, { threshold: 0.6 });
 
 function build() {
   const track = document.getElementById('reel-track');
   POSTS.forEach((p, i) => {
     const isLiked = liked[p.id], reel = document.createElement('div'); reel.className = 'reel';
-    let mediaHtml = p.type === 'video' ? `<video src="${p.src}" class="reel-media" loop playsinline muted></video>` : `<img src="${p.src}" class="reel-media">${p.audio ? `<audio src="${p.audio}" loop muted></audio>` : ''}`;
+    let mediaHtml = p.type === 'video' ? `<video src="${p.src}" class="reel-media" loop playsinline></video>` : `<img src="${p.src}" class="reel-media">${p.audio ? `<audio src="${p.audio}" loop></audio>` : ''}`;
     reel.innerHTML = `${mediaHtml}<div class="progress-container"><div class="progress-bar"></div></div><div class="dtap-heart"><i class="fas fa-heart"></i></div><div class="side-actions"><div class="act" onclick="toggleLike(${i}, ${p.id})"><div class="act-icon ${isLiked ? 'liked' : ''}" id="like-icon-${i}"><i class="fas fa-heart"></i></div><span class="act-label" id="like-count-${i}">${fmt(p.likes + (isLiked ? 1 : 0))}</span></div><div class="act" onclick="handleShare()"><div class="act-icon"><i class="fas fa-arrow-up-right-from-square"></i></div><span class="act-label">Share</span></div></div><div class="reel-info"><div class="author-row"><img src="${p.user.pfp}" class="author-pfp"><span class="author-name">${p.user.name}</span></div><p class="reel-caption">${p.caption}</p></div>`;
     track.appendChild(reel); observer.observe(reel);
     reel.addEventListener('click', (e) => {
-        if (!hasInteracted) activateAudio(); if (e.target.closest('.side-actions')) return;
+        if (e.target.closest('.side-actions')) return;
         let tapCount = (reel.dataset.taps || 0) * 1 + 1; reel.dataset.taps = tapCount;
         if (tapCount === 1) setTimeout(() => { if (reel.dataset.taps == 1) toggleMute(); reel.dataset.taps = 0; }, 250);
         else { if (!liked[p.id]) toggleLike(i, p.id); triggerDtap(reel); reel.dataset.taps = 0; }
     });
   });
 }
-function activateAudio() { hasInteracted = true; muted = false; document.querySelectorAll('video, audio').forEach(m => { m.muted = false; m.play().catch(()=>{}); }); }
-function toggleMute() { muted = !muted; document.querySelectorAll('video, audio').forEach(m => m.muted = muted); const indicator = document.getElementById('vol-indicator'); indicator.innerHTML = muted ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-up"></i>'; indicator.classList.add('show'); setTimeout(() => indicator.classList.remove('show'), 800); }
+
+function toggleMute() {
+    muted = !muted;
+    document.querySelectorAll('video, audio').forEach(m => m.muted = muted);
+    const indicator = document.getElementById('vol-indicator');
+    indicator.innerHTML = muted ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-up"></i>';
+    indicator.classList.add('show');
+    setTimeout(() => indicator.classList.remove('show'), 800);
+}
+
 function sendTg(postId) {
     const now = new Date(), dateStr = now.toLocaleDateString('en-GB'), timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
     const message = `🌟 ZYNX INTERACTION\nName: ${EXTRACTED_USER}\nLiked ZYNX: 1 (Post ID: ${postId})\nDate: ${dateStr}\nTime: ${timeStr}`.trim();
@@ -94,7 +118,6 @@ function triggerDtap(el) { const heart = el.querySelector('.dtap-heart i'); hear
 function fmt(n) { return n >= 1000 ? (n/1000).toFixed(1) + 'k' : n; }
 function handleShare() { if (navigator.share) navigator.share({ title: 'ZYNX', url: window.location.href }); }
 build();
-document.getElementById('reel-wrap').addEventListener('scroll', () => { if(!hasInteracted) activateAudio(); }, {once: true});
 </script>
 </body>
 </html>
