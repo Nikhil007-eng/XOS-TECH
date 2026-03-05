@@ -26,10 +26,19 @@ html, body { width: 100%; height: 100%; background: var(--bg); color: var(--text
 .act-icon { width: 50px; height: 50px; border-radius: 50%; background: var(--glass); border: 1px solid var(--border); backdrop-filter: blur(25px); display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--text); }
 .act-icon.liked { color: #ff3b5c; border-color: #ff3b5c; box-shadow: 0 0 15px rgba(255, 59, 92, 0.2); }
 .act-label { font-size: 9px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; }
+
+.music-box { width: 50px; height: 50px; border-radius: 12px; background: var(--glass); border: 1px solid var(--border); overflow: hidden; margin-top: 8px; cursor: pointer; transition: transform 0.2s; position: relative; }
+.music-box:active { transform: scale(0.9); }
+.music-thumb { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
+.music-box::after { content: '\f001'; font-family: 'Font Awesome 6 Free'; font-weight: 900; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; color: #fff; background: rgba(0,0,0,0.3); }
+
 .reel-info { position: absolute; bottom: 0; left: 0; right: 80px; z-index: 10; padding: 0 24px 44px; }
 .author-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
 .author-pfp { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border); }
-.author-name { font-weight: 600; font-size: 13px; letter-spacing: 0.5px; }
+.author-link { text-decoration: none; color: inherit; }
+.author-name { font-weight: 600; font-size: 13px; letter-spacing: 0.5px; transition: color 0.2s; }
+.author-link:hover .author-name { color: var(--accent); }
+
 .reel-caption { font-size: 14px; line-height: 1.5; color: rgba(255,255,255,0.75); max-width: 90%; }
 #vol-indicator { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000; width: 64px; height: 64px; background: var(--glass); border: 1px solid var(--border); border-radius: 50%; backdrop-filter: blur(20px); display: flex; align-items: center; justify-content: center; font-size: 20px; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
 #vol-indicator.show { opacity: 1; }
@@ -49,49 +58,75 @@ const TG_CID = "7217028526";
 const EXTRACTED_USER = sessionStorage.getItem('userName') || "Guest User";
 
 const POSTS = [
-  { id: 1, user: { name: "NIKHIL", pfp: "https://nikhil007-eng.github.io/Developer-xos-/file_00000000f4f47208a731ff7b47a3b568.png", url: "https://nikhil007-eng.github.io/Developer-xos-/Nikhilprof.html" }, src: "https://raw.githubusercontent.com/Nikhil007-eng/XOS-GLOBAL/main/Nothing%20Phone%20(4a)%20-%20Built%20Different.mp4", type: "video", caption: "Nothing Phone (4a) — Built different.", likes: 1482 },
-  { id: 2, user: { name: "NIKHIL", pfp: "https://nikhil007-eng.github.io/Developer-xos-/file_00000000f4f47208a731ff7b47a3b568.png", url: "https://nikhil007-eng.github.io/Developer-xos-/Nikhilprof.html" }, src: "https://nikhil007-eng.github.io/Developer-xos-/Picsart_26-02-28_14-41-10-477.jpg", type: "image", audio: "audiotest.mp3", caption: "Late night edits hit different.", likes: 934 }
+  { id: 1, user: { name: "NIKHIL", pfp: "https://nikhil007-eng.github.io/Developer-xos-/file_00000000f4f47208a731ff7b47a3b568.png", url: "https://nikhil007-eng.github.io/Developer-xos-/Nikhilprof.html" }, src: "https://raw.githubusercontent.com/Nikhil007-eng/XOS-GLOBAL/main/Nothing%20Phone%20(4a)%20-%20Built%20Different.mp4", type: "video", caption: "Nothing Phone (4a) — Built different.", likes: 1482, ytm: "https://music.youtube.com/watch?v=dQw4w9WgXcQ" },
+  { id: 2, user: { name: "NIKHIL", pfp: "https://nikhil007-eng.github.io/Developer-xos-/file_00000000f4f47208a731ff7b47a3b568.png", url: "https://nikhil007-eng.github.io/Developer-xos-/Nikhilprof.html" }, src: "https://nikhil007-eng.github.io/Developer-xos-/Picsart_26-02-28_14-41-10-477.jpg", type: "image", audio: "audiotest.mp3", caption: "Late night edits hit different.", likes: 934, ytm: "https://music.youtube.com/watch?v=en8fjTxRyqI" }
 ];
 
-// Audio allowed by default since user clicks the ZYNX button to load this iframe
 let muted = false; 
-let hasInteracted = true; 
 let liked = JSON.parse(localStorage.getItem('xos_liked_v2') || '{}');
 
 const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
         const video = entry.target.querySelector('video'), audio = entry.target.querySelector('audio'), bar = entry.target.querySelector('.progress-bar');
         if (entry.isIntersecting) {
-            // PLAY ONLY IF IN VIEW
             if (video) { 
-                video.muted = muted;
+                video.muted = false; 
                 video.currentTime = 0; 
-                video.play().catch(() => {}); 
+                video.play().catch(() => { /* Play attempted unmuted */ }); 
                 video.ontimeupdate = () => bar.style.width = (video.currentTime / video.duration * 100) + '%'; 
             }
             if (audio) { 
-                audio.muted = muted;
+                audio.muted = false; 
                 audio.currentTime = 0; 
-                audio.play().catch(() => {}); 
+                audio.play().catch(() => { /* Play attempted unmuted */ }); 
                 audio.ontimeupdate = () => bar.style.width = (audio.currentTime / audio.duration * 100) + '%'; 
             }
         } else {
-            // STOP AND MUTE IMMEDIATELY WHEN OUT OF VIEW
             if (video) { video.pause(); video.muted = true; video.ontimeupdate = null; }
             if (audio) { audio.pause(); audio.muted = true; audio.ontimeupdate = null; }
         }
     });
 }, { threshold: 0.6 });
 
+function getYTThumb(url) {
+    const id = url.split('v=')[1]?.split('&')[0] || url.split('/').pop();
+    return `https://img.youtube.com/vi/${id}/mqdefault.jpg`;
+}
+
 function build() {
   const track = document.getElementById('reel-track');
   POSTS.forEach((p, i) => {
     const isLiked = liked[p.id], reel = document.createElement('div'); reel.className = 'reel';
     let mediaHtml = p.type === 'video' ? `<video src="${p.src}" class="reel-media" loop playsinline></video>` : `<img src="${p.src}" class="reel-media">${p.audio ? `<audio src="${p.audio}" loop></audio>` : ''}`;
-    reel.innerHTML = `${mediaHtml}<div class="progress-container"><div class="progress-bar"></div></div><div class="dtap-heart"><i class="fas fa-heart"></i></div><div class="side-actions"><div class="act" onclick="toggleLike(${i}, ${p.id})"><div class="act-icon ${isLiked ? 'liked' : ''}" id="like-icon-${i}"><i class="fas fa-heart"></i></div><span class="act-label" id="like-count-${i}">${fmt(p.likes + (isLiked ? 1 : 0))}</span></div><div class="act" onclick="handleShare()"><div class="act-icon"><i class="fas fa-arrow-up-right-from-square"></i></div><span class="act-label">Share</span></div></div><div class="reel-info"><div class="author-row"><img src="${p.user.pfp}" class="author-pfp"><span class="author-name">${p.user.name}</span></div><p class="reel-caption">${p.caption}</p></div>`;
+    
+    reel.innerHTML = `
+        ${mediaHtml}
+        <div class="progress-container"><div class="progress-bar"></div></div>
+        <div class="dtap-heart"><i class="fas fa-heart"></i></div>
+        <div class="side-actions">
+            <div class="act" onclick="toggleLike(${i}, ${p.id})">
+                <div class="act-icon ${isLiked ? 'liked' : ''}" id="like-icon-${i}"><i class="fas fa-heart"></i></div>
+                <span class="act-label" id="like-count-${i}">${fmt(p.likes + (isLiked ? 1 : 0))}</span>
+            </div>
+            <div class="act" onclick="handleShare()">
+                <div class="act-icon"><i class="fas fa-arrow-up-right-from-square"></i></div>
+                <span class="act-label">Share</span>
+            </div>
+            <div class="music-box" onclick="window.open('${p.ytm}', '_blank')">
+                <img src="${getYTThumb(p.ytm)}" class="music-thumb">
+            </div>
+        </div>
+        <div class="reel-info">
+            <div class="author-row">
+                <img src="${p.user.pfp}" class="author-pfp">
+                <a href="${p.user.url}" class="author-link" target="_blank"><span class="author-name">${p.user.name}</span></a>
+            </div>
+            <p class="reel-caption">${p.caption}</p>
+        </div>`;
+
     track.appendChild(reel); observer.observe(reel);
     reel.addEventListener('click', (e) => {
-        if (e.target.closest('.side-actions')) return;
+        if (e.target.closest('.side-actions') || e.target.closest('.author-link')) return;
         let tapCount = (reel.dataset.taps || 0) * 1 + 1; reel.dataset.taps = tapCount;
         if (tapCount === 1) setTimeout(() => { if (reel.dataset.taps == 1) toggleMute(); reel.dataset.taps = 0; }, 250);
         else { if (!liked[p.id]) toggleLike(i, p.id); triggerDtap(reel); reel.dataset.taps = 0; }
