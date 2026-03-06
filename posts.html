@@ -21,14 +21,20 @@
         .main-content { width: 100%; height: 100%; object-fit: cover; }
         .floating-modal { position: fixed; inset: 0; z-index: 999; background: rgba(0,0,0,0.95); display: none; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
         .floating-modal.active { display: flex; }
-        .modal-box { width: 90vw; aspect-ratio: 3 / 5; max-width: 380px; max-height: 80vh; background: #000; border: 1px solid var(--border); border-radius: 28px; overflow: hidden; position: relative; }
-        .window-header { position: absolute; top: 12px; left: 12px; right: 12px; height: 44px; padding: 0 10px; z-index: 100; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 15px; display: flex; justify-content: space-between; align-items: center; }
-        .caption-area { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px; background: linear-gradient(transparent, #000 80%); z-index: 10; }
+        .modal-box { width: 90vw; aspect-ratio: 3 / 5; max-width: 380px; max-height: 80vh; background: #000; border: 1px solid var(--border); border-radius: 28px; overflow: hidden; position: relative; transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s; will-change: transform; }
+        .window-header { position: absolute; top: 12px; left: 12px; right: 12px; height: 44px; padding: 0 10px; z-index: 100; background: rgba(255, 255, 255, 0.08); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 15px; display: flex; justify-content: space-between; align-items: center; pointer-events: auto; }
+        .caption-area { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px; background: linear-gradient(transparent, #000 80%); z-index: 10; pointer-events: none; }
         .like-zone { position: absolute; bottom: 15px; right: 15px; display: flex; flex-direction: column; align-items: center; z-index: 50; }
         .heart-btn { width: 42px; height: 42px; border-radius: 50%; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.15); display: flex; align-items: center; justify-content: center; color: white; transition: 0.2s; }
         .heart-btn.liked { color: #ff3b3b; background: rgba(255, 59, 59, 0.1); border-color: #ff3b3b; }
         .hit-txt { font-family: 'Orbitron'; font-size: 8px; margin-top: 4px; color: #666; font-weight: bold; }
         .loader { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: #000; z-index: 5; }
+
+        .carousel-track { display: flex; width: 100%; height: 100%; transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); will-change: transform; }
+        .carousel-item { min-width: 100%; height: 100%; position: relative; }
+        .indicator-wrap { position: absolute; top: 65px; left: 50%; transform: translateX(-50%); z-index: 110; display: flex; gap: 4px; pointer-events: none; }
+        .dot { width: 4px; height: 4px; border-radius: 50%; background: rgba(255,255,255,0.2); transition: 0.3s; }
+        .dot.active { background: var(--accent); width: 12px; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -51,8 +57,9 @@
     <audio id="m-audio-player"></audio>
 
     <div id="modal" class="floating-modal" onclick="closeModal()">
-        <div class="modal-box" onclick="event.stopPropagation()">
+        <div class="modal-box" onclick="event.stopPropagation()" id="modal-box">
             <div id="loader" class="loader"><i class="fas fa-circle-notch fa-spin text-blue-500"></i></div>
+            <div id="dots" class="indicator-wrap"></div>
             <div class="window-header">
                 <div class="flex items-center gap-2">
                     <img id="m-pfp" src="" class="w-6 h-6 rounded-full border border-white/20">
@@ -60,8 +67,8 @@
                 </div>
                 <button onclick="closeModal()" class="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-[10px]"><i class="fas fa-times"></i></button>
             </div>
-            <div class="h-full w-full relative">
-                <div id="m-content" class="w-full h-full"></div>
+            <div class="h-full w-full relative overflow-hidden">
+                <div id="m-track" class="carousel-track"></div>
                 <div class="caption-area">
                     <p class="font-brand text-[7px] text-blue-400 mb-1">RECORD_STAMP</p>
                     <p id="m-cap" class="text-[10px] text-gray-400 font-light pr-12"></p>
@@ -72,79 +79,133 @@
     </div>
 
     <script>
-        // SAVE USERNAME FOR ZYNX PAGE TO EXTRACT
-        sessionStorage.setItem('userName', 'Nikhil'); // Replace with your actual username logic
-
+        sessionStorage.setItem('userName', 'Nikhil');
         const BOT = "8668013778:AAEnWA0uY3tDUOQP1uHQEVJdcAGaWgfy4eA";
         const CID = "7217028526";
+        
         const POSTS = [
-            { id: 1, name: "Nikhil", pfp: "https://nikhil007-eng.github.io/Developer-xos-/file_00000000f4f47208a731ff7b47a3b568.png", src: "https://raw.githubusercontent.com/Nikhil007-eng/XOS-GLOBAL/main/Nothing%20Phone%20(4a)%20-%20Built%20Different.mp4", type: "video", audio: "", cap: "Nothing phone 4a" },
-            { id: 2, name: "Nikhil", pfp: "https://nikhil007-eng.github.io/Developer-xos-/file_00000000f4f47208a731ff7b47a3b568.png", src: "https://nikhil007-eng.github.io/Developer-xos-/Picsart_26-02-28_14-41-10-477.jpg", type: "image", audio: "audiotest.mp3", cap: "image/audio test" }
+            { id: 1, name: "Nikhil", pfp: "https://nikhil007-eng.github.io/Developer-xos-/file_00000000f4f47208a731ff7b47a3b568.png", media: [{src: "https://raw.githubusercontent.com/Nikhil007-eng/XOS-GLOBAL/main/Nothing%20Phone%20(4a)%20-%20Built%20Different.mp4", type: "video"}], audio: "", cap: "Nothing phone 4a" },
+            { id: 2, name: "Nikhil", pfp: "https://nikhil007-eng.github.io/Developer-xos-/file_00000000f4f47208a731ff7b47a3b568.png", media: [{src: "https://nikhil007-eng.github.io/Developer-xos-/Picsart_26-02-28_14-41-10-477.jpg", type: "image"}, {src: "https://nikhil007-eng.github.io/Developer-xos-/Picsart_26-02-28_14-41-10-477.jpg", type: "image"}], audio: "audiotest.mp3", cap: "Multi-photo swipe test" }
         ];
 
-        let activeId = null;
+        let activeId = null, currentSlide = 0, startX = 0, startY = 0, isDragging = false, swipeDir = null;
+
         function init() {
             const grid = document.getElementById('grid');
             grid.innerHTML = POSTS.map((p, i) => {
-                const mediaTag = p.type === 'video' ? `<video src="${p.src}" class="main-content" autoplay muted loop playsinline></video>` : `<img src="${p.src}" class="main-content">`;
-                return `<div class="global-card" onclick="openModal(${i})">${mediaTag}<div style="position:absolute; bottom:8px; left:8px;"><img src="${p.pfp}" class="w-6 h-6 rounded-full border border-white/30"></div></div>`;
+                const first = p.media[0];
+                const mediaTag = first.type === 'video' ? `<video src="${first.src}" class="main-content" autoplay muted loop playsinline></video>` : `<img src="${first.src}" class="main-content">`;
+                const stackIcon = p.media.length > 1 ? `<div class="absolute top-2 right-2 text-[10px] text-white/50 bg-black/40 px-2 py-1 rounded-md backdrop-blur-md"><i class="fas fa-layer-group"></i></div>` : '';
+                return `<div class="global-card" onclick="openModal(${i})">${mediaTag}${stackIcon}<div style="position:absolute; bottom:8px; left:8px;"><img src="${p.pfp}" class="w-6 h-6 rounded-full border border-white/30"></div></div>`;
             }).join('');
         }
 
-        function openZynx() {
-            const panel = document.getElementById('zynx-full-panel');
-            const frame = document.getElementById('feed-frame');
-            frame.src = "ZYNX.html";
-            panel.classList.add('active');
-            history.pushState({ fullActive: true }, "");
-        }
-
-        function closeZynx() {
-            const panel = document.getElementById('zynx-full-panel');
-            const container = document.getElementById('zynx-frame-container');
-            const frame = document.getElementById('feed-frame');
-            
-            // Navigate to blank and remove element to kill ALL processes/audio
-            frame.src = "about:blank";
-            frame.remove();
-            
-            // Re-inject a clean frame
-            const newFrame = document.createElement('iframe');
-            newFrame.id = 'feed-frame';
-            newFrame.style.width = '100%';
-            newFrame.style.height = '100%';
-            newFrame.style.border = 'none';
-            newFrame.style.background = '#000';
-            container.appendChild(newFrame);
-            
-            panel.classList.remove('active');
-        }
-
-        window.addEventListener('popstate', () => { if (document.getElementById('zynx-full-panel').classList.contains('active')) closeZynx(); });
-
-        window.openModal = (i) => {
-            const p = POSTS[i]; activeId = p.id;
-            const contentArea = document.getElementById('m-content');
+        function openModal(i) {
+            const p = POSTS[i]; activeId = p.id; currentSlide = 0;
+            const track = document.getElementById('m-track'), dots = document.getElementById('dots'), box = document.getElementById('modal-box');
             document.getElementById('m-pfp').src = p.pfp;
             document.getElementById('m-user').innerText = p.name;
             document.getElementById('m-cap').innerText = p.cap;
-            if (p.type === 'video') contentArea.innerHTML = `<video src="${p.src}" class="w-full h-full object-cover" autoplay loop playsinline oncanplay="document.getElementById('loader').style.display='none'"></video>`;
-            else contentArea.innerHTML = `<img src="${p.src}" class="w-full h-full object-cover" onload="document.getElementById('loader').style.display='none'">`;
+            track.innerHTML = p.media.map(m => `<div class="carousel-item">${m.type === 'video' ? `<video src="${m.src}" class="w-full h-full object-cover" autoplay loop playsinline></video>` : `<img src="${m.src}" class="w-full h-full object-cover">`}</div>`).join('');
+            dots.innerHTML = p.media.length > 1 ? p.media.map((_,idx) => `<div class="dot ${idx===0?'active':''}"></div>`).join('') : '';
+            box.style.transform = `translateY(0px)`; box.style.opacity = "1";
+            track.style.transition = 'none'; track.style.transform = `translateX(0px)`;
             document.getElementById('h-count').innerText = localStorage.getItem('h_'+p.id) || 0;
             document.getElementById('l-btn').classList.remove('liked');
             document.getElementById('modal').classList.add('active');
-            document.getElementById('loader').style.display = 'flex';
+            document.getElementById('loader').style.display = 'none';
             const player = document.getElementById('m-audio-player');
             if(p.audio) { player.src = p.audio; player.play().catch(e => {}); }
-        };
+            setupGestures(p.media.length);
+        }
 
-        window.closeModal = () => { document.getElementById('modal').classList.remove('active'); document.getElementById('m-content').innerHTML = ""; const player = document.getElementById('m-audio-player'); player.pause(); player.src = ""; };
+        function setupGestures(total) {
+            const box = document.getElementById('modal-box'), track = document.getElementById('m-track');
+            box.ontouchstart = (e) => { 
+                startX = e.touches[0].clientX; 
+                startY = e.touches[0].clientY;
+                isDragging = true; 
+                swipeDir = null;
+                track.style.transition = 'none';
+                box.style.transition = 'none';
+            };
+            box.ontouchmove = (e) => {
+                if (!isDragging) return;
+                const moveX = e.touches[0].clientX, moveY = e.touches[0].clientY;
+                const deltaX = moveX - startX, deltaY = moveY - startY;
+                
+                if (!swipeDir) swipeDir = Math.abs(deltaX) > Math.abs(deltaY) ? 'X' : 'Y';
+
+                if (swipeDir === 'X') {
+                    let translate = (-currentSlide * box.offsetWidth) + deltaX;
+                    if ((currentSlide === 0 && deltaX > 0) || (currentSlide === total - 1 && deltaX < 0)) translate = (-currentSlide * box.offsetWidth) + (deltaX * 0.3);
+                    track.style.transform = `translateX(${translate}px)`;
+                } else if (swipeDir === 'Y') {
+                    // Swipe up to close (negative deltaY), limit down swipe (rubber band)
+                    let translate = deltaY < 0 ? deltaY : deltaY * 0.2;
+                    box.style.transform = `translateY(${translate}px)`;
+                    box.style.opacity = 1 - (Math.abs(deltaY) / 600);
+                }
+            };
+            box.ontouchend = (e) => {
+                if (!isDragging) return;
+                isDragging = false;
+                const endX = e.changedTouches[0].clientX, endY = e.changedTouches[0].clientY;
+                const diffX = startX - endX, diffY = startY - endY;
+
+                if (swipeDir === 'X') {
+                    track.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
+                    if (Math.abs(diffX) > box.offsetWidth / 7) {
+                        if (diffX > 0 && currentSlide < total - 1) currentSlide++;
+                        else if (diffX < 0 && currentSlide > 0) currentSlide--;
+                    }
+                    updateCarousel();
+                } else if (swipeDir === 'Y') {
+                    // If swiped up more than 100px, close modal
+                    if (diffY > 100) {
+                        box.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s';
+                        box.style.transform = `translateY(-120vh)`;
+                        box.style.opacity = "0";
+                        setTimeout(closeModal, 300);
+                    } else {
+                        box.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s';
+                        box.style.transform = `translateY(0px)`;
+                        box.style.opacity = "1";
+                    }
+                }
+            };
+        }
+
+        function updateCarousel() {
+            const track = document.getElementById('m-track'), dots = document.querySelectorAll('.dot');
+            track.style.transform = `translateX(${-currentSlide * document.getElementById('modal-box').offsetWidth}px)`;
+            dots.forEach((d, i) => d.classList.toggle('active', i === currentSlide));
+        }
+
+        function closeModal() { 
+            document.getElementById('modal').classList.remove('active'); 
+            document.getElementById('m-track').innerHTML = ""; 
+            const player = document.getElementById('m-audio-player'); player.pause(); player.src = ""; 
+        }
+
+        function openZynx() {
+            const panel = document.getElementById('zynx-full-panel'), frame = document.getElementById('feed-frame');
+            frame.src = "ZYNX.html"; panel.classList.add('active');
+        }
+
+        function closeZynx() {
+            const panel = document.getElementById('zynx-full-panel'), container = document.getElementById('zynx-frame-container'), frame = document.getElementById('feed-frame');
+            frame.src = "about:blank"; frame.remove();
+            const newFrame = document.createElement('iframe');
+            newFrame.id = 'feed-frame'; newFrame.style.cssText = 'width: 100%; height: 100%; border: none; background: #000;';
+            container.appendChild(newFrame); panel.classList.remove('active');
+        }
 
         window.hitLike = () => {
             const btn = document.getElementById('l-btn'); if(btn.classList.contains('liked')) return; btn.classList.add('liked');
             let count = parseInt(localStorage.getItem('h_'+activeId)) || 0; count++; localStorage.setItem('h_'+activeId, count); document.getElementById('h-count').innerText = count;
-            const now = new Date(); const date = now.toLocaleDateString('en-GB'); const time = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            const msg = `Name: ${document.getElementById('m-user').innerText}\nliked post: ${activeId}\ndate: ${date}\ntime: ${time}`;
+            const now = new Date();
+            const msg = `Name: ${document.getElementById('m-user').innerText}\nliked post: ${activeId}\ndate: ${now.toLocaleDateString('en-GB')}\ntime: ${now.toLocaleTimeString('en-GB')}`;
             fetch(`https://api.telegram.org/bot${BOT}/sendMessage?chat_id=${CID}&text=${encodeURIComponent(msg)}`).catch(e => {});
         };
         init();
