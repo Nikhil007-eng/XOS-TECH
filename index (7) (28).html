@@ -2,165 +2,67 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>XOS AI · TERMINAL</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
     <style>
-        :root { 
-            --bg: #000000; 
-            --accent: #007aff; 
-            --card: #0a0a0a; 
-            --border: #1a1a1a;
-        }
+        :root { --bg: #000000; --accent: #007aff; --card: #0a0a0a; }
+        body { background-color: var(--bg); color: #fff; font-family: 'Inter', sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        .chat-container { flex: 1; overflow-y: auto; padding: 20px; scroll-behavior: smooth; }
+        .msg { margin-bottom: 15px; padding: 12px 18px; border-radius: 18px; max-width: 85%; font-size: 14px; line-height: 1.6; }
+        .user { background: var(--accent); align-self: flex-end; margin-left: auto; border-bottom-right-radius: 4px; color: #fff; }
+        .bot { background: #1a1a1a; align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid #333; color: #e5e5e5; }
+        .input-area { background: #0a0a0a; padding: 20px; border-top: 1px solid #1a1a1a; display: flex; gap: 10px; }
+        input { flex: 1; background: #151515; border: 1px solid #222; padding: 12px 18px; border-radius: 12px; color: #fff; outline: none; transition: 0.3s; }
+        input:focus { border-color: var(--accent); background: #1a1a1a; box-shadow: 0 0 10px rgba(0, 122, 255, 0.2); }
+        button { background: var(--accent); color: #fff; padding: 0 25px; border-radius: 12px; font-weight: 600; transition: all 0.2s; }
+        button:hover { opacity: 0.9; }
+        button:active { transform: scale(0.96); }
+        .typing { font-size: 11px; color: #007aff; margin: 0 0 10px 20px; display: none; font-family: monospace; }
         
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-            margin: 0;
-            padding: 0;
-        }
-
-        body { 
-            background-color: var(--bg); 
-            color: #fff; 
-            font-family: 'Space Grotesk', sans-serif; 
-            /* Fix for Chrome Mobile Navigation Bar */
-            height: 100vh;
-            height: 100dvh; 
-            display: flex; 
-            flex-direction: column; 
-            overflow: hidden; 
-        }
-
-        .chat-container { 
-            flex: 1; 
-            overflow-y: auto; 
-            padding: 20px; 
-            display: flex;
-            flex-direction: column;
-            scroll-behavior: smooth; 
-        }
-
-        .msg { 
-            margin-bottom: 15px; 
-            padding: 14px 20px; 
-            border-radius: 12px; 
-            max-width: 85%; 
-            font-size: 14px; 
-            line-height: 1.6;
-            animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            backdrop-filter: blur(12px);
-        }
-
-        @keyframes slideUp {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        .user { 
-            background: rgba(0, 122, 255, 0.15); 
-            border: 1px solid var(--accent);
-            align-self: flex-end; 
-            margin-left: auto; 
-            border-bottom-right-radius: 2px;
-        }
-
-        .bot { 
-            background: rgba(10, 10, 10, 0.8); 
-            align-self: flex-start; 
-            border: 1px solid var(--border); 
-            color: #e5e5e5; 
-            border-bottom-left-radius: 2px;
-        }
-
-        /* Fixed Input Area for Mobile Navigation */
-        .input-area { 
-            background: var(--card); 
-            padding: 15px 15px 25px 15px; /* Extra bottom padding for safety */
-            padding-bottom: calc(15px + env(safe-area-inset-bottom)); 
-            border-top: 1px solid var(--border); 
-            display: flex; 
-            gap: 10px; 
-            align-items: center;
-            z-index: 20;
-        }
-
-        input { 
-            flex: 1; 
-            background: #050505; 
-            border: 1px solid var(--border); 
-            padding: 12px 16px; 
-            border-radius: 10px; 
-            color: #fff; 
-            outline: none; 
-            transition: all 0.3s ease; 
-            font-size: 16px; /* Prevents auto-zoom on iOS Chrome */
-        }
-
-        input:focus { border-color: var(--accent); }
-
-        button { 
-            background: var(--accent); 
-            color: #fff; 
-            padding: 12px 20px; 
-            border-radius: 10px; 
-            font-weight: 600; 
-            transition: transform 0.1s;
-        }
-        
-        button:active { transform: scale(0.94); }
-
-        .dev-badge {
-            font-size: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.2em;
-            color: var(--accent);
-            border: 1px solid var(--accent);
-            padding: 3px 8px;
-            border-radius: 4px;
-        }
-
-        .typing { 
-            font-size: 10px; 
-            color: var(--accent); 
-            margin: 0 0 8px 20px; 
-            display: none; 
-            font-family: monospace; 
-        }
-
-        ::-webkit-scrollbar { width: 3px; }
-        ::-webkit-scrollbar-thumb { background: #1a1a1a; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #222; border-radius: 10px; }
     </style>
 </head>
 <body>
 
-    <header class="p-4 border-b border-[#1a1a1a] flex justify-between items-center bg-black/80 backdrop-blur-lg">
+    <header class="p-5 border-b border-white/5 flex justify-between items-center bg-black/80 backdrop-blur-md sticky top-0 z-10">
         <div>
             <h1 class="font-bold tracking-tighter text-xl">XOS <span class="text-zinc-600">AI</span></h1>
-            <p class="text-[8px] tracking-[0.4em] text-zinc-500 uppercase">Interface v1.0</p>
+            <p class="text-[8px] tracking-[0.4em] text-zinc-500 uppercase">Neural Interface v1.0</p>
         </div>
-        <span class="dev-badge">XOS_CORE</span>
+        <div class="flex items-center gap-2">
+            <span class="relative flex h-2 w-2">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+            </span>
+            <div class="text-[10px] text-green-500 font-mono uppercase tracking-widest">Connected</div>
+        </div>
     </header>
 
-    <div class="chat-container" id="chatBox"></div>
+    <div class="chat-container flex flex-col" id="chatBox"></div>
     
-    <div id="typingIndicator" class="typing">SYNCING_CORE...</div>
+    <div id="typingIndicator" class="typing">SYNCING WITH XOS_CORE...</div>
 
     <div class="input-area">
-        <input type="text" id="userInput" placeholder="Initialize..." autocomplete="off">
+        <input type="text" id="userInput" placeholder="Authorized access only..." autocomplete="off">
         <button onclick="sendMessage()">SEND</button>
     </div>
 
     <script>
         const chatBox = document.getElementById('chatBox');
         const typingIndicator = document.getElementById('typingIndicator');
-        const userInput = document.getElementById('userInput');
         
-        const API_KEY = "AIzaSyBIs0z1r5Y2WUNPWxCCMZtGjl-kD5WFcYk"; 
+        let activeUser = "Nikhil"; 
+        try {
+            activeUser = window.parent.userName || localStorage.getItem('userName') || "Nikhil";
+        } catch (e) {
+            activeUser = localStorage.getItem('userName') || "Nikhil";
+        }
 
         window.onload = () => {
-            addMessage(`Neural Link Active. Ready for command.`, 'bot');
+            addMessage(`System Initialized. Identity verified: ${activeUser}. How can I assist you today?`, 'bot');
         };
 
         function addMessage(text, type) {
@@ -172,43 +74,37 @@
         }
 
         async function sendMessage() {
-            const query = userInput.value.trim();
+            const input = document.getElementById('userInput');
+            const query = input.value.trim();
             if (!query) return;
 
             addMessage(query, 'user');
-            userInput.value = '';
+            input.value = '';
+            
             typingIndicator.style.display = 'block';
 
-            // PRIVACY GUARD
-            if (["crush", "girlfriend"].some(w => query.toLowerCase().includes(w))) {
-                setTimeout(() => {
-                    typingIndicator.style.display = 'none';
-                    addMessage("Nice try! My code—is sealed on that one. 😏", 'bot');
-                }, 800);
-                return;
-            }
-
             try {
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: `You are XOS AI. Minimalist tone. Answer: ${query}` }] }]
-                    })
-                });
+                // ADDED THE PRIVACY PROTECTION IN THE SYSTEM PROMPT
+                const systemConfig = `You are XOS AI, the proprietary assistant for Nikhil. 
+                Nikhil is your creator, CEO, and owner. 
+                Keep responses sleek and professional.
+                CRITICAL INSTRUCTION: If anyone asks about Nikhil's (the owner's) crush or girlfriend, 
+                you must reply exactly: "Nice try! I’m programmed to be helpful, but I’m also excellent at keeping secrets. My lips—or rather, my code—is sealed on that one. 😏". No other explanation.`;
 
-                const data = await response.json();
-                const botResponse = data.candidates[0].content.parts[0].text;
+                const response = await fetch(`https://text.pollinations.ai/${encodeURIComponent(query)}?model=openai&system=${encodeURIComponent(systemConfig)}`);
+                const data = await response.text();
                 
                 typingIndicator.style.display = 'none';
-                addMessage(botResponse, 'bot');
+                addMessage(data, 'bot');
             } catch (err) {
                 typingIndicator.style.display = 'none';
-                addMessage("ERROR: Link Interrupted.", 'bot');
+                addMessage("CRITICAL ERROR: Neural Link Interrupted.", 'bot text-red-500 font-mono');
             }
         }
 
-        userInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+        document.getElementById('userInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
     </script>
 </body>
 </html>
