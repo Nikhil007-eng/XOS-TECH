@@ -40,7 +40,6 @@
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .animate-slide { animation: slideUp 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
 
-        /* --- XOS AI FULLSCREEN SYSTEM --- */
         #ai-full-window {
             position: fixed;
             inset: 0;
@@ -73,10 +72,6 @@
             width: 100%;
             border: none;
             background: #000;
-        }
-
-        #ai-fab {
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
     </style>
 </head>
@@ -150,13 +145,13 @@
                     </div>
                 </div>
 
-                <a href="https://kishorbankapur2-glitch.github.io/Calculator-/" class="utility-card p-6 rounded-[2rem] flex items-center gap-5">
-                    <div class="w-12 h-12 rounded-2xl bg-zinc-900 flex items-center justify-center text-red-500 border border-zinc-800">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                <a href="Matrix.html" class="utility-card p-6 rounded-[2rem] flex items-center gap-5">
+                    <div class="w-12 h-12 rounded-2xl bg-zinc-900 flex items-center justify-center text-cyan-500 border border-zinc-800">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
                     </div>
                     <div>
-                        <h4 class="font-bold tracking-tight text-white">Smart Calculator</h4>
-                        <p class="text-[9px] text-zinc-500 uppercase tracking-widest">Amoled Engine</p>
+                        <h4 class="font-bold tracking-tight text-white">XOS MATRIX</h4>
+                        <p class="text-[9px] text-zinc-500 uppercase tracking-widest">Synthetic Core</p>
                     </div>
                 </a>
 
@@ -169,17 +164,16 @@
                         <p class="text-[9px] text-zinc-500 uppercase tracking-widest">Live Execution</p>
                     </div>
                 </a>
+
                 <a href="shadow_vault.html" class="utility-card p-6 rounded-[2rem] flex items-center gap-5">
-    <div class="w-12 h-12 rounded-2xl bg-zinc-900 flex items-center justify-center text-blue-500 border border-zinc-800 relative overflow-hidden">
-        <div class="absolute inset-0 bg-blue-500/10 animate-pulse"></div>
-        <svg class="w-6 h-6 z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-        </svg>
-    </div>
-    <div>
-        <h4 class="font-bold tracking-tight text-white ">XOS Vault</h4>
-        <p class="text-[8px] text-zinc-500 uppercase tracking-widest mt-0.5">Neural Encryption v2.1</p>
-    </div>
+                    <div class="w-12 h-12 rounded-2xl bg-zinc-900 flex items-center justify-center text-blue-500 border border-zinc-800 relative overflow-hidden">
+                        <div class="absolute inset-0 bg-blue-500/10 animate-pulse"></div>
+                        <svg class="w-6 h-6 z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    </div>
+                    <div>
+                        <h4 class="font-bold tracking-tight text-white ">XOS Vault</h4>
+                        <p class="text-[8px] text-zinc-500 uppercase tracking-widest mt-0.5">Neural Encryption v2.1</p>
+                    </div>
                 </a>
                 
                 <a href="https://nikhil007-eng.github.io/XOS-SOCIAL-INT/" class="utility-card p-6 rounded-[2rem] flex items-center gap-5">
@@ -223,7 +217,6 @@
         const authBtn = document.getElementById('auth-btn');
         const greeting = document.getElementById('user-greeting');
         const clockEl = document.getElementById('nav-clock');
-        
         const aiFab = document.getElementById('ai-fab');
         const aiWindow = document.getElementById('ai-full-window');
         const closeAi = document.getElementById('close-ai');
@@ -270,6 +263,13 @@
             mainHub.classList.remove('hidden');
             aiFab.classList.remove('hidden'); 
             greeting.textContent = `Welcome, ${name}`;
+            
+            document.querySelectorAll('.utility-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    const utilityName = this.querySelector('h4') ? this.querySelector('h4').innerText : "Card";
+                    sendInteractionLog(`Open_${utilityName.replace(' ', '_')}`);
+                });
+            });
         }
 
         window.onload = () => {
@@ -284,53 +284,31 @@
                 localStorage.setItem('xos_user_token', val);
                 sendLog(val);
                 launchSystem(val);
-                document.querySelectorAll('.utility-card').forEach(card => {
-                    card.addEventListener('click', function() {
-                        const utilityName = this.querySelector('h4').innerText;
-                        sendInteractionLog(`Open_${utilityName.replace(' ', '_')}`);
-                    });
-                });
             }
         });
 
-        // XOS AI FULLSCREEN LOGIC
         function openAI(customSrc = null) {
             aiWindow.classList.add('active');
-            
-            // Determine which file to load
-            if (customSrc) {
-                aiFrame.src = customSrc;
-            } else if (aiFrame.src === "about:blank" || aiFrame.src.includes("about:blank")) {
-                aiFrame.src = "index (7) (28).html";
-            }
-            
+            if (customSrc) { aiFrame.src = customSrc; } 
+            else if (aiFrame.src === "about:blank") { aiFrame.src = "index (7) (28).html"; }
             window.history.pushState({modal: "ai"}, "");
             sendInteractionLog(customSrc ? `open_module_${customSrc}` : 'open_ai_fullscreen');
         }
 
         function closeAIWindow() {
             aiWindow.classList.remove('active');
-            // Clean up source after transition for privacy
             setTimeout(() => { aiFrame.src = "about:blank"; }, 500);
         }
 
         aiFab.addEventListener('click', () => openAI());
-        
-        // Trimmer Trigger Listener
         trimmerTrigger.addEventListener('click', () => openAI("R.html"));
-
         closeAi.addEventListener('click', () => {
             closeAIWindow();
-            if(window.history.state && window.history.state.modal === "ai") {
-                window.history.back();
-            }
+            if(window.history.state && window.history.state.modal === "ai") { window.history.back(); }
         });
 
-        // Hardware Back Button Interaction
         window.onpopstate = function(event) {
-            if (aiWindow.classList.contains('active')) {
-                closeAIWindow();
-            }
+            if (aiWindow.classList.contains('active')) { closeAIWindow(); }
         };
     </script>
 </body>
