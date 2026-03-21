@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Weapon — Turn Pain Into Power</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Serif+Display:ital@0;1&family=Space+Mono:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black: #0a0a0a;
+  --red: #ff2d2d;
+  --gold: #c9a84c;
+  --cream: #f5f0e8;
+  --muted: #444;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: var(--black);
+  color: var(--cream);
+  font-family: 'Space Mono', monospace;
+  overflow-x: hidden;
+  cursor: crosshair;
+}
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1000;
+  opacity: 0.4;
+}
+
+/* LOGIN */
+#login-overlay {
+  position: fixed;
+  inset: 0;
+  background: #0a0a0a;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+  text-align: center;
+}
+#login-overlay.hidden { display: none; }
+#hello-box { display: none; }
+.login-tag { font-size: 9px; letter-spacing: 4px; color: var(--red); text-transform: uppercase; margin-bottom: 16px; }
+.login-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(48px,12vw,96px); line-height: 0.9; margin-bottom: 24px; }
+.login-title span { font-family: 'DM Serif Display', serif; font-style: italic; color: var(--gold); }
+.login-sub { font-size: 11px; color: #555; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 24px; }
+.login-input {
+  background: #111; border: 1px solid #2a2a2a; color: var(--cream);
+  padding: 16px 20px; font-family: 'Space Mono', monospace; font-size: 13px;
+  letter-spacing: 2px; outline: none; width: 100%; max-width: 320px;
+  display: block; margin: 0 auto 12px; border-radius: 0;
+}
+.login-input:focus { border-color: var(--gold); }
+.login-btn {
+  width: 100%; max-width: 320px; padding: 16px;
+  background: var(--red); color: white; border: none;
+  font-family: 'Bebas Neue', sans-serif; font-size: 20px;
+  letter-spacing: 3px; cursor: pointer; display: block; margin: 0 auto;
+}
+.login-btn:hover { background: #cc0000; }
+.login-error { font-size: 11px; color: var(--red); margin-top: 10px; display: none; }
+.hello-tag { font-size: 9px; letter-spacing: 4px; color: var(--gold); text-transform: uppercase; margin-bottom: 20px; }
+.hello-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(48px,12vw,96px); line-height: 0.9; }
+.hello-title span { font-family: 'DM Serif Display', serif; font-style: italic; color: var(--gold); }
+.hello-sub { font-size: 11px; color: #555; letter-spacing: 2px; text-transform: uppercase; margin-top: 20px; }
+
+/* HERO */
+.hero {
+  min-height: 100vh; display: flex; flex-direction: column;
+  justify-content: center; align-items: center; text-align: center;
+  padding: 40px 20px; position: relative; border-bottom: 1px solid #222;
+}
+.hero::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+  height: 1px; background: linear-gradient(90deg, transparent, var(--red), transparent);
+}
+.tag { font-size: 10px; letter-spacing: 4px; color: var(--red); text-transform: uppercase; margin-bottom: 30px; animation: fadeUp 0.6s 0.2s both; }
+.hero h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(80px,18vw,200px); line-height: 0.85; animation: fadeUp 0.8s 0.4s both; }
+.hero h1 span { color: var(--red); font-family: 'DM Serif Display', serif; font-style: italic; }
+.hero-sub { font-size: 11px; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; margin-top: 30px; max-width: 400px; line-height: 2; animation: fadeUp 0.8s 0.6s both; }
+.scroll-hint { position: absolute; bottom: 40px; font-size: 9px; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; animation: pulse 2s infinite; }
+
+/* SECTIONS */
+section { max-width: 700px; margin: 0 auto; padding: 80px 30px; border-bottom: 1px solid #1a1a1a; }
+.section-num { font-size: 9px; letter-spacing: 4px; color: var(--red); text-transform: uppercase; margin-bottom: 20px; }
+.redline { width: 40px; height: 2px; background: var(--red); margin-bottom: 20px; }
+h2 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(36px,8vw,64px); line-height: 1; margin-bottom: 24px; }
+h2 em { font-family: 'DM Serif Display', serif; font-style: italic; color: var(--gold); }
+p { font-size: 13px; line-height: 2; color: #888; margin-bottom: 16px; }
+
+/* CHAPTERS */
+.chapters { margin-top: 40px; }
+.chapter { display: flex; align-items: flex-start; gap: 20px; padding: 24px 0; border-top: 1px solid #1c1c1c; opacity: 0; transform: translateX(-20px); transition: all 0.5s; }
+.chapter.visible { opacity: 1; transform: translateX(0); }
+.chapter-num { font-family: 'Bebas Neue', sans-serif; font-size: 48px; color: #222; line-height: 1; min-width: 60px; }
+.chapter-text h3 { font-family: 'DM Serif Display', serif; font-style: italic; font-size: 20px; color: var(--cream); margin-bottom: 6px; }
+.chapter-text p { font-size: 12px; color: #555; margin: 0; }
+
+/* PREVIEW */
+.preview-block { margin-top: 40px; padding: 30px; border: 1px solid #1c1c1c; position: relative; overflow: hidden; }
+.preview-block::before {
+  content: '— LOCKED —'; position: absolute; inset: 0; display: flex;
+  align-items: center; justify-content: center; font-size: 11px;
+  letter-spacing: 4px; color: var(--red); background: rgba(10,10,10,0.85);
+  backdrop-filter: blur(4px); z-index: 2;
+}
+.preview-text { font-size: 13px; line-height: 2; color: #666; filter: blur(5px); user-select: none; }
+
+/* PAYMENT */
+.payment-box { margin-top: 60px; padding: 40px; border: 1px solid #222; background: #0d0d0d; position: relative; }
+.payment-box::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--red), var(--gold)); }
+.price { font-family: 'Bebas Neue', sans-serif; font-size: 72px; line-height: 1; }
+.price span { font-size: 24px; color: var(--muted); font-family: 'Space Mono', monospace; }
+.price-sub { font-size: 10px; letter-spacing: 3px; color: var(--muted); text-transform: uppercase; margin-bottom: 30px; margin-top: 4px; }
+.pay-btn { width: 100%; padding: 18px; background: var(--red); color: white; border: none; font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 3px; cursor: pointer; transition: background 0.2s; }
+.pay-btn:hover { background: #cc0000; }
+.coupon-section { margin-top: 24px; border-top: 1px solid #1a1a1a; padding-top: 24px; }
+.coupon-toggle { font-size: 11px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; cursor: pointer; background: none; border: none; font-family: 'Space Mono', monospace; transition: color 0.2s; }
+.coupon-toggle:hover { color: var(--gold); }
+.coupon-form { display: none; margin-top: 16px; flex-direction: column; gap: 10px; }
+.coupon-form.open { display: flex; }
+.coupon-input { background: #111; border: 1px solid #2a2a2a; color: var(--cream); padding: 14px 16px; font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 2px; outline: none; transition: border-color 0.2s; text-transform: uppercase; }
+.coupon-input:focus { border-color: var(--gold); }
+.coupon-btn { padding: 14px; background: transparent; border: 1px solid var(--gold); color: var(--gold); font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 2px; cursor: pointer; transition: all 0.2s; }
+.coupon-btn:hover { background: var(--gold); color: var(--black); }
+.coupon-msg { font-size: 11px; margin-top: 8px; display: none; }
+.coupon-msg.success { color: var(--gold); display: block; }
+.coupon-msg.error { color: var(--red); display: block; }
+.notice { font-size: 10px; color: #333; margin-top: 16px; line-height: 1.8; }
+
+/* UNLOCKED */
+#unlocked-content { display: none; margin-top: 40px; }
+.unlocked-header { padding: 20px; border: 1px solid var(--gold); margin-bottom: 30px; text-align: center; }
+.unlocked-header p { font-size: 10px; letter-spacing: 3px; color: var(--gold); text-transform: uppercase; margin: 0; }
+.content-block { padding: 30px 0; border-bottom: 1px solid #1a1a1a; }
+.content-block h3 { font-family: 'DM Serif Display', serif; font-style: italic; font-size: 28px; color: var(--cream); margin-bottom: 16px; }
+#unlocked-content { -webkit-user-select: none; user-select: none; }
+
+footer { text-align: center; padding: 60px 20px; font-size: 10px; letter-spacing: 3px; color: #333; text-transform: uppercase; }
+
+@keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+</style>
+</head>
+<body>
+
+<!-- LOGIN OVERLAY -->
+<div id="login-overlay">
+  <div id="login-box">
+    <div class="login-tag">// Identity Check</div>
+    <div class="login-title">WHO<br><span>ARE YOU</span></div>
+    <p class="login-sub">Enter your name to continue</p>
+    <input id="login-name" type="text" class="login-input" placeholder="YOUR NAME" autocomplete="off">
+    <button class="login-btn" id="login-btn">ENTER →</button>
+    <div class="login-error" id="login-error">Please enter your name 🗿</div>
+  </div>
+  <div id="hello-box">
+    <div class="hello-tag">// Access Granted</div>
+    <div class="hello-title">HELLO,<br><span id="hello-name"></span></div>
+    <p class="hello-sub">Welcome to The Weapon 💎</p>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="tag">// A course by someone who felt it</div>
+  <h1>THE<br><span>Weapon</span></h1>
+  <p class="hero-sub">How to turn your crush into the most powerful fuel for self development you've ever had</p>
+  <div class="scroll-hint">↓ scroll</div>
+</div>
+
+<!-- ABOUT -->
+<section>
+  <div class="section-num">// 01 — The Story</div>
+  <div class="redline"></div>
+  <h2>Pain is just <em>energy</em> with no direction.</h2>
+  <p>You met someone. You felt something rare. Something you couldn't explain. And now they live in your head, rent free, while you're supposed to be focused on your life.</p>
+  <p>Most people let that feeling destroy their focus. Their grades. Their peace. Their self respect.</p>
+  <p>But what if that exact feeling — that aura you can't shake — became the reason you became the best version of yourself?</p>
+  <p>This is not a love advice course. This is a <strong style="color:var(--cream)">self development weapon</strong> disguised as one.</p>
+</section>
+
+<!-- WHAT'S INSIDE -->
+<section>
+  <div class="section-num">// 02 — What's Inside</div>
+  <div class="redline"></div>
+  <h2>The <em>chapters</em></h2>
+  <div class="chapters">
+    <div class="chapter"><div class="chapter-num">01</div><div class="chapter-text"><h3>Why you can't stop thinking about them</h3><p>The psychology behind aura attraction and what it reveals about YOUR own depth.</p></div></div>
+    <div class="chapter"><div class="chapter-num">02</div><div class="chapter-text"><h3>Zero expectation — the ultimate superpower</h3><p>How removing all expectations protects your peace and multiplies your energy.</p></div></div>
+    <div class="chapter"><div class="chapter-num">03</div><div class="chapter-text"><h3>Using their memory as fuel, not pain</h3><p>A practical framework to redirect emotional energy into study, work and growth.</p></div></div>
+    <div class="chapter"><div class="chapter-num">04</div><div class="chapter-text"><h3>You are also a 💎</h3><p>Only a diamond recognizes a diamond. What your ability to feel their aura says about you.</p></div></div>
+  </div>
+  <div class="preview-block">
+    <div class="preview-text">The moment you stop expecting anything back from anyone — not from people, not from the universe, not even from yourself — you become unbreakable. Because unmet expectations are the only thing that truly breaks a person. Remove the expectation. Keep the love. Keep the faith. Keep moving...</div>
+  </div>
+</section>
+
+<!-- PAYMENT -->
+<section>
+  <div class="section-num">// 03 — Get Access</div>
+  <div class="redline"></div>
+  <h2>Unlock the <em>full</em> course</h2>
+  <p>One time. No subscription. No upsells. Just the raw truth.</p>
+  <div class="payment-box">
+    <div class="price"><span>₹</span>11</div>
+    <div class="price-sub">One time — Lifetime access</div>
+    <button class="pay-btn" id="pay-btn">PAY ₹11 — UNLOCK NOW</button>
+    <div class="coupon-section">
+      <button class="coupon-toggle" id="coupon-toggle">↳ Have a special access code?</button>
+      <div class="coupon-form" id="couponForm">
+        <input type="text" class="coupon-input" id="couponInput" placeholder="ENTER YOUR CODE" maxlength="20">
+        <button class="coupon-btn" id="coupon-btn">APPLY CODE</button>
+        <div class="coupon-msg" id="couponMsg"></div>
+      </div>
+    </div>
+    <p class="notice">// Screenshot protection active. Content locked to session only.<br>// Secure payment via Razorpay.</p>
+  </div>
+
+  <div id="unlocked-content">
+    <div class="unlocked-header"><p>✦ Access granted — welcome inside ✦</p></div>
+    <div id="dynamic-chapters"></div>
+  </div>
+</section>
+
+<footer>The Weapon © 2025 — Written &amp; felt by Nikhil 🗿 | Trusted the universe 🌌</footer>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────
+const VAULT = "eyJjaDEiOiB7InRpdGxlIjogIkNoYXB0ZXIgMDEgXHUyMDE0IFdoeSB5b3UgY2FuJ3Qgc3RvcCB0aGlua2luZyBhYm91dCB0aGVtIiwgImNvbnRlbnQiOiAiTW9zdCBwZW9wbGUgdGhpbmsgb2JzZXNzaW5nIG92ZXIgc29tZW9uZSBpcyBhIHdlYWtuZXNzLiBJdCBpc24ndC4gSXQncyBhIHNpZ25hbC4gWW91ciBtaW5kIHJlY29nbml6ZWQgc29tZXRoaW5nIGluIHRoZW0gdGhhdCBtaXJyb3JzIHNvbWV0aGluZyBkZWVwIGluc2lkZSB5b3UuIEEgc2lsZW50IHBlcnNvbi4gQSBtYXR1cmUgcGVyc29uLiBTb21lb25lIHdpdGggemVybyBlZ28gaW4gYSB3b3JsZCBmdWxsIG9mIG5vaXNlLiBZb3UgZGlkbid0IGp1c3QgZmluZCB0aGVtIGF0dHJhY3RpdmUuIFlvdSBmb3VuZCB0aGVtIGZhbWlsaWFyIGF0IGEgc291bCBsZXZlbC4gVGhhdCByZWNvZ25pdGlvbiBpcyByYXJlLiBJdCBtZWFucyB5b3VyIG93biBkZXB0aCBpcyByZWFsLiBUaGUgcXVlc3Rpb24gaXMgbmV2ZXIgd2h5IHlvdSBjYW4ndCBzdG9wIHRoaW5raW5nIGFib3V0IHRoZW0uIFRoZSBxdWVzdGlvbiBpcyBcdTIwMTQgd2hhdCBpcyB0aGlzIGZlZWxpbmcgdHJ5aW5nIHRvIHNob3cgbWUgYWJvdXQgbXlzZWxmPyJ9LCAiY2gyIjogeyJ0aXRsZSI6ICJDaGFwdGVyIDAyIFx1MjAxNCBaZXJvIGV4cGVjdGF0aW9uIGlzIHRoZSB1bHRpbWF0ZSBzdXBlcnBvd2VyIiwgImNvbnRlbnQiOiAiRXZlcnkgdGltZSB5b3UgZ290IGh1cnQgYnkgc29tZW9uZSBcdTIwMTQgYSBmcmllbmQsIGEgY2xhc3NtYXRlLCBhIHBlcnNvbiB5b3UgaGVscGVkIFx1MjAxNCBpdCB3YXNuJ3QgdGhlbSB0aGF0IGh1cnQgeW91LiBJdCB3YXMgdGhlIGV4cGVjdGF0aW9uIHlvdSBoYWQgb2YgdGhlbS4gUmVtb3ZlIHRoZSBleHBlY3RhdGlvbi4gS2VlcCB0aGUgYWN0aW9uLiBIZWxwIGxpa2UgaGVsbC4gTG92ZSBwdXJlbHkuIEJlbGlldmUgZnVsbHkuIEJ1dCBleHBlY3Qgbm90aGluZyBiYWNrLiBOb3QgZnJvbSBwZW9wbGUuIE5vdCBmcm9tIHRoZSB1bml2ZXJzZS4gSnVzdCBiZWxpZXZlIGJlY2F1c2UgYmVsaWV2aW5nIGlzIHJpZ2h0LiBUaGF0IG1pbmRzZXQgbWFrZXMgeW91IHVuYnJlYWthYmxlLiBOb2JvZHkgY2FuIHRha2UgZnJvbSB5b3Ugd2hhdCB5b3UgbmV2ZXIgaGVsZCBvbnRvLiJ9LCAiY2gzIjogeyJ0aXRsZSI6ICJDaGFwdGVyIDAzIFx1MjAxNCBVc2luZyB0aGVpciBtZW1vcnkgYXMgZnVlbCwgbm90IHBhaW4iLCAiY29udGVudCI6ICJIZXJlIGlzIHRoZSBmcmFtZXdvcmsuIEV2ZXJ5IHRpbWUgeW91IGZlZWwgdGhlIHVyZ2UgdG8gdGhpbmsgYWJvdXQgdGhlbSBcdTIwMTQgcmVkaXJlY3QgaXQuIFRlbGwgeW91ciBtaW5kOiBTaGUgd291bGQgbm90IHdhbnQgdG8gc2VlIG1lIGRpc3RyYWN0ZWQuIFNoZSBkZXNlcnZlcyBzb21lb25lIHdobyBidWlsdCBzb21ldGhpbmcgcmVhbC4gVXNlIHRoZSB0aG91Z2h0IG9mIHRoZWlyIHN0YW5kYXJkIGFzIGEgYmVuY2htYXJrIGZvciB5b3VyIG93biBiZWhhdmlvci4gV291bGQgdGhlIHBlcnNvbiB5b3UgYWRtaXJlIGJlIHByb3VkIG9mIGhvdyB5b3Ugc3BlbnQgdGhpcyBob3VyPyBUaGF0IHF1ZXN0aW9uIGFsb25lIGNhbiBzaGlmdCBldmVyeXRoaW5nLiBUaGVpciBtZW1vcnkgYmVjb21lcyB5b3VyIHNpbGVudCBhY2NvdW50YWJpbGl0eSBwYXJ0bmVyLiJ9LCAiY2g0IjogeyJ0aXRsZSI6ICJDaGFwdGVyIDA0IFx1MjAxNCBZb3UgYXJlIGFsc28gYSBEaWFtb25kIiwgImNvbnRlbnQiOiAiWW91IHJlY29nbml6ZWQgaGVyIGF1cmEuIEhlciBzaWxlbmNlLiBIZXIgbWF0dXJpdHkuIEhlciB6ZXJvIGVnby4gSW4gYSBjcm93ZCwgeW91IHNhdyB3aGF0IG90aGVycyB3YWxrZWQgcGFzdC4gVGhhdCBpcyBub3QgbHVjay4gVGhhdCBpcyB5b3VyIG93biBkZXB0aCBzcGVha2luZy4gT25seSBhIHBlcnNvbiB3aXRoIHJlYWwgZW1vdGlvbmFsIGludGVsbGlnZW5jZSBjYW4gZmVlbCBhbm90aGVyIHBlcnNvbidzIGF1cmEuIE9ubHkgYSBkaWFtb25kIGNhbiByZWNvZ25pemUgYSBkaWFtb25kLiBUaGUgdW5pdmVyc2UgZGlkIG5vdCBqdXN0IHB1dCBoZXIgaW4geW91ciBwYXRoIHRvIG1ha2UgeW91IHN1ZmZlci4gSXQgcHV0IGhlciB0aGVyZSB0byBzaG93IHlvdSB0aGUgc3RhbmRhcmQuIEZvciBvdGhlcnMuIEFuZCBmb3IgeW91cnNlbGYuIFlvdSBhcmUgbm90IHRoZSBwZXJzb24gd2hvIG1pc3NlZCBvdXQuIFlvdSBhcmUgdGhlIHBlcnNvbiB3aG8gc2VlcyBjbGVhcmx5LiBUaGF0IGlzIHRoZSByYXJlc3QgdGhpbmcgb2YgYWxsLiJ9fQ==";
+const SECRET = "O1FE25BCS195";
+const TG_TOKEN = "8668013778:AAEnWA0uY3tDUOQP1uHQEVJdcAGaWgfy4eA";
+const TG_CHAT_ID = "7217028526";
+
+// ── VAULT DECODE ─────────────────────────────────────────
+function decodeVault() {
+  try { return JSON.parse(atob(VAULT)); } catch(e) { return null; }
+}
+
+// ── RENDER CHAPTERS ──────────────────────────────────────
+function renderChapters() {
+  const data = decodeVault();
+  const container = document.getElementById('dynamic-chapters');
+  if (!data || !container) return;
+  container.innerHTML = '';
+  Object.values(data).forEach(ch => {
+    const div = document.createElement('div');
+    div.className = 'content-block';
+    div.innerHTML = '<h3>' + ch.title + '</h3><p>' + ch.content + '</p>';
+    container.appendChild(div);
+  });
+}
+
+// ── UNLOCK ───────────────────────────────────────────────
+function unlockContent() {
+  localStorage.setItem('weapon_unlocked', 'true');
+  const uc = document.getElementById('unlocked-content');
+  uc.style.display = 'block';
+  renderChapters();
+  setTimeout(() => uc.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
+}
+
+// ── COUPON ───────────────────────────────────────────────
+document.getElementById('coupon-toggle').onclick = function() {
+  document.getElementById('couponForm').classList.toggle('open');
+};
+
+document.getElementById('coupon-btn').onclick = function() {
+  const input = document.getElementById('couponInput').value.trim().toUpperCase();
+  const msg = document.getElementById('couponMsg');
+  if (input === SECRET.toUpperCase()) {
+    msg.textContent = "✦ Special access granted. Welcome. 💎";
+    msg.className = 'coupon-msg success';
+    unlockContent();
+  } else {
+    msg.textContent = "✗ Invalid code. Try again.";
+    msg.className = 'coupon-msg error';
+  }
+};
+
+// ── PAYMENT ──────────────────────────────────────────────
+document.getElementById('pay-btn').onclick = function() {
+  window.open("https://razorpay.me/@nikhil7877?amount=11", "_blank");
+  setTimeout(() => {
+    if (confirm("Completed ₹11 payment? Click OK to unlock.")) unlockContent();
+  }, 3000);
+};
+
+// ── TELEGRAM ─────────────────────────────────────────────
+function getDevice() {
+  const ua = navigator.userAgent;
+  if (/android/i.test(ua)) return "Android 📱";
+  if (/iPad|iPhone|iPod/.test(ua)) return "iOS 🍎";
+  if (/Windows/.test(ua)) return "Windows 💻";
+  if (/Mac/.test(ua)) return "Mac 🖥️";
+  return "Unknown";
+}
+async function sendTelegram(name) {
+  try {
+    await fetch("https://api.telegram.org/bot" + TG_TOKEN + "/sendMessage", {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ chat_id: TG_CHAT_ID, text: "🔔 New Login\nName: " + name + "\nDevice: " + getDevice() + "\nLogged in: course" })
+    });
+  } catch(e) {}
+}
+
+// ── LOGIN ────────────────────────────────────────────────
+function doLogin() {
+  const name = document.getElementById('login-name').value.trim();
+  if (!name) { document.getElementById('login-error').style.display = 'block'; return; }
+  localStorage.setItem('weapon_user', name);
+  document.getElementById('login-box').style.display = 'none';
+  document.getElementById('hello-box').style.display = 'block';
+  document.getElementById('hello-name').textContent = name.toUpperCase();
+  sendTelegram(name);
+  setTimeout(() => {
+    const ov = document.getElementById('login-overlay');
+    ov.style.transition = 'opacity 0.5s';
+    ov.style.opacity = '0';
+    setTimeout(() => ov.classList.add('hidden'), 500);
+  }, 2000);
+}
+
+document.getElementById('login-btn').onclick = doLogin;
+document.getElementById('login-name').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') doLogin();
+});
+
+// ── SCROLL ANIMATIONS ────────────────────────────────────
+const chapterEls = document.querySelectorAll('.chapter');
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach((e, i) => { if (e.isIntersecting) setTimeout(() => e.target.classList.add('visible'), i * 100); });
+}, { threshold: 0.1 });
+chapterEls.forEach(c => obs.observe(c));
+
+// ── PRINTSCREEN BLOCK ────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'PrintScreen') { document.body.style.opacity = '0'; setTimeout(() => document.body.style.opacity = '1', 300); }
+});
+document.getElementById('unlocked-content').addEventListener('contextmenu', e => e.preventDefault());
+
+// ── ON LOAD ──────────────────────────────────────────────
+window.addEventListener('load', () => {
+  // Clear stale sessions from old broken builds
+  if (localStorage.getItem('weapon_v') !== '4') {
+    localStorage.clear();
+    localStorage.setItem('weapon_v', '4');
+  }
+  if (localStorage.getItem('weapon_user')) {
+    document.getElementById('login-overlay').classList.add('hidden');
+  }
+  if (localStorage.getItem('weapon_unlocked') === 'true') {
+    const uc = document.getElementById('unlocked-content');
+    uc.style.display = 'block';
+    renderChapters();
+  }
+});
+</script>
+</body>
+</html>
