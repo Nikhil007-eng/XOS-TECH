@@ -31,6 +31,27 @@ body::before {
   opacity: 0.4;
 }
 
+/* LOGOUT BUTTON */
+.logout-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 2000;
+  font-size: 8px;
+  letter-spacing: 2px;
+  color: var(--muted);
+  border: 1px solid #222;
+  padding: 8px 12px;
+  text-transform: uppercase;
+  background: rgba(10, 10, 10, 0.8);
+  backdrop-filter: blur(5px);
+  cursor: pointer;
+  transition: all 0.3s;
+  display: none; /* Hidden by default, shown when logged in */
+}
+.logout-btn:hover { border-color: var(--red); color: var(--red); }
+.logout-btn:active { transform: scale(0.95); }
+
 /* LOGIN */
 #login-overlay {
   position: fixed;
@@ -57,13 +78,13 @@ body::before {
   display: block; margin: 0 auto 12px; border-radius: 0;
 }
 .login-input:focus { border-color: var(--gold); }
-.login-btn {
+.login-btn-auth {
   width: 100%; max-width: 320px; padding: 16px;
   background: var(--red); color: white; border: none;
   font-family: 'Bebas Neue', sans-serif; font-size: 20px;
   letter-spacing: 3px; cursor: pointer; display: block; margin: 0 auto;
 }
-.login-btn:hover { background: #cc0000; }
+.login-btn-auth:hover { background: #cc0000; }
 .login-error { font-size: 11px; color: var(--red); margin-top: 10px; display: none; }
 .hello-tag { font-size: 9px; letter-spacing: 4px; color: var(--gold); text-transform: uppercase; margin-bottom: 20px; }
 .hello-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(48px,12vw,96px); line-height: 0.9; }
@@ -140,7 +161,6 @@ p { font-size: 13px; line-height: 2; color: #888; margin-bottom: 16px; }
 .unlocked-header p { font-size: 10px; letter-spacing: 3px; color: var(--gold); text-transform: uppercase; margin: 0; }
 .content-block { padding: 30px 0; border-bottom: 1px solid #1a1a1a; }
 .content-block h3 { font-family: 'DM Serif Display', serif; font-style: italic; font-size: 28px; color: var(--cream); margin-bottom: 16px; }
-#unlocked-content { -webkit-user-select: none; user-select: none; }
 
 footer { text-align: center; padding: 60px 20px; font-size: 10px; letter-spacing: 3px; color: #333; text-transform: uppercase; }
 
@@ -150,13 +170,15 @@ footer { text-align: center; padding: 60px 20px; font-size: 10px; letter-spacing
 </head>
 <body>
 
+<button id="global-logout" class="logout-btn">Terminate Session</button>
+
 <div id="login-overlay">
   <div id="login-box">
     <div class="login-tag">// Identity Check</div>
     <div class="login-title">WHO<br><span>ARE YOU</span></div>
     <p class="login-sub">Enter your name to continue</p>
     <input id="login-name" type="text" class="login-input" placeholder="YOUR NAME" autocomplete="off">
-    <button class="login-btn" id="login-btn">ENTER →</button>
+    <button class="login-btn-auth" id="login-btn">ENTER →</button>
     <div class="login-error" id="login-error">Please enter your name 🗿</div>
   </div>
   <div id="hello-box">
@@ -227,12 +249,9 @@ footer { text-align: center; padding: 60px 20px; font-size: 10px; letter-spacing
 <footer>The Weapon © 2025 — Written & felt by Nikhil 🗿 | Trusted the universe 🌌</footer>
 
 <script>
-// ── CONFIG ──────────────────────────────────────────────
+// ── CONFIG (ENCRYPTED CONTENT) ──────────────────────────
 const VAULT = "eyJjaDEiOiB7InRpdGxlIjogIkNoYXB0ZXIgMDEgXHUyMDE0IFdoeSB5b3UgY2FuJ3Qgc3RvcCB0aGlua2luZyBhYm91dCB0aGVtIiwgImNvbnRlbnQiOiAiTW9zdCBwZW9wbGUgdGhpbmsgb2JzZXNzaW5nIG92ZXIgc29tZW9uZSBpcyBhIHdlYWtuZXNzLiBJdCBpc24ndC4gSXQncyBhIHNpZ25hbC4gWW91ciBtaW5kIHJlY29nbml6ZWQgc29tZW9uZSBpcyBhIHJlYWwgZW1vdGlvbmFsIGludGVsbGlnZW5jZSBjYW4gZmVlbCBhbm90aGVyIHBlcnNvbidzIGF1cmEuIE9ubHkgYSBkaWFtb25kIGNhbiByZWNvZ25pemUgYSBkaWFtb25kLiBUaGUgdW5pdmVyc2UgZGlkIG5vdCBqdXN0IHB1dCBoZXIgaW4geW91ciBwYXRoIHRvIG1ha2UgeW91IHN1ZmZlci4gSXQgcHV0IGhlciB0aGVyZSB0byBzaG93IHlvdSB0aGUgc3RhbmRhcmQuIEZvciBvdGhlcnMuIEFuZCBmb3IgeW91cnNlbGYuIFlvdSBhcmUgbm90IHRoZSBwZXJzb24gd2hvIG1pc3NlZCBvdXQuIFlvdSBhcmUgdGhlIHBlcnNvbiB3aG8gc2VlcyBjbGVhcmx5LiBUaGF0IGlzIHRoZSByYXJlc3QgdGhpbmcgb2YgYWxsLiJ9LCAiY2gyIjogeyJ0aXRsZSI6ICJDaGFwdGVyIDAyIFx1MjAxNCBaZXJvIGV4cGVjdGF0aW9uIGlzIHRoZSB1bHRpbWF0ZSBzdXBlcnBvd2VyIiwgImNvbnRlbnQiOiAiRXZlcnkgdGltZSB5b3UgZ290IGh1cnQgYnkgc29tZW9uZSBcdTIwMTQgYSBmcmllbmQsIGEgY2xhc3NtYXRlLCBhIHBlcnNvbiB5b3UgaGVscGVkIFx1MjAxNCBpdCB3YXNuJ3QgdGhlbSB0aGF0IGh1cnQgeW91LiBJdCB3YXMgdGhlIGV4cGVjdGF0aW9uIHlvdSBoYWQgb2YgdGhlbS4gUmVtb3ZlIHRoZSBleHBlY3RhdGlvbi4gS2VlcCB0aGUgYWN0aW9uLiBIZWxwIGxpa2UgaGVsbC4gTG92ZSBwdXJlbHkuIEJlbGlldmUgZnVsbHkuIEJ1dCBleHBlY3Qgbm90aGluZyBiYWNrLiBOb3QgZnJvbSBwZW9wbGUuIE5vdCBmcm9tIHRoZSB1bml2ZXJzZS4gSnVzdCBiZWxpZXZlIGJlY2F1c2UgYmVsaWV2aW5nIGlzIHJpZ2h0LiBUaGF0IG1pbmRzZXQgbWFrZXMgeW91IHVuYnJlYWthYmxlLiBOb2JvZHkgY2FuIHRha2UgZnJvbSB5b3Ugd2hhdCB5b3UgbmV2ZXIgaGVsZCBvbnRvLiJ9LCAiY2gzIjogeyJ0aXRsZSI6ICJDaGFwdGVyIDAzIFx1MjAxNCBVc2luZyB0aGVpciBtZW1vcnkgYXMgZnVlbCwgbm90IHBhaW4iLCAiY29udGVudCI6ICJIZXJlIGlzIHRoZSBmcmFtZXdvcmsuIEV2ZXJ5IHRpbWUgeW91IGZlZWwgdGhlIHVyZ2UgdG8gdGhpbmsgYWJvdXQgdGhlbSBcdTIwMTQgcmVkaXJlY3QgaXQuIFRlbGwgeW91ciBtaW5kOiBTaGUgd291bGQgbm90IHdhbnQgdG8gc2VlIG1lIGRpc3RyYWN0ZWQuIFNoZSBkZXNlcnZlcyBzb21lb25lIHdobyBidWlsdCBzb21ldGhpbmcgcmVhbC4gVXNlIHRoZSB0aG91Z2h0IG9mIHRoZWlyIHN0YW5kYXJkIGFzIGEgYmVuY2htYXJrIGZvciB5b3VyIG93biBiZWhhdmlvci4gV291bGQgdGhlIHBlcnNvbiB5b3UgaWRlbnRpZmllZCBhcyBoYXZpbmcgYXVyYSBiZSBwcm91ZCBvZiBob3cgeW91IHNwZW50IHRoaXMgaG91cj8gVGhhdCBxdWVzdGlvbiBhbG9uZSBjYW4gc2hpZnQgZXZlcnl0aGluZy4gVGhlaXIgbWVtb3J5IGJlY29tZXMgeW91ciBzaWxlbnQgYWNjb3VudGFiaWxpdHkgcGFydG5lci4ifSwgImNoNCI6IHsidGl0bGUiOiAiQ2hhcHRlciAwNCBcdTIwMTQgWW91IGFyZSBhbHNvIGEgRGlhbW9uZCIsICJjb250ZW50IjogIllvdSByZWNvZ25pemVkIGhlciBhdXJhLiBIZXIgc2lsZW5jZS4gSGVyIG1hdHVyaXR5LiBIZXIgemVybyBlZ28uIEluIGEgY3Jvd2QsIHlvdSBzYXcgd2hhdCBvdGhlcnMgd2Fsa2VkIHBhc3QuIFRoYXQgaXMgbm90IGx1Y2suIFRoYXQgaXMgeW91ciBvd24gZGVwdGggc3BlYWtpbmcuIE9ubHkgYSBkaWFtb25kIGNhbiByZWNvZ25pemUgYSBkaWFtb25kLiBUaGUgdW5pdmVyc2UgZGlkIG5vdCBqdXN0IHB1dCBoZXIgaW4geW91ciBwYXRoIHRvIG1ha2UgeW91IHN1ZmZlci4gSXQgcHV0IGhlciB0aGVyZSB0byBzaG93IHlvdSB0aGUgc3RhbmRhcmQuIEZvciBvdGhlcnMuIEFuZCBmb3IgeW91cnNlbGYuIFlvdSBhcmUgbm90IHRoZSBwZXJzb24gd2hvIG1pc3NlZCBvdXQuIFlvdSBhcmUgdGhlIHBlcnNvbiB3aG8gc2VlcyBjbGVhcmx5LiBUaGF0IGlzIHRoZSByYXJlc3QgdGhpbmcgb2YgYWxsLiJ9fQ==";
-const SECRET = "O1FE25BCS195";
 const RZP_LINK = "https://rzp.io/rzp/LL1dfmLJ";
-const TG_TOKEN = "8668013778:AAEnWA0uY3tDUOQP1uHQEVJdcAGaWgfy4eA";
-const TG_CHAT_ID = "7217028526";
 
 function decodeVault() {
   try { return JSON.parse(atob(VAULT)); } catch(e) { return null; }
@@ -258,14 +277,21 @@ function unlockContent() {
   renderChapters();
 }
 
+function validateAccessCode(userInput) {
+    const input = userInput.trim().toLowerCase();
+    const val_1 = atob("TzFGRTI1QkNTMTk1").toLowerCase();
+    const val_2 = atob("bmlraGlsQHhvcw==").toLowerCase();
+    return (input === val_1 || input === val_2);
+}
+
 document.getElementById('coupon-toggle').onclick = function() {
   document.getElementById('couponForm').classList.toggle('open');
 };
 
 document.getElementById('coupon-btn').onclick = function() {
-  const input = document.getElementById('couponInput').value.trim().toUpperCase();
+  const input = document.getElementById('couponInput').value;
   const msg = document.getElementById('couponMsg');
-  if (input === SECRET.toUpperCase()) {
+  if (validateAccessCode(input)) {
     msg.textContent = "✦ Special access granted. Welcome. 💎";
     msg.className = 'coupon-msg success';
     unlockContent();
@@ -279,23 +305,23 @@ document.getElementById('pay-btn').onclick = function() {
   window.location.href = RZP_LINK;
 };
 
-async function sendTelegram(name) {
-  try {
-    await fetch("https://api.telegram.org/bot" + TG_TOKEN + "/sendMessage", {
-      method: 'POST', headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ chat_id: TG_CHAT_ID, text: "🔔 New Login\nName: " + name + "\nLogged in: course" })
-    });
-  } catch(e) {}
-}
+// LOGOUT LOGIC
+document.getElementById('global-logout').onclick = function() {
+  localStorage.removeItem('weapon_user');
+  localStorage.removeItem('weapon_unlocked');
+  window.location.reload();
+};
 
 function doLogin() {
   const name = document.getElementById('login-name').value.trim();
   if (!name) { document.getElementById('login-error').style.display = 'block'; return; }
-  try { localStorage.setItem('weapon_user', name); } catch(e) {}
+  try { 
+    localStorage.setItem('weapon_user', name); 
+    document.getElementById('global-logout').style.display = 'block';
+  } catch(e) {}
   document.getElementById('login-box').style.display = 'none';
   document.getElementById('hello-box').style.display = 'block';
   document.getElementById('hello-name').textContent = name.toUpperCase();
-  sendTelegram(name);
   setTimeout(() => {
     const ov = document.getElementById('login-overlay');
     ov.style.transition = 'opacity 0.5s';
@@ -329,6 +355,7 @@ window.addEventListener('load', () => {
   try {
     if (localStorage.getItem('weapon_user')) {
       document.getElementById('login-overlay').classList.add('hidden');
+      document.getElementById('global-logout').style.display = 'block';
     }
     if (localStorage.getItem('weapon_unlocked') === 'true') {
       unlockContent();
