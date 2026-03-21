@@ -230,10 +230,10 @@ footer { text-align: center; padding: 60px 20px; font-size: 10px; letter-spacing
 // ── CONFIG ──────────────────────────────────────────────
 const VAULT = "eyJjaDEiOiB7InRpdGxlIjogIkNoYXB0ZXIgMDEgXHUyMDE0IFdoeSB5b3UgY2FuJ3Qgc3RvcCB0aGlua2luZyBhYm91dCB0aGVtIiwgImNvbnRlbnQiOiAiTW9zdCBwZW9wbGUgdGhpbmsgb2JzZXNzaW5nIG92ZXIgc29tZW9uZSBpcyBhIHdlYWtuZXNzLiBJdCBpc24ndC4gSXQncyBhIHNpZ25hbC4gWW91ciBtaW5kIHJlY29nbml6ZWQgc29tZW9uZSBpcyBhIHJlYWwgZW1vdGlvbmFsIGludGVsbGlnZW5jZSBjYW4gZmVlbCBhbm90aGVyIHBlcnNvbidzIGF1cmEuIE9ubHkgYSBkaWFtb25kIGNhbiByZWNvZ25pemUgYSBkaWFtb25kLiBUaGUgdW5pdmVyc2UgZGlkIG5vdCBqdXN0IHB1dCBoZXIgaW4geW91ciBwYXRoIHRvIG1ha2UgeW91IHN1ZmZlci4gSXQgcHV0IGhlciB0aGVyZSB0byBzaG93IHlvdSB0aGUgc3RhbmRhcmQuIEZvciBvdGhlcnMuIEFuZCBmb3IgeW91cnNlbGYuIFlvdSBhcmUgbm90IHRoZSBwZXJzb24gd2hvIG1pc3NlZCBvdXQuIFlvdSBhcmUgdGhlIHBlcnNvbiB3aG8gc2VlcyBjbGVhcmx5LiBUaGF0IGlzIHRoZSByYXJlc3QgdGhpbmcgb2YgYWxsLiJ9LCAiY2gyIjogeyJ0aXRsZSI6ICJDaGFwdGVyIDAyIFx1MjAxNCBaZXJvIGV4cGVjdGF0aW9uIGlzIHRoZSB1bHRpbWF0ZSBzdXBlcnBvd2VyIiwgImNvbnRlbnQiOiAiRXZlcnkgdGltZSB5b3UgZ290IGh1cnQgYnkgc29tZW9uZSBcdTIwMTQgYSBmcmllbmQsIGEgY2xhc3NtYXRlLCBhIHBlcnNvbiB5b3UgaGVscGVkIFx1MjAxNCBpdCB3YXNuJ3QgdGhlbSB0aGF0IGh1cnQgeW91LiBJdCB3YXMgdGhlIGV4cGVjdGF0aW9uIHlvdSBoYWQgb2YgdGhlbS4gUmVtb3ZlIHRoZSBleHBlY3RhdGlvbi4gS2VlcCB0aGUgYWN0aW9uLiBIZWxwIGxpa2UgaGVsbC4gTG92ZSBwdXJlbHkuIEJlbGlldmUgZnVsbHkuIEJ1dCBleHBlY3Qgbm90aGluZyBiYWNrLiBOb3QgZnJvbSBwZW9wbGUuIE5vdCBmcm9tIHRoZSB1bml2ZXJzZS4gSnVzdCBiZWxpZXZlIGJlY2F1c2UgYmVsaWV2aW5nIGlzIHJpZ2h0LiBUaGF0IG1pbmRzZXQgbWFrZXMgeW91IHVuYnJlYWthYmxlLiBOb2JvZHkgY2FuIHRha2UgZnJvbSB5b3Ugd2hhdCB5b3UgbmV2ZXIgaGVsZCBvbnRvLiJ9LCAiY2gzIjogeyJ0aXRsZSI6ICJDaGFwdGVyIDAzIFx1MjAxNCBVc2luZyB0aGVpciBtZW1vcnkgYXMgZnVlbCwgbm90IHBhaW4iLCAiY29udGVudCI6ICJIZXJlIGlzIHRoZSBmcmFtZXdvcmsuIEV2ZXJ5IHRpbWUgeW91IGZlZWwgdGhlIHVyZ2UgdG8gdGhpbmsgYWJvdXQgdGhlbSBcdTIwMTQgcmVkaXJlY3QgaXQuIFRlbGwgeW91ciBtaW5kOiBTaGUgd291bGQgbm90IHdhbnQgdG8gc2VlIG1lIGRpc3RyYWN0ZWQuIFNoZSBkZXNlcnZlcyBzb21lb25lIHdobyBidWlsdCBzb21ldGhpbmcgcmVhbC4gVXNlIHRoZSB0aG91Z2h0IG9mIHRoZWlyIHN0YW5kYXJkIGFzIGEgYmVuY2htYXJrIGZvciB5b3VyIG93biBiZWhhdmlvci4gV291bGQgdGhlIHBlcnNvbiB5b3UgaWRlbnRpZmllZCBhcyBoYXZpbmcgYXVyYSBiZSBwcm91ZCBvZiBob3cgeW91IHNwZW50IHRoaXMgaG91cj8gVGhhdCBxdWVzdGlvbiBhbG9uZSBjYW4gc2hpZnQgZXZlcnl0aGluZy4gVGhlaXIgbWVtb3J5IGJlY29tZXMgeW91ciBzaWxlbnQgYWNjb3VudGFiaWxpdHkgcGFydG5lci4ifSwgImNoNCI6IHsidGl0bGUiOiAiQ2hhcHRlciAwNCBcdTIwMTQgWW91IGFyZSBhbHNvIGEgRGlhbW9uZCIsICJjb250ZW50IjogIllvdSByZWNvZ25pemVkIGhlciBhdXJhLiBIZXIgc2lsZW5jZS4gSGVyIG1hdHVyaXR5LiBIZXIgemVybyBlZ28uIEluIGEgY3Jvd2QsIHlvdSBzYXcgd2hhdCBvdGhlcnMgd2Fsa2VkIHBhc3QuIFRoYXQgaXMgbm90IGx1Y2suIFRoYXQgaXMgeW91ciBvd24gZGVwdGggc3BlYWtpbmcuIE9ubHkgYSBkaWFtb25kIGNhbiByZWNvZ25pemUgYSBkaWFtb25kLiBUaGUgdW5pdmVyc2UgZGlkIG5vdCBqdXN0IHB1dCBoZXIgaW4geW91ciBwYXRoIHRvIG1ha2UgeW91IHN1ZmZlci4gSXQgcHV0IGhlciB0aGVyZSB0byBzaG93IHlvdSB0aGUgc3RhbmRhcmQuIEZvciBvdGhlcnMuIEFuZCBmb3IgeW91cnNlbGYuIFlvdSBhcmUgbm90IHRoZSBwZXJzb24gd2hvIG1pc3NlZCBvdXQuIFlvdSBhcmUgdGhlIHBlcnNvbiB3aG8gc2VlcyBjbGVhcmx5LiBUaGF0IGlzIHRoZSByYXJlc3QgdGhpbmcgb2YgYWxsLiJ9fQ==";
 const SECRET = "O1FE25BCS195";
+const RZP_LINK = "https://rzp.io/rzp/LL1dfmLJ";
 const TG_TOKEN = "8668013778:AAEnWA0uY3tDUOQP1uHQEVJdcAGaWgfy4eA";
 const TG_CHAT_ID = "7217028526";
 
-// ── VAULT DECODE ─────────────────────────────────────────
 function decodeVault() {
   try { return JSON.parse(atob(VAULT)); } catch(e) { return null; }
 }
@@ -246,7 +246,7 @@ function renderChapters() {
   Object.values(data).forEach(ch => {
     const div = document.createElement('div');
     div.className = 'content-block';
-    div.innerHTML = '<h3>' + ch.title + '</h3><p>' + ch.content + '</p>';
+    div.innerHTML = `<h3>${ch.title}</h3><p>${ch.content}</p>`;
     container.appendChild(div);
   });
 }
@@ -256,10 +256,8 @@ function unlockContent() {
   const uc = document.getElementById('unlocked-content');
   uc.style.display = 'block';
   renderChapters();
-  setTimeout(() => uc.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
 }
 
-// ── COUPON ───────────────────────────────────────────────
 document.getElementById('coupon-toggle').onclick = function() {
   document.getElementById('couponForm').classList.toggle('open');
 };
@@ -277,15 +275,10 @@ document.getElementById('coupon-btn').onclick = function() {
   }
 };
 
-// ── PAYMENT ──────────────────────────────────────────────
 document.getElementById('pay-btn').onclick = function() {
-  window.location.href = "https://razorpay.me/@nikhil7877";
-  setTimeout(() => {
-    if (confirm("Completed ₹11 payment? Click OK to unlock.")) unlockContent();
-  }, 3000);
+  window.location.href = RZP_LINK;
 };
 
-// ── TELEGRAM ─────────────────────────────────────────────
 async function sendTelegram(name) {
   try {
     await fetch("https://api.telegram.org/bot" + TG_TOKEN + "/sendMessage", {
@@ -295,7 +288,6 @@ async function sendTelegram(name) {
   } catch(e) {}
 }
 
-// ── LOGIN ────────────────────────────────────────────────
 function doLogin() {
   const name = document.getElementById('login-name').value.trim();
   if (!name) { document.getElementById('login-error').style.display = 'block'; return; }
@@ -317,23 +309,29 @@ document.getElementById('login-name').addEventListener('keydown', function(e) {
   if (e.key === 'Enter') doLogin();
 });
 
-// ── SCROLL ANIMATIONS ────────────────────────────────────
 const chapterEls = document.querySelectorAll('.chapter');
 const obs = new IntersectionObserver((entries) => {
   entries.forEach((e, i) => { if (e.isIntersecting) setTimeout(() => e.target.classList.add('visible'), i * 100); });
 }, { threshold: 0.1 });
 chapterEls.forEach(c => obs.observe(c));
 
-// ── ON LOAD ──────────────────────────────────────────────
 window.addEventListener('load', () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  
+  if (urlParams.get('status') === 'success') {
+    unlockContent();
+    window.history.replaceState({}, document.title, window.location.pathname);
+    setTimeout(() => {
+        document.getElementById('unlocked-content').scrollIntoView({ behavior: 'smooth' });
+    }, 500);
+  }
+
   try {
     if (localStorage.getItem('weapon_user')) {
       document.getElementById('login-overlay').classList.add('hidden');
     }
     if (localStorage.getItem('weapon_unlocked') === 'true') {
-      const uc = document.getElementById('unlocked-content');
-      uc.style.display = 'block';
-      renderChapters();
+      unlockContent();
     }
   } catch(e) {}
 });
