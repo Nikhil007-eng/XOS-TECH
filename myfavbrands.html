@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>XOS TECH — Brands</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black: #000;
+    --card: #111;
+    --card2: #161616;
+    --border: #222;
+    --white: #fff;
+    --grey: #888;
+    --grey2: #444;
+    --dot-blue: #4fc3f7;
+    --nothing-red: #ff3b2f;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: #000;
+    color: #fff;
+    font-family: 'DM Sans', sans-serif;
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+    width: 100%;
+    max-width: 100vw;
+  }
+
+  /* ─── PAGES ─── */
+  .page { display: none; min-height: 100vh; background: #000; }
+  .page.active { display: block; }
+
+  /* ─── HEADER ─── */
+  .header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    background: rgba(0,0,0,0.92);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+  }
+  .logo-wrap { display: flex; flex-direction: column; }
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 19px;
+    letter-spacing: -0.5px;
+    line-height: 1;
+  }
+  .logo span { color: var(--grey); }
+  .logo-sub {
+    font-family: 'Space Mono', monospace;
+    font-size: 7px;
+    letter-spacing: 2.5px;
+    color: var(--dot-blue);
+    margin-top: 3px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .logo-sub::before {
+    content: '';
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--dot-blue);
+    animation: pulse 2s infinite;
+    flex-shrink: 0;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  .dev-badge {
+    font-family: 'Space Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 1.5px;
+    color: var(--grey);
+    border: 1px solid var(--border);
+    padding: 5px 11px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+
+  /* ─── SECTION LABEL ─── */
+  .section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 3.5px;
+    color: var(--grey);
+    text-transform: uppercase;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ─── HOME PAGE ─── */
+  .home-content {
+    padding: 76px 18px 32px;
+  }
+  .home-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 2.5px;
+    color: var(--grey);
+    margin-bottom: 16px;
+    text-transform: uppercase;
+  }
+  .home-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 52px;
+    line-height: 0.9;
+    letter-spacing: -2px;
+    margin-bottom: 36px;
+  }
+  .home-title .accent { color: var(--grey2); }
+  .home-title .outline {
+    display: block;
+    -webkit-text-stroke: 1px rgba(255,255,255,0.45);
+    color: transparent;
+    font-style: italic;
+  }
+
+  /* ─── BRAND CARDS ─── */
+  .brands-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 0 18px 60px;
+  }
+  .brand-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    position: relative;
+    overflow: hidden;
+  }
+  .brand-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.07), transparent);
+  }
+  .brand-card:active { transform: scale(0.98); }
+
+  .brand-logo-wrap {
+    width: 48px; height: 48px;
+    border-radius: 11px;
+    background: #1a1a1a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .brand-logo-wrap img {
+    width: 34px; height: 34px;
+    object-fit: contain;
+  }
+  .brand-logo-placeholder {
+    width: 34px; height: 34px;
+    border-radius: 7px;
+    background: var(--border);
+  }
+  .brand-info { flex: 1; min-width: 0; }
+  .brand-name-text {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    margin-bottom: 2px;
+  }
+  .brand-caption {
+    font-family: 'Space Mono', monospace;
+    font-size: 7.5px;
+    letter-spacing: 1.8px;
+    color: var(--grey);
+    text-transform: uppercase;
+  }
+  .brand-tag {
+    font-size: 11px;
+    color: var(--grey);
+    margin-top: 5px;
+    font-style: italic;
+    line-height: 1.4;
+  }
+  .brand-arrow { color: var(--grey2); font-size: 20px; flex-shrink: 0; }
+
+  /* ─── INNER PAGES ─── */
+  .inner-page { padding-top: 58px; }
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-family: 'Space Mono', monospace;
+    font-size: 8px;
+    letter-spacing: 2px;
+    color: var(--grey);
+    text-transform: uppercase;
+    padding: 18px 18px 0;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* ─── BRAND INTRO ─── */
+  .brand-intro { padding: 20px 18px 32px; }
+  .brand-intro-logo {
+    width: 60px; height: 60px;
+    border-radius: 14px;
+    background: #1a1a1a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    margin-bottom: 18px;
+  }
+  .brand-intro-logo img { width: 44px; height: 44px; object-fit: contain; }
+  .brand-intro-headline {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 34px;
+    line-height: 1.0;
+    letter-spacing: -1.2px;
+    margin-bottom: 14px;
+  }
+  .brand-intro-headline em { font-style: italic; color: var(--grey); }
+  .brand-intro-desc { font-size: 13px; line-height: 1.7; color: #aaa; }
+
+  /* ─── STATS ─── */
+  .stats-wrap { padding: 0 18px 32px; }
+  .stats-row { display: flex; gap: 8px; }
+  .stat-card {
+    flex: 1;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 13px 8px;
+    text-align: center;
+    min-width: 0;
+  }
+  .stat-number {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 17px;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .stat-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 6.5px;
+    letter-spacing: 1.5px;
+    color: var(--grey);
+    text-transform: uppercase;
+  }
+
+  /* ─── PILLARS ─── */
+  .pillars-wrap { padding: 0 18px 32px; }
+  .pillars { display: flex; flex-direction: column; gap: 8px; }
+  .pillar {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 14px;
+  }
+  .pillar-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; margin-bottom: 5px; }
+  .pillar-text { font-size: 11.5px; color: var(--grey); line-height: 1.55; }
+
+  /* ─── GALLERY ─── */
+  .gallery-section { padding: 0 0 32px 18px; }
+  .gallery-section .section-label { padding-right: 18px; }
+  .gallery-scroll {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-right: 18px;
+    padding-bottom: 6px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+  }
+  .gallery-scroll::-webkit-scrollbar { display: none; }
+  .gallery-img-wrap {
+    flex-shrink: 0;
+    width: 200px;
+    height: 260px;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    scroll-snap-align: start;
+    background: var(--card2);
+  }
+  .gallery-img-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  /* ─── PRODUCTS ─── */
+  .products-section { padding: 0 18px 32px; }
+  .products-intro { font-size: 11.5px; color: var(--grey); margin-top: 6px; line-height: 1.6; margin-bottom: 18px; }
+  .products-scroll {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    scrollbar-width: none;
+    scroll-snap-type: x mandatory;
+    margin: 0 -18px;
+    padding-left: 18px;
+    padding-right: 18px;
+    padding-bottom: 6px;
+  }
+  .products-scroll::-webkit-scrollbar { display: none; }
+  .product-card {
+    flex-shrink: 0;
+    width: 230px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    scroll-snap-align: start;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: border-color 0.2s;
+  }
+  .product-card:active { opacity: 0.9; }
+
+  .product-img {
+    width: 100%;
+    height: 170px;
+    background: var(--card2);
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .product-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .product-img-placeholder {
+    width: 100%; height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--card2);
+    position: absolute; inset: 0;
+  }
+  .product-img-placeholder span {
+    font-family: 'Space Mono', monospace;
+    font-size: 7px;
+    letter-spacing: 2px;
+    color: var(--grey2);
+    text-transform: uppercase;
+  }
+  .product-new-badge {
+    position: absolute;
+    top: 9px; right: 9px;
+    background: var(--nothing-red);
+    color: #fff;
+    font-family: 'Space Mono', monospace;
+    font-size: 6.5px;
+    letter-spacing: 1.5px;
+    padding: 3px 7px;
+    border-radius: 5px;
+    text-transform: uppercase;
+    z-index: 2;
+  }
+  .product-info { padding: 13px 13px 14px; }
+  .product-brand-tag {
+    font-family: 'Space Mono', monospace;
+    font-size: 7px;
+    letter-spacing: 2.5px;
+    color: var(--nothing-red);
+    text-transform: uppercase;
+    margin-bottom: 5px;
+  }
+  .product-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px; margin-bottom: 5px; line-height: 1.2; }
+  .product-price { font-family: 'Syne', sans-serif; font-weight: 600; font-size: 16px; margin-bottom: 10px; }
+  .product-specs { display: flex; flex-direction: column; margin-bottom: 12px; }
+  .spec-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .spec-key { font-family: 'Space Mono', monospace; font-size: 7px; letter-spacing: 1.2px; color: var(--grey); text-transform: uppercase; flex-shrink: 0; }
+  .spec-val { font-size: 10px; color: #ccc; text-align: right; max-width: 58%; line-height: 1.3; }
+  .product-actions { display: flex; gap: 7px; }
+  .btn-buy {
+    flex: 1;
+    background: #fff;
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    padding: 9px 0;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 11px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-buy:active { background: #ddd; }
+  .btn-more {
+    background: transparent;
+    color: var(--grey);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 10px;
+    font-family: 'Space Mono', monospace;
+    font-size: 10px;
+    cursor: pointer;
+  }
+
+  /* ─── EXPLORE CTA ─── */
+  .explore-section { padding: 0 18px 50px; }
+  .explore-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 18px;
+    text-align: center;
+  }
+  .explore-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 20px; margin-bottom: 8px; }
+  .explore-sub { font-size: 12.5px; color: var(--grey); margin-bottom: 22px; line-height: 1.6; }
+  .btn-explore {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: #fff;
+    color: #000;
+    text-decoration: none;
+    border-radius: 10px;
+    padding: 12px 22px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+  }
+  .btn-explore svg { width: 12px; height: 12px; }
+
+  /* ─── FOOTER ─── */
+  .footer {
+    border-top: 1px solid var(--border);
+    padding: 22px 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .footer-left { font-family: 'Space Mono', monospace; font-size: 7.5px; letter-spacing: 1.5px; color: var(--grey); }
+  .footer-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--dot-blue); animation: pulse 2s infinite; }
+
+  /* ─── FADE UP ─── */
+  .fade-up { opacity: 0; transform: translateY(14px); transition: opacity 0.5s ease, transform 0.5s ease; }
+  .fade-up.visible { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="logo-wrap">
+    <div class="logo">XOS <span>TECH</span></div>
+    <div class="logo-sub">MY FAVOURITE BRANDS</div>
+  </div>
+
+</header>
+
+
+<!-- ════════════════════════════════
+     HOME PAGE
+════════════════════════════════ -->
+<div class="page active" id="page-home">
+
+  <div class="home-content">
+    <div class="home-label">// brand space · curated</div>
+    <h1 class="home-title">
+      MY <span class="accent">FAV</span><br>
+      <span class="outline">Brands.</span>
+    </h1>
+    <div class="section-label">Brands</div>
+  </div>
+
+  <div class="brands-list">
+
+    <div class="brand-card" onclick="showPage('page-nothing')">
+      <div class="brand-logo-wrap">
+        <!-- Place your Nothing logo at assets/nothing-logo.png -->
+        <img src="assets/nothing-logo.png" alt="Nothing" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <div class="brand-logo-placeholder" style="display:none"></div>
+      </div>
+      <div class="brand-info">
+        <div class="brand-name-text">Nothing</div>
+        <div class="brand-caption">CONSUMER TECH</div>
+        <div class="brand-tag">"Design that refuses to disappear."</div>
+      </div>
+      <div class="brand-arrow">›</div>
+    </div>
+
+    <div class="brand-card" onclick="showPage('page-comet')">
+      <div class="brand-logo-wrap">
+        <!-- Place your Comet logo at assets/comet-logo.png -->
+        <img src="assets/comet-logo.png" alt="Comet" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+        <div class="brand-logo-placeholder" style="display:none"></div>
+      </div>
+      <div class="brand-info">
+        <div class="brand-name-text">Comet</div>
+        <div class="brand-caption">FOOTWEAR</div>
+        <div class="brand-tag">"Move fast. Look faster."</div>
+      </div>
+      <div class="brand-arrow">›</div>
+    </div>
+
+  </div>
+
+  <footer class="footer">
+    <div class="footer-left">XOS TECH · MY FAVOURITE BRANDS</div>
+    <div class="footer-dot"></div>
+  </footer>
+</div>
+
+
+<!-- ════════════════════════════════
+     NOTHING PAGE
+════════════════════════════════ -->
+<div class="page" id="page-nothing">
+<div class="inner-page">
+
+  <div class="back-btn" onclick="showPage('page-home')">← Back</div>
+
+  <div class="brand-intro fade-up">
+    <div class="brand-intro-logo">
+      <img src="assets/nothing-logo.png" alt="Nothing" onerror="this.style.display='none'">
+    </div>
+    <h2 class="brand-intro-headline">
+      The Brand That Makes<br><em>Everything</em> Feel Alive.
+    </h2>
+    <p class="brand-intro-desc">
+      Founded by Carl Pei in 2020, Nothing is a London-based consumer tech company on a mission to remove barriers between people and technology. Their radical transparency through Glyph Interface, open software philosophy, and obsessive industrial design have made them the most exciting tech brand in years.
+    </p>
+  </div>
+
+  <div class="stats-wrap fade-up">
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-number" style="color:var(--nothing-red)">2020</div>
+        <div class="stat-label">Founded</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">10M+</div>
+        <div class="stat-label">Devices Sold</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" style="color:var(--dot-blue)">50+</div>
+        <div class="stat-label">Countries</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pillars-wrap">
+    <div class="section-label">What Makes Them Special</div>
+    <div class="pillars">
+      <div class="pillar fade-up">
+        <div class="pillar-title">Glyph Interface</div>
+        <div class="pillar-text">A revolutionary LED notification system on the rear panel — programmable, expressive, and unlike anything else in the industry.</div>
+      </div>
+      <div class="pillar fade-up">
+        <div class="pillar-title">Transparent Design</div>
+        <div class="pillar-text">Visible internals aren't just aesthetic — they're a philosophy. Nothing believes in showing what's inside, literally and figuratively.</div>
+      </div>
+      <div class="pillar fade-up">
+        <div class="pillar-title">Nothing OS</div>
+        <div class="pillar-text">Near-stock Android stripped of bloat, built for speed, with unique Nothing-native customisations that feel intentional — not gimmicky.</div>
+      </div>
+      <div class="pillar fade-up">
+        <div class="pillar-title">Premium at Fair Prices</div>
+        <div class="pillar-text">Flagship-quality materials at mid-range pricing. Nothing targets the "Apple aesthetic, Android freedom" crowd — and nails it.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gallery: add your images manually inside gallery-scroll -->
+  <div class="gallery-section fade-up">
+    <div class="section-label" style="padding-right:18px">Gallery</div>
+    <div class="gallery-scroll">
+      <!-- Example: <div class="gallery-img-wrap"><img src="assets/nothing-g1.jpg" alt=""></div> -->
+    </div>
+  </div>
+
+  <div class="products-section fade-up">
+    <div class="section-label">New Products</div>
+    <h2 style="font-family:'Syne',sans-serif;font-weight:800;font-size:24px;letter-spacing:-0.8px;line-height:1.1;">Latest from<br>Nothing.</h2>
+    <p class="products-intro">Swipe to explore. Tap Buy Now to get yours on Flipkart.</p>
+    <div class="products-scroll">
+
+      <!-- Phone (3a) — set src to your product image path -->
+      <div class="product-card" onclick="buyNow('phone3a')">
+        <div class="product-img">
+          <img src="assets/nothing-phone3a.jpg" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="product-img-placeholder" style="display:none"><span>ADD IMAGE</span></div>
+          <div class="product-new-badge">NEW</div>
+        </div>
+        <div class="product-info">
+          <div class="product-brand-tag">Nothing · 2025</div>
+          <div class="product-title">Phone (3a)</div>
+          <div class="product-price">₹24,999</div>
+          <div class="product-specs">
+            <div class="spec-row"><span class="spec-key">Display</span><span class="spec-val">6.77" AMOLED 120Hz</span></div>
+            <div class="spec-row"><span class="spec-key">Chip</span><span class="spec-val">Snapdragon 7s Gen 3</span></div>
+            <div class="spec-row"><span class="spec-key">Camera</span><span class="spec-val">50MP Triple + Periscope</span></div>
+            <div class="spec-row"><span class="spec-key">Battery</span><span class="spec-val">5000mAh · 50W</span></div>
+            <div class="spec-row"><span class="spec-key">Glyph</span><span class="spec-val">Essential · Rear LED</span></div>
+          </div>
+          <div class="product-actions">
+            <button class="btn-buy" onclick="event.stopPropagation();buyNow('phone3a')">Buy Now</button>
+            <button class="btn-more" onclick="event.stopPropagation();exploreMore()">↗</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Phone (3a) Pro -->
+      <div class="product-card" onclick="buyNow('phone3apro')">
+        <div class="product-img">
+          <img src="assets/nothing-phone3apro.jpg" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="product-img-placeholder" style="display:none"><span>ADD IMAGE</span></div>
+          <div class="product-new-badge">PRO</div>
+        </div>
+        <div class="product-info">
+          <div class="product-brand-tag">Nothing · 2025</div>
+          <div class="product-title">Phone (3a) Pro</div>
+          <div class="product-price">₹29,999</div>
+          <div class="product-specs">
+            <div class="spec-row"><span class="spec-key">Display</span><span class="spec-val">6.77" AMOLED 120Hz</span></div>
+            <div class="spec-row"><span class="spec-key">Chip</span><span class="spec-val">Snapdragon 7s Gen 3</span></div>
+            <div class="spec-row"><span class="spec-key">Camera</span><span class="spec-val">50MP + Periscope Tele</span></div>
+            <div class="spec-row"><span class="spec-key">Battery</span><span class="spec-val">5000mAh · 50W</span></div>
+            <div class="spec-row"><span class="spec-key">Glyph</span><span class="spec-val">Full Essential Matrix</span></div>
+          </div>
+          <div class="product-actions">
+            <button class="btn-buy" onclick="event.stopPropagation();buyNow('phone3apro')">Buy Now</button>
+            <button class="btn-more" onclick="event.stopPropagation();exploreMore()">↗</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ear (open) -->
+      <div class="product-card" onclick="buyNow('earopen')">
+        <div class="product-img">
+          <img src="assets/nothing-earopen.jpg" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="product-img-placeholder" style="display:none"><span>ADD IMAGE</span></div>
+          <div class="product-new-badge">NEW</div>
+        </div>
+        <div class="product-info">
+          <div class="product-brand-tag">Nothing · 2025</div>
+          <div class="product-title">Ear (open)</div>
+          <div class="product-price">₹8,999</div>
+          <div class="product-specs">
+            <div class="spec-row"><span class="spec-key">Type</span><span class="spec-val">Open-ear · No seal</span></div>
+            <div class="spec-row"><span class="spec-key">Driver</span><span class="spec-val">14.2mm Dynamic</span></div>
+            <div class="spec-row"><span class="spec-key">Battery</span><span class="spec-val">8h + 24h case</span></div>
+            <div class="spec-row"><span class="spec-key">Latency</span><span class="spec-val">35ms Low-latency</span></div>
+            <div class="spec-row"><span class="spec-key">Design</span><span class="spec-val">Transparent Stem</span></div>
+          </div>
+          <div class="product-actions">
+            <button class="btn-buy" onclick="event.stopPropagation();buyNow('earopen')">Buy Now</button>
+            <button class="btn-more" onclick="event.stopPropagation();exploreMore()">↗</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- CMF Phone 2 -->
+      <div class="product-card" onclick="buyNow('cmfphone2')">
+        <div class="product-img">
+          <img src="assets/nothing-cmfphone2.jpg" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="product-img-placeholder" style="display:none"><span>ADD IMAGE</span></div>
+          <div class="product-new-badge" style="background:#ff8c00">CMF</div>
+        </div>
+        <div class="product-info">
+          <div class="product-brand-tag">CMF by Nothing · 2025</div>
+          <div class="product-title">CMF Phone 2</div>
+          <div class="product-price">₹17,999</div>
+          <div class="product-specs">
+            <div class="spec-row"><span class="spec-key">Display</span><span class="spec-val">6.67" AMOLED 120Hz</span></div>
+            <div class="spec-row"><span class="spec-key">Chip</span><span class="spec-val">Dimensity 7300 Pro</span></div>
+            <div class="spec-row"><span class="spec-key">Camera</span><span class="spec-val">50MP + 8MP Ultra-wide</span></div>
+            <div class="spec-row"><span class="spec-key">Battery</span><span class="spec-val">5000mAh · 33W</span></div>
+            <div class="spec-row"><span class="spec-key">Back</span><span class="spec-val">Modular Screw Design</span></div>
+          </div>
+          <div class="product-actions">
+            <button class="btn-buy" onclick="event.stopPropagation();buyNow('cmfphone2')">Buy Now</button>
+            <button class="btn-more" onclick="event.stopPropagation();exploreMore()">↗</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ear (2) -->
+      <div class="product-card" onclick="buyNow('ear2')">
+        <div class="product-img">
+          <img src="assets/nothing-ear2.jpg" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="product-img-placeholder" style="display:none"><span>ADD IMAGE</span></div>
+        </div>
+        <div class="product-info">
+          <div class="product-brand-tag">Nothing · Flagship Audio</div>
+          <div class="product-title">Ear (2)</div>
+          <div class="product-price">₹9,999</div>
+          <div class="product-specs">
+            <div class="spec-row"><span class="spec-key">ANC</span><span class="spec-val">40dB Active Noise Cancel</span></div>
+            <div class="spec-row"><span class="spec-key">Driver</span><span class="spec-val">11.6mm + Balanced Armature</span></div>
+            <div class="spec-row"><span class="spec-key">Battery</span><span class="spec-val">6.3h + 36h case</span></div>
+            <div class="spec-row"><span class="spec-key">Codec</span><span class="spec-val">LHDC 5.0 Hi-Res</span></div>
+            <div class="spec-row"><span class="spec-key">Design</span><span class="spec-val">Transparent Stems</span></div>
+          </div>
+          <div class="product-actions">
+            <button class="btn-buy" onclick="event.stopPropagation();buyNow('ear2')">Buy Now</button>
+            <button class="btn-more" onclick="event.stopPropagation();exploreMore()">↗</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="explore-section fade-up">
+    <div class="explore-card">
+      <h3 class="explore-title">See Everything Nothing.</h3>
+      <p class="explore-sub">From phones to earbuds to the CMF sub-brand — Nothing's full catalogue is a trip worth taking.</p>
+      <a href="https://nothing.tech" target="_blank" class="btn-explore">
+        Explore nothing.tech
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+      </a>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-left">XOS TECH · MY FAVOURITE BRANDS</div>
+    <div class="footer-dot"></div>
+  </footer>
+
+</div>
+</div>
+
+
+<!-- ════════════════════════════════
+     COMET PAGE
+════════════════════════════════ -->
+<div class="page" id="page-comet">
+<div class="inner-page">
+
+  <div class="back-btn" onclick="showPage('page-home')">← Back</div>
+
+  <div class="brand-intro fade-up">
+    <div class="brand-intro-logo">
+      <img src="assets/comet-logo.png" alt="Comet" onerror="this.style.display='none'">
+    </div>
+    <h2 class="brand-intro-headline">
+      Shoes Built For<br>People <em>Going Places.</em>
+    </h2>
+    <p class="brand-intro-desc">
+      Comet is a homegrown Indian footwear brand built around the idea that great shoes shouldn't cost a fortune. With bold silhouettes, performance-grade soles, and a design language that pulls from street culture and sport — Comet makes every step count.
+    </p>
+  </div>
+
+  <div class="stats-wrap fade-up">
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-number" style="color:#f5c842">India</div>
+        <div class="stat-label">Origin</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">20+</div>
+        <div class="stat-label">Silhouettes</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" style="color:var(--dot-blue)">₹999+</div>
+        <div class="stat-label">Starts At</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pillars-wrap">
+    <div class="section-label">What Makes Them Special</div>
+    <div class="pillars">
+      <div class="pillar fade-up">
+        <div class="pillar-title">Street-First Design</div>
+        <div class="pillar-text">Bold colourways, chunky profiles, and clean minimalist options — Comet covers every aesthetic from casual to sport-street.</div>
+      </div>
+      <div class="pillar fade-up">
+        <div class="pillar-title">Performance Soles</div>
+        <div class="pillar-text">EVA foam midsoles and rubber grip outsoles engineered for all-day comfort. Whether campus or court — Comet holds its own.</div>
+      </div>
+      <div class="pillar fade-up">
+        <div class="pillar-title">Fair Pricing, No Compromise</div>
+        <div class="pillar-text">Premium quality materials at genuinely accessible prices. No brand tax. No inflated MRP. Just good shoes at honest prices.</div>
+      </div>
+      <div class="pillar fade-up">
+        <div class="pillar-title">Made for India</div>
+        <div class="pillar-text">Designed with Indian weather, terrain and style sensibility in mind. Wide fits, durable builds, and summer-ready materials.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gallery: add your images manually inside gallery-scroll -->
+  <div class="gallery-section fade-up">
+    <div class="section-label" style="padding-right:18px">Gallery</div>
+    <div class="gallery-scroll">
+      <!-- Example: <div class="gallery-img-wrap"><img src="assets/comet-g1.jpg" alt=""></div> -->
+    </div>
+  </div>
+
+  <div class="products-section fade-up">
+    <div class="section-label">New Products</div>
+    <h2 style="font-family:'Syne',sans-serif;font-weight:800;font-size:24px;letter-spacing:-0.8px;line-height:1.1;">Latest from<br>Comet.</h2>
+    <p class="products-intro">Swipe to explore. Tap Buy Now to get yours on Flipkart.</p>
+    <div class="products-scroll">
+
+      <!-- Blaze Runner -->
+      <div class="product-card" onclick="buyCometNow('cometblaze')">
+        <div class="product-img">
+          <img src="assets/comet-blaze.jpg" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="product-img-placeholder" style="display:none"><span>ADD IMAGE</span></div>
+          <div class="product-new-badge" style="background:#f5c842;color:#000">NEW</div>
+        </div>
+        <div class="product-info">
+          <div class="product-brand-tag" style="color:#f5c842">Comet · 2025</div>
+          <div class="product-title">Blaze Runner</div>
+          <div class="product-price">₹2,499</div>
+          <div class="product-specs">
+            <div class="spec-row"><span class="spec-key">Upper</span><span class="spec-val">Mesh + Synthetic Overlay</span></div>
+            <div class="spec-row"><span class="spec-key">Midsole</span><span class="spec-val">EVA Foam Cushion</span></div>
+            <div class="spec-row"><span class="spec-key">Outsole</span><span class="spec-val">Rubber Grip Pattern</span></div>
+            <div class="spec-row"><span class="spec-key">Fit</span><span class="spec-val">Wide Toe Box</span></div>
+            <div class="spec-row"><span class="spec-key">Colors</span><span class="spec-val">Black / White / Olive</span></div>
+          </div>
+          <div class="product-actions">
+            <button class="btn-buy" onclick="event.stopPropagation();buyCometNow('cometblaze')">Buy Now</button>
+            <button class="btn-more" onclick="event.stopPropagation();exploreCometMore()">↗</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Drift Low -->
+      <div class="product-card" onclick="buyCometNow('cometdrift')">
+        <div class="product-img">
+          <img src="assets/comet-drift.jpg" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="product-img-placeholder" style="display:none"><span>ADD IMAGE</span></div>
+          <div class="product-new-badge" style="background:#4fc3f7;color:#000">HOT</div>
+        </div>
+        <div class="product-info">
+          <div class="product-brand-tag" style="color:#4fc3f7">Comet · Street</div>
+          <div class="product-title">Drift Low</div>
+          <div class="product-price">₹1,999</div>
+          <div class="product-specs">
+            <div class="spec-row"><span class="spec-key">Style</span><span class="spec-val">Low-top Sneaker</span></div>
+            <div class="spec-row"><span class="spec-key">Upper</span><span class="spec-val">Premium PU Leather</span></div>
+            <div class="spec-row"><span class="spec-key">Midsole</span><span class="spec-val">Phylon Lightweight</span></div>
+            <div class="spec-row"><span class="spec-key">Closure</span><span class="spec-val">Lace-up</span></div>
+            <div class="spec-row"><span class="spec-key">Colors</span><span class="spec-val">White / Navy / Cream</span></div>
+          </div>
+          <div class="product-actions">
+            <button class="btn-buy" onclick="event.stopPropagation();buyCometNow('cometdrift')">Buy Now</button>
+            <button class="btn-more" onclick="event.stopPropagation();exploreCometMore()">↗</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Trek Pro -->
+      <div class="product-card" onclick="buyCometNow('comettrek')">
+        <div class="product-img">
+          <img src="assets/comet-trek.jpg" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="product-img-placeholder" style="display:none"><span>ADD IMAGE</span></div>
+          <div class="product-new-badge" style="background:#4caf50">TREK</div>
+        </div>
+        <div class="product-info">
+          <div class="product-brand-tag" style="color:#4caf50">Comet · Outdoor</div>
+          <div class="product-title">Trek Pro</div>
+          <div class="product-price">₹3,299</div>
+          <div class="product-specs">
+            <div class="spec-row"><span class="spec-key">Style</span><span class="spec-val">Mid-top Trail Boot</span></div>
+            <div class="spec-row"><span class="spec-key">Upper</span><span class="spec-val">Water-resistant Nylon</span></div>
+            <div class="spec-row"><span class="spec-key">Midsole</span><span class="spec-val">Dual-density EVA</span></div>
+            <div class="spec-row"><span class="spec-key">Grip</span><span class="spec-val">Lugged Rubber Outsole</span></div>
+            <div class="spec-row"><span class="spec-key">Colors</span><span class="spec-val">Khaki / Black / Grey</span></div>
+          </div>
+          <div class="product-actions">
+            <button class="btn-buy" onclick="event.stopPropagation();buyCometNow('comettrek')">Buy Now</button>
+            <button class="btn-more" onclick="event.stopPropagation();exploreCometMore()">↗</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stride X -->
+      <div class="product-card" onclick="buyCometNow('cometstride')">
+        <div class="product-img">
+          <img src="assets/comet-stride.jpg" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="product-img-placeholder" style="display:none"><span>ADD IMAGE</span></div>
+          <div class="product-new-badge" style="background:#ff3b2f">RUN</div>
+        </div>
+        <div class="product-info">
+          <div class="product-brand-tag" style="color:#ff3b2f">Comet · Sport</div>
+          <div class="product-title">Stride X</div>
+          <div class="product-price">₹2,799</div>
+          <div class="product-specs">
+            <div class="spec-row"><span class="spec-key">Style</span><span class="spec-val">Running Shoe</span></div>
+            <div class="spec-row"><span class="spec-key">Upper</span><span class="spec-val">Engineered Knit Mesh</span></div>
+            <div class="spec-row"><span class="spec-key">Midsole</span><span class="spec-val">React Foam Technology</span></div>
+            <div class="spec-row"><span class="spec-key">Heel Drop</span><span class="spec-val">10mm</span></div>
+            <div class="spec-row"><span class="spec-key">Colors</span><span class="spec-val">Red / Black / Blue</span></div>
+          </div>
+          <div class="product-actions">
+            <button class="btn-buy" onclick="event.stopPropagation();buyCometNow('cometstride')">Buy Now</button>
+            <button class="btn-more" onclick="event.stopPropagation();exploreCometMore()">↗</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Classic Clean -->
+      <div class="product-card" onclick="buyCometNow('cometclassic')">
+        <div class="product-img">
+          <img src="assets/comet-classic.jpg" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <div class="product-img-placeholder" style="display:none"><span>ADD IMAGE</span></div>
+        </div>
+        <div class="product-info">
+          <div class="product-brand-tag" style="color:#aaa">Comet · Everyday</div>
+          <div class="product-title">Classic Clean</div>
+          <div class="product-price">₹1,499</div>
+          <div class="product-specs">
+            <div class="spec-row"><span class="spec-key">Style</span><span class="spec-val">Minimalist Sneaker</span></div>
+            <div class="spec-row"><span class="spec-key">Upper</span><span class="spec-val">Canvas + Rubber Toe Cap</span></div>
+            <div class="spec-row"><span class="spec-key">Sole</span><span class="spec-val">Vulcanised Rubber</span></div>
+            <div class="spec-row"><span class="spec-key">Fit</span><span class="spec-val">True to Size</span></div>
+            <div class="spec-row"><span class="spec-key">Colors</span><span class="spec-val">White / All-Black / Tan</span></div>
+          </div>
+          <div class="product-actions">
+            <button class="btn-buy" onclick="event.stopPropagation();buyCometNow('cometclassic')">Buy Now</button>
+            <button class="btn-more" onclick="event.stopPropagation();exploreCometMore()">↗</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="explore-section fade-up">
+    <div class="explore-card" style="border-color:#2a2a1a">
+      <h3 class="explore-title">See Everything Comet.</h3>
+      <p class="explore-sub">Runners, sneakers, trail boots — the full Comet catalogue has a silhouette for every mood and every terrain.</p>
+      <a href="https://www.flipkart.com/search?q=comet+shoes" target="_blank" class="btn-explore" style="background:#f5c842;color:#000">
+        Explore on Flipkart
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M17 7H7M17 7v10"/></svg>
+      </a>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="footer-left">XOS TECH · MY FAVOURITE BRANDS</div>
+    <div class="footer-dot"></div>
+  </footer>
+
+</div>
+</div>
+
+
+<script>
+  /* ── HISTORY API ── */
+  // On first load, replace the current history entry with home state
+  history.replaceState({ page: 'page-home' }, '', '');
+
+  function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0, 0);
+    setTimeout(triggerFadeUps, 60);
+
+    // Push a new history entry for every page except home (home is already the base)
+    if (id !== 'page-home') {
+      history.pushState({ page: id }, '', '');
+    } else {
+      history.replaceState({ page: 'page-home' }, '', '');
+    }
+  }
+
+  // Handle phone back button / browser back gesture
+  window.addEventListener('popstate', (e) => {
+    const targetPage = (e.state && e.state.page) ? e.state.page : 'page-home';
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(targetPage).classList.add('active');
+    window.scrollTo(0, 0);
+    setTimeout(triggerFadeUps, 60);
+  });
+
+  /* ── NOTHING LINKS ── */
+  const flipkartLinks = {
+    phone3a:    'https://www.flipkart.com/search?q=nothing+phone+3a',
+    phone3apro: 'https://www.flipkart.com/search?q=nothing+phone+3a+pro',
+    earopen:    'https://www.flipkart.com/search?q=nothing+ear+open',
+    cmfphone2:  'https://www.flipkart.com/search?q=cmf+phone+2+nothing',
+    ear2:       'https://www.flipkart.com/search?q=nothing+ear+2'
+  };
+  function buyNow(p)     { window.open(flipkartLinks[p], '_blank'); }
+  function exploreMore() { window.open('https://nothing.tech', '_blank'); }
+
+  /* ── COMET LINKS ── */
+  const cometLinks = {
+    cometblaze:   'https://www.flipkart.com/search?q=comet+blaze+runner+shoes',
+    cometdrift:   'https://www.flipkart.com/search?q=comet+drift+low+sneaker',
+    comettrek:    'https://www.flipkart.com/search?q=comet+trek+pro+shoes',
+    cometstride:  'https://www.flipkart.com/search?q=comet+stride+x+running+shoes',
+    cometclassic: 'https://www.flipkart.com/search?q=comet+classic+sneaker'
+  };
+  function buyCometNow(p)     { window.open(cometLinks[p], '_blank'); }
+  function exploreCometMore() { window.open('https://www.flipkart.com/search?q=comet+shoes', '_blank'); }
+
+  /* ── FADE UPS ── */
+  function triggerFadeUps() {
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.page.active .fade-up:not(.visible)').forEach(el => obs.observe(el));
+  }
+  triggerFadeUps();
+</script>
+</body>
+</html>
