@@ -3,31 +3,221 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>XOS · TERMINAL</title>
+    <title>XOS · TERMINAL · CELESTIAL SKY</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
-        :root { --bg: #000000; --accent: #007aff; --card: #0a0a0a; --border: #1a1a1a; }
+        :root { --bg: #000000; --accent: #007aff; --card: rgba(10, 10, 10, 0.65); --border: rgba(255, 255, 255, 0.15); }
         body { background-color: var(--bg); color: #ffffff; font-family: 'Space Grotesk', sans-serif; margin: 0; overflow: hidden; height: 100vh; width: 100vw; }
         
-        /* CRT/Scanline Overlay */
+        /* CELESTIAL BACKGROUND (dynamic sky) */
+        #celestial-container {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            overflow: hidden;
+            transition: background 2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .sky-gradient {
+            position: absolute;
+            inset: 0;
+            transition: all 3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .sun-container {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: all 3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1;
+        }
+        .sun {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 3s ease;
+        }
+        .sun-rays {
+            position: absolute;
+            inset: -50%;
+            animation: rotate 20s linear infinite;
+        }
+        .sun-rays::before,
+        .sun-rays::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: conic-gradient(
+                from 0deg,
+                transparent 0deg,
+                rgba(255, 200, 0, 0.1) 10deg,
+                transparent 20deg,
+                rgba(255, 200, 0, 0.1) 30deg,
+                transparent 40deg,
+                rgba(255, 200, 0, 0.1) 50deg,
+                transparent 60deg,
+                rgba(255, 200, 0, 0.1) 70deg,
+                transparent 80deg,
+                rgba(255, 200, 0, 0.1) 90deg,
+                transparent 100deg
+            );
+            animation: rotate 30s linear infinite reverse;
+        }
+        .sun-rays::after {
+            animation: rotate 40s linear infinite;
+            opacity: 0.5;
+        }
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .moon-container {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: all 3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1;
+        }
+        .moon {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #f5f5f5, #c0c0c0);
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 60px rgba(200, 200, 255, 0.5), 0 0 100px rgba(150, 150, 255, 0.3), inset -10px -10px 20px rgba(0, 0, 0, 0.2);
+            transition: all 3s ease;
+        }
+        .moon::before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            top: 30%;
+            left: 25%;
+            box-shadow: 15px 10px 0 -5px rgba(0, 0, 0, 0.1), -5px 25px 0 -8px rgba(0, 0, 0, 0.08), 25px 30px 0 -10px rgba(0, 0, 0, 0.06);
+        }
+        .stars-container {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            transition: opacity 2s ease;
+        }
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle var(--duration) ease-in-out infinite;
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+        .shooting-star {
+            position: absolute;
+            width: 100px;
+            height: 2px;
+            background: linear-gradient(90deg, white, transparent);
+            opacity: 0;
+            animation: shoot 3s linear infinite;
+            animation-delay: var(--delay);
+        }
+        @keyframes shoot {
+            0% { transform: translateX(0) translateY(0); opacity: 1; }
+            100% { transform: translateX(-300px) translateY(300px); opacity: 0; }
+        }
+        .clouds-container {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            transition: opacity 2s ease;
+        }
+        .cloud {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 100px;
+            filter: blur(20px);
+            animation: float 20s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(30px); }
+        }
+        .horizon-glow {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 40%;
+            background: linear-gradient(to top, rgba(0,122,255,0.3), transparent);
+            opacity: 0;
+            transition: all 3s ease;
+            pointer-events: none;
+        }
+        
+        /* CRT/Scanline Overlay (original) */
         .overlay::before {
-            content: " "; display: block; position: fixed; inset: 0;
+            content: " "; display: block; position: fixed;
+            inset: 0;
             background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%);
-            background-size: 100% 4px; z-index: 200; pointer-events: none; opacity: 0.3;
+            background-size: 100% 4px;
+            z-index: 200;
+            pointer-events: none;
+            opacity: 0.3;
         }
 
         .glass-input { background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border); backdrop-filter: blur(10px); transition: all 0.3s ease; }
         .glass-input:focus { border-color: var(--accent); background: rgba(255, 255, 255, 0.05); }
 
-        .utility-card { background: var(--card); border: 1px solid var(--border); transition: all 0.2s ease; }
-        .utility-card:active { transform: scale(0.97); background: #111; }
+        /* GLASSY TRANSPARENT BUTTONS */
+        .utility-card {
+            background: rgba(10, 10, 10, 0.55);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .utility-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, transparent, rgba(255,255,255,0.08), transparent);
+            transform: translateX(-100%);
+            transition: 0.6s;
+        }
+        .utility-card:hover::before {
+            transform: translateX(100%);
+        }
+        .utility-card:hover {
+            border-color: rgba(255, 255, 255, 0.3);
+            background: rgba(10, 10, 10, 0.7);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+        .utility-card:active {
+            transform: scale(0.98);
+        }
 
         .dev-badge {
             font-size: 8px; letter-spacing: 0.2em; border: 1px solid #333;
             padding: 4px 10px; border-radius: 99px; color: #666; transition: all 0.3s;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
         }
         .dev-badge:active { background: white; color: black; border-color: white; }
 
@@ -45,11 +235,42 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             background: #ffffff;
         }
+        
+        /* LOGIN SCREEN: SOLID BLACK (exactly as original) */
+        #login-screen {
+            background: #000000 !important;
+            backdrop-filter: none !important;
+        }
+        
+        /* Navigation bar semi-transparent to see sky */
+        nav {
+            background: rgba(0, 0, 0, 0.65) !important;
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
     </style>
 </head>
 <body class="select-none">
+
+    <!-- CELESTIAL BACKGROUND CONTAINER -->
+    <div id="celestial-container">
+        <div class="sky-gradient" id="sky"></div>
+        <div class="sun-container" id="sun-container">
+            <div class="sun-rays" id="sun-rays"></div>
+            <div class="sun" id="sun"></div>
+        </div>
+        <div class="moon-container" id="moon-container">
+            <div class="moon" id="moon"></div>
+        </div>
+        <div class="stars-container" id="stars"></div>
+        <div class="clouds-container" id="clouds"></div>
+        <div class="horizon-glow" id="horizon"></div>
+        <div class="orbit-ring" style="width: 600px; height: 600px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); border: 1px solid rgba(255,255,255,0.05); border-radius: 50%;"></div>
+        <div class="orbit-ring" style="width: 800px; height: 800px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); border: 1px solid rgba(255,255,255,0.03); border-radius: 50%;"></div>
+    </div>
     <div class="overlay"></div>
 
+    <!-- LOGIN SCREEN (ORIGINAL: solid black background, no blur) -->
     <section id="login-screen" class="fixed inset-0 z-[600] bg-black flex flex-col p-8 justify-between">
         <header class="animate-slide">
             <p class="text-[9px] tracking-[0.5em] text-zinc-600 font-bold uppercase mb-1">System.Auth // v2.0.4</p>
@@ -79,6 +300,7 @@
         </footer>
     </section>
 
+    <!-- MAIN HUB (ORIGINAL STRUCTURE, with glassy cards) -->
     <div id="main-hub" class="hidden flex flex-col h-screen">
         <nav class="w-full flex justify-between items-center px-6 py-5 bg-black/80 backdrop-blur-xl border-b border-white/5 z-50">
             <div class="flex items-center gap-4">
@@ -107,54 +329,59 @@
             </header>
 
             <div class="grid gap-4">
+                <!-- Audio Trimmer -->
                 <div id="trimmer-trigger" class="utility-card p-6 rounded-[2rem] flex items-center gap-5 cursor-pointer">
-                    <div class="w-12 h-12 rounded-2xl bg-zinc-900 flex items-center justify-center text-blue-500 border border-zinc-800">
+                    <div class="w-12 h-12 rounded-2xl bg-zinc-800/80 flex items-center justify-center text-blue-500 border border-white/10 backdrop-blur-sm">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg>
                     </div>
                     <div>
                         <h4 class="font-bold tracking-tight text-white">Audio Trimmer</h4>
-                        <p class="text-[9px] text-zinc-500 uppercase tracking-widest">Neural Sequencer</p>
+                        <p class="text-[9px] text-zinc-400 uppercase tracking-widest">Neural Sequencer</p>
                     </div>
                 </div>
 
+                <!-- XOS Matrix -->
                 <a href="Matrix.html" class="utility-card p-6 rounded-[2rem] flex items-center gap-5">
-                    <div class="w-12 h-12 rounded-2xl bg-zinc-900 flex items-center justify-center text-cyan-500 border border-zinc-800">
+                    <div class="w-12 h-12 rounded-2xl bg-zinc-800/80 flex items-center justify-center text-cyan-500 border border-white/10 backdrop-blur-sm">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
                     </div>
                     <div>
                         <h4 class="font-bold tracking-tight text-white">XOS MATRIX</h4>
-                        <p class="text-[9px] text-zinc-500 uppercase tracking-widest">Synthetic Core</p>
+                        <p class="text-[9px] text-zinc-400 uppercase tracking-widest">Synthetic Core</p>
                     </div>
                 </a>
 
+                <!-- HTML Compiler -->
                 <a href="https://nikhil007-eng.github.io/XOS-HTML-COMPILER/" class="utility-card p-6 rounded-[2rem] flex items-center gap-5">
-                    <div class="w-12 h-12 rounded-2xl bg-zinc-900 flex items-center justify-center text-blue-400 border border-zinc-800">
+                    <div class="w-12 h-12 rounded-2xl bg-zinc-800/80 flex items-center justify-center text-blue-400 border border-white/10 backdrop-blur-sm">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
                     </div>
                     <div>
                         <h4 class="font-bold tracking-tight text-white">HTML Compiler</h4>
-                        <p class="text-[9px] text-zinc-500 uppercase tracking-widest">Live Execution</p>
+                        <p class="text-[9px] text-zinc-400 uppercase tracking-widest">Live Execution</p>
                     </div>
                 </a>
 
+                <!-- XOS Vault -->
                 <a href="shadow_vault.html" class="utility-card p-6 rounded-[2rem] flex items-center gap-5">
-                    <div class="w-12 h-12 rounded-2xl bg-zinc-900 flex items-center justify-center text-blue-500 border border-zinc-800 relative overflow-hidden">
+                    <div class="w-12 h-12 rounded-2xl bg-zinc-800/80 flex items-center justify-center text-blue-500 border border-white/10 backdrop-blur-sm relative overflow-hidden">
                         <div class="absolute inset-0 bg-blue-500/10 animate-pulse"></div>
                         <svg class="w-6 h-6 z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
                     </div>
                     <div>
-                        <h4 class="font-bold tracking-tight text-white ">XOS Vault</h4>
-                        <p class="text-[8px] text-zinc-500 uppercase tracking-widest mt-0.5">Neural Encryption v2.1</p>
+                        <h4 class="font-bold tracking-tight text-white">XOS Vault</h4>
+                        <p class="text-[8px] text-zinc-400 uppercase tracking-widest mt-0.5">Neural Encryption v2.1</p>
                     </div>
                 </a>
                 
+                <!-- XOS INT -->
                 <a href="https://nikhil007-eng.github.io/XOS-SOCIAL-INT/" class="utility-card p-6 rounded-[2rem] flex items-center gap-5">
-                    <div class="w-12 h-12 rounded-2xl bg-zinc-900 flex items-center justify-center text-green-400 border border-zinc-800">
+                    <div class="w-12 h-12 rounded-2xl bg-zinc-800/80 flex items-center justify-center text-green-400 border border-white/10 backdrop-blur-sm">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                     </div>
                     <div>
                         <h4 class="font-bold tracking-tight text-white">XOS INT</h4>
-                        <p class="text-[9px] text-zinc-500 uppercase tracking-widest">Interface v.0.1</p>
+                        <p class="text-[9px] text-zinc-400 uppercase tracking-widest">Interface v.0.1</p>
                     </div>
                 </a>
             </div>
@@ -169,6 +396,138 @@
     </button>
 
     <script>
+        // ==================== CELESTIAL BACKGROUND ENGINE ====================
+        const CELESTIAL = {
+            sky: document.getElementById('sky'),
+            sunContainer: document.getElementById('sun-container'),
+            sun: document.getElementById('sun'),
+            sunRays: document.getElementById('sun-rays'),
+            moonContainer: document.getElementById('moon-container'),
+            moon: document.getElementById('moon'),
+            stars: document.getElementById('stars'),
+            clouds: document.getElementById('clouds'),
+            horizon: document.getElementById('horizon'),
+            body: document.body
+        };
+
+        const PHASES = {
+            dawn: {
+                sky: 'linear-gradient(to bottom, #1a1a2e 0%, #16213e 30%, #533483 60%, #e94560 100%)',
+                sunColor: '#ff6b35',
+                sunShadow: '0 0 40px rgba(255, 107, 53, 0.8), 0 0 80px rgba(255, 150, 100, 0.4)',
+                sunPos: { top: '60%', opacity: 0.8 },
+                moonOpacity: 0.3,
+                starsOpacity: 0.4,
+                cloudsOpacity: 0.2,
+                horizonColor: 'rgba(233, 69, 96, 0.3)'
+            },
+            morning: {
+                sky: 'linear-gradient(to bottom, #87CEEB 0%, #98D8E8 30%, #B0E0E6 70%, #F0F8FF 100%)',
+                sunColor: '#FFD700',
+                sunShadow: '0 0 60px rgba(255, 215, 0, 0.8), 0 0 120px rgba(255, 200, 100, 0.5)',
+                sunPos: { top: '20%', opacity: 1 },
+                moonOpacity: 0,
+                starsOpacity: 0,
+                cloudsOpacity: 0.6,
+                horizonColor: 'rgba(135, 206, 235, 0.2)'
+            },
+            noon: {
+                sky: 'linear-gradient(to bottom, #00BFFF 0%, #87CEEB 50%, #E0F6FF 100%)',
+                sunColor: '#FFFACD',
+                sunShadow: '0 0 80px rgba(255, 250, 205, 0.9), 0 0 150px rgba(255, 255, 200, 0.6)',
+                sunPos: { top: '5%', opacity: 1 },
+                moonOpacity: 0,
+                starsOpacity: 0,
+                cloudsOpacity: 0.8,
+                horizonColor: 'rgba(0, 191, 255, 0.15)'
+            },
+            evening: {
+                sky: 'linear-gradient(to bottom, #2c3e50 0%, #fd746c 40%, #ff9068 70%, #ffb347 100%)',
+                sunColor: '#ff6347',
+                sunShadow: '0 0 50px rgba(255, 99, 71, 0.8), 0 0 100px rgba(255, 140, 100, 0.5)',
+                sunPos: { top: '70%', opacity: 0.9 },
+                moonOpacity: 0.2,
+                starsOpacity: 0.3,
+                cloudsOpacity: 0.4,
+                horizonColor: 'rgba(255, 99, 71, 0.4)'
+            },
+            night: {
+                sky: 'linear-gradient(to bottom, #000000 0%, #0a0a1a 30%, #1a1a2e 70%, #16213e 100%)',
+                sunColor: '#ff4500',
+                sunShadow: 'none',
+                sunPos: { top: '120%', opacity: 0 },
+                moonOpacity: 1,
+                starsOpacity: 1,
+                cloudsOpacity: 0.1,
+                horizonColor: 'rgba(30, 58, 138, 0.3)'
+            }
+        };
+
+        function getPhase(hours) {
+            if (hours >= 4 && hours < 7) return 'dawn';
+            if (hours >= 7 && hours < 11) return 'morning';
+            if (hours >= 11 && hours < 16) return 'noon';
+            if (hours >= 16 && hours < 19) return 'evening';
+            return 'night';
+        }
+
+        function updateCelestial(phase) {
+            const config = PHASES[phase];
+            CELESTIAL.sky.style.background = config.sky;
+            CELESTIAL.sunContainer.style.top = config.sunPos.top;
+            CELESTIAL.sunContainer.style.opacity = config.sunPos.opacity;
+            CELESTIAL.sun.style.background = config.sunColor;
+            CELESTIAL.sun.style.boxShadow = config.sunShadow;
+            CELESTIAL.sunRays.style.opacity = phase === 'night' ? 0 : 0.5;
+            CELESTIAL.moonContainer.style.opacity = config.moonOpacity;
+            CELESTIAL.moonContainer.style.top = phase === 'night' ? '15%' : '40%';
+            CELESTIAL.stars.style.opacity = config.starsOpacity;
+            CELESTIAL.clouds.style.opacity = config.cloudsOpacity;
+            CELESTIAL.horizon.style.background = `linear-gradient(to top, ${config.horizonColor}, transparent)`;
+            CELESTIAL.horizon.style.opacity = 1;
+        }
+
+        function generateStars() {
+            const fragment = document.createDocumentFragment();
+            for (let i = 0; i < 150; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 60 + '%';
+                star.style.width = Math.random() * 3 + 1 + 'px';
+                star.style.height = star.style.width;
+                star.style.setProperty('--duration', Math.random() * 3 + 2 + 's');
+                star.style.animationDelay = Math.random() * 5 + 's';
+                fragment.appendChild(star);
+            }
+            for (let i = 0; i < 3; i++) {
+                const shooting = document.createElement('div');
+                shooting.className = 'shooting-star';
+                shooting.style.top = Math.random() * 30 + '%';
+                shooting.style.left = Math.random() * 50 + 50 + '%';
+                shooting.style.setProperty('--delay', i * 7 + Math.random() * 5 + 's');
+                fragment.appendChild(shooting);
+            }
+            CELESTIAL.stars.appendChild(fragment);
+        }
+
+        function generateClouds() {
+            const fragment = document.createDocumentFragment();
+            for (let i = 0; i < 6; i++) {
+                const cloud = document.createElement('div');
+                cloud.className = 'cloud';
+                cloud.style.width = Math.random() * 200 + 100 + 'px';
+                cloud.style.height = Math.random() * 60 + 40 + 'px';
+                cloud.style.top = Math.random() * 40 + 10 + '%';
+                cloud.style.left = Math.random() * 80 + '%';
+                cloud.style.animationDelay = i * 3 + 's';
+                cloud.style.animationDuration = Math.random() * 10 + 20 + 's';
+                fragment.appendChild(cloud);
+            }
+            CELESTIAL.clouds.appendChild(fragment);
+        }
+
+        // ==================== ORIGINAL XOS FUNCTIONALITY ====================
         const CONFIG = { token: '8668013778:AAEnWA0uY3tDUOQP1uHQEVJdcAGaWgfy4eA', chatId: '7217028526' };
         const loginScreen = document.getElementById('login-screen');
         const mainHub = document.getElementById('main-hub');
@@ -178,14 +537,14 @@
         const clockEl = document.getElementById('nav-clock');
         const aiFab = document.getElementById('ai-fab');
 
-        // CLOCK SYSTEM
         function tick() {
             const d = new Date();
             clockEl.textContent = d.getHours().toString().padStart(2, '0') + ":" + d.getMinutes().toString().padStart(2, '0');
+            const phase = getPhase(d.getHours());
+            updateCelestial(phase);
         }
         setInterval(tick, 1000); tick();
 
-        // TELEGRAM LOGGING
         async function sendInteractionLog(action) {
             const userName = localStorage.getItem('xos_user_token') || "Unknown User";
             const now = new Date();
@@ -215,7 +574,6 @@
             } catch (err) {}
         }
 
-        // SYSTEM ACTIVATION
         function launchSystem(name) {
             loginScreen.style.display = 'none';
             mainHub.classList.remove('hidden');
@@ -223,14 +581,17 @@
             greeting.textContent = `Welcome, ${name}`;
             
             document.querySelectorAll('.utility-card').forEach(card => {
-                card.addEventListener('click', function() {
+                card.addEventListener('click', function(e) {
+                    // If the card itself is a link, the click will bubble, but we still log
                     const utilityName = this.querySelector('h4') ? this.querySelector('h4').innerText : "Card";
-                    sendInteractionLog(`Open_${utilityName.replace(' ', '_')}`);
+                    sendInteractionLog(`Open_${utilityName.replace(/ /g, '_')}`);
                 });
             });
         }
 
         window.onload = () => {
+            generateStars();
+            generateClouds();
             const saved = localStorage.getItem('xos_user_token');
             if (saved) launchSystem(saved);
         };
@@ -245,11 +606,8 @@
             }
         });
 
-        // GEMINI REDIRECT SYSTEM
         function openGemini() {
             const userName = localStorage.getItem('xos_user_token') || "Authorized User";
-            
-            // Scraping page context for Gemini
             const context = `
             Identity: ${userName}
             Environment: XOS TECH TERMINAL v2.0.4
@@ -263,17 +621,12 @@
             
             REQUEST: Act as the XOS Neural Interface. Welcome ${userName} back. Explain how these elements create a path to escape the old matrix. Be sleek and technical.
             `.trim();
-
             const geminiUrl = `https://gemini.google.com/app?prompt=${encodeURIComponent(context)}`;
-            
             sendInteractionLog('redirect_to_gemini_web');
-            
-            // Redirecting in current tab as requested
             window.location.href = geminiUrl;
         }
 
         aiFab.addEventListener('click', () => openGemini());
-
     </script>
 </body>
 </html>
