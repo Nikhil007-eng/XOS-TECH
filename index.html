@@ -171,6 +171,134 @@
             pointer-events: none;
         }
         
+        /* ===== WEATHER WIDGET ===== */
+        #weather-widget {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: flex-end;
+            margin-top: 6px;
+            cursor: pointer;
+            user-select: none;
+        }
+        #weather-city {
+            font-size: 8px;
+            letter-spacing: 0.15em;
+            color: #888;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        #weather-temp {
+            font-size: 13px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 0.05em;
+            line-height: 1.1;
+        }
+        #weather-cond {
+            font-size: 7px;
+            letter-spacing: 0.2em;
+            color: #666;
+            text-transform: uppercase;
+        }
+        #weather-widget:active { opacity: 0.7; }
+
+        /* ===== RAIN EFFECT ===== */
+        #rain-container {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 1.5s ease;
+            overflow: hidden;
+        }
+        .raindrop {
+            position: absolute;
+            width: 1px;
+            background: linear-gradient(to bottom, transparent, rgba(150,200,255,0.6));
+            animation: fall linear infinite;
+            border-radius: 2px;
+        }
+        @keyframes fall {
+            0% { transform: translateY(-10vh) translateX(0); opacity: 0.8; }
+            100% { transform: translateY(110vh) translateX(20px); opacity: 0.3; }
+        }
+        #lightning-container {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0;
+        }
+        .lightning-bolt {
+            position: absolute;
+            top: 0;
+            width: 3px;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0.95), rgba(180,220,255,0.8), rgba(255,255,255,0));
+            border-radius: 2px;
+            opacity: 0;
+            filter: blur(0.5px) drop-shadow(0 0 8px white);
+        }
+        @keyframes lightning-flash {
+            0%   { opacity: 0; transform: scaleX(1); }
+            5%   { opacity: 1; transform: scaleX(1.3); }
+            10%  { opacity: 0.4; transform: scaleX(0.8); }
+            15%  { opacity: 1; transform: scaleX(1.1); }
+            20%  { opacity: 0; }
+            100% { opacity: 0; }
+        }
+        .lightning-glow {
+            position: absolute;
+            inset: 0;
+            background: rgba(180, 220, 255, 0);
+            pointer-events: none;
+            transition: background 0.05s;
+        }
+
+        /* ===== FOG/MIST for cloudy ===== */
+        #fog-container {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 2s ease;
+        }
+        .fog-layer {
+            position: absolute;
+            left: -10%;
+            width: 120%;
+            border-radius: 50%;
+            background: rgba(180, 190, 210, 0.12);
+            filter: blur(40px);
+            animation: drift linear infinite;
+        }
+        @keyframes drift {
+            from { transform: translateX(-5%); }
+            to   { transform: translateX(5%); }
+        }
+
+        /* ===== MOON PHASE (SVG-based) ===== */
+        #moon-phase-label {
+            position: absolute;
+            bottom: -18px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 6px;
+            letter-spacing: 0.15em;
+            color: rgba(200,200,255,0.5);
+            white-space: nowrap;
+            text-transform: uppercase;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        /* ===== HAZE for hot/sunny ===== */
+        #heat-haze {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 2s ease;
+            background: radial-gradient(ellipse at 50% 80%, rgba(255,160,50,0.12) 0%, transparent 70%);
+        }
+
         /* CRT/Scanline Overlay (original) */
         .overlay::before {
             content: " "; display: block; position: fixed;
@@ -384,12 +512,18 @@
         </div>
         <div class="moon-container" id="moon-container">
             <div class="moon" id="moon"></div>
+            <span id="moon-phase-label"></span>
         </div>
         <div class="stars-container" id="stars"></div>
         <div class="clouds-container" id="clouds"></div>
         <div class="horizon-glow" id="horizon"></div>
         <div class="orbit-ring" style="width: 600px; height: 600px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); border: 1px solid rgba(255,255,255,0.05); border-radius: 50%;"></div>
         <div class="orbit-ring" style="width: 800px; height: 800px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); border: 1px solid rgba(255,255,255,0.03); border-radius: 50%;"></div>
+        <!-- Weather FX layers -->
+        <div id="rain-container"></div>
+        <div id="lightning-container"><div class="lightning-glow" id="lightning-glow"></div></div>
+        <div id="fog-container"></div>
+        <div id="heat-haze"></div>
     </div>
     <div class="overlay"></div>
 
@@ -453,7 +587,14 @@
                         <p class="text-[10px] tracking-[0.3em] text-zinc-500 uppercase font-medium">System Utilities</p>
                     </div>
                 </div>
-                <a href="https://nikhil007-eng.github.io/xos-social-Id/" onclick="sendInteractionLog('developer')" class="dev-badge mt-2 uppercase font-bold">Developer</a>
+                <div class="flex flex-col items-end gap-1">
+                    <a href="https://nikhil007-eng.github.io/xos-social-Id/" onclick="sendInteractionLog('developer')" class="dev-badge mt-2 uppercase font-bold">Developer</a>
+                    <div id="weather-widget" onclick="refreshWeather()" title="Tap to refresh">
+                        <span id="weather-city">Locating…</span>
+                        <span id="weather-temp">--°C</span>
+                        <span id="weather-cond">···</span>
+                    </div>
+                </div>
             </header>
 
             <div class="grid gap-4">
@@ -863,6 +1004,350 @@
         }
 
         aiFab.addEventListener('click', () => openGemini());
+
+        // ==================== WEATHER & ADVANCED CELESTIAL ENGINE ====================
+        const WX = {
+            rainContainer: document.getElementById('rain-container'),
+            lightningContainer: document.getElementById('lightning-container'),
+            lightningGlow: document.getElementById('lightning-glow'),
+            fogContainer: document.getElementById('fog-container'),
+            heatHaze: document.getElementById('heat-haze'),
+            moonPhaseLabel: document.getElementById('moon-phase-label'),
+            cityEl: document.getElementById('weather-city'),
+            tempEl: document.getElementById('weather-temp'),
+            condEl: document.getElementById('weather-cond'),
+            lightningTimer: null,
+            currentWxCode: null,
+        };
+
+        // --- Rain generation ---
+        function generateRain(intensity) {
+            WX.rainContainer.innerHTML = '';
+            const count = intensity === 'heavy' ? 180 : intensity === 'moderate' ? 100 : 55;
+            const frag = document.createDocumentFragment();
+            for (let i = 0; i < count; i++) {
+                const d = document.createElement('div');
+                d.className = 'raindrop';
+                const len = Math.random() * 18 + 8;
+                d.style.cssText = `
+                    left: ${Math.random() * 100}%;
+                    top: ${Math.random() * -20}%;
+                    height: ${len}px;
+                    opacity: ${Math.random() * 0.5 + 0.3};
+                    animation-duration: ${Math.random() * 0.6 + 0.5}s;
+                    animation-delay: ${Math.random() * 2}s;
+                `;
+                frag.appendChild(d);
+            }
+            WX.rainContainer.appendChild(frag);
+        }
+
+        // --- Lightning effect ---
+        function triggerLightning() {
+            const bolts = 1 + Math.floor(Math.random() * 2);
+            for (let b = 0; b < bolts; b++) {
+                const bolt = document.createElement('div');
+                bolt.className = 'lightning-bolt';
+                const x = 15 + Math.random() * 70;
+                const h = 30 + Math.random() * 45;
+                const top = 5 + Math.random() * 25;
+                bolt.style.cssText = `left:${x}%; top:${top}%; height:${h}%;`;
+                bolt.style.animation = `lightning-flash ${0.4 + Math.random() * 0.3}s ease-out forwards`;
+                WX.lightningContainer.appendChild(bolt);
+                // Glow flash
+                setTimeout(() => {
+                    WX.lightningGlow.style.background = 'rgba(180,220,255,0.18)';
+                    setTimeout(() => { WX.lightningGlow.style.background = 'rgba(180,220,255,0)'; }, 80);
+                }, b * 120);
+                setTimeout(() => bolt.remove(), 600);
+            }
+        }
+
+        function startLightning() {
+            stopLightning();
+            const schedule = () => {
+                triggerLightning();
+                WX.lightningTimer = setTimeout(schedule, 3000 + Math.random() * 8000);
+            };
+            WX.lightningTimer = setTimeout(schedule, 1500);
+        }
+
+        function stopLightning() {
+            if (WX.lightningTimer) { clearTimeout(WX.lightningTimer); WX.lightningTimer = null; }
+            document.querySelectorAll('.lightning-bolt').forEach(b => b.remove());
+        }
+
+        // --- Fog generation ---
+        function generateFog() {
+            WX.fogContainer.innerHTML = '';
+            const frag = document.createDocumentFragment();
+            const layers = [
+                { top: '10%', h: 120, dur: 22, delay: 0 },
+                { top: '30%', h: 100, dur: 28, delay: -8 },
+                { top: '55%', h: 80,  dur: 18, delay: -4 },
+                { top: '70%', h: 90,  dur: 32, delay: -14 },
+            ];
+            layers.forEach(l => {
+                const f = document.createElement('div');
+                f.className = 'fog-layer';
+                f.style.cssText = `top:${l.top}; height:${l.h}px; animation-duration:${l.dur}s; animation-delay:${l.delay}s; animation-direction: alternate;`;
+                frag.appendChild(f);
+            });
+            WX.fogContainer.appendChild(frag);
+        }
+
+        // --- Moon phase calculation ---
+        function getMoonPhase(date) {
+            const knownNew = new Date(2000, 0, 6, 18, 14, 0); // Jan 6 2000 new moon
+            const lunation = 29.530588853;
+            const diff = (date - knownNew) / (1000 * 60 * 60 * 24);
+            const phase = ((diff % lunation) + lunation) % lunation;
+            const names = [
+                { max: 1.85,  name: 'New Moon',        icon: '🌑', vis: 0 },
+                { max: 7.38,  name: 'Waxing Crescent', icon: '🌒', vis: 0.25 },
+                { max: 9.22,  name: 'First Quarter',   icon: '🌓', vis: 0.5 },
+                { max: 14.77, name: 'Waxing Gibbous',  icon: '🌔', vis: 0.75 },
+                { max: 16.61, name: 'Full Moon',        icon: '🌕', vis: 1 },
+                { max: 22.15, name: 'Waning Gibbous',  icon: '🌖', vis: 0.75 },
+                { max: 23.99, name: 'Last Quarter',    icon: '🌗', vis: 0.5 },
+                { max: 28.08, name: 'Waning Crescent', icon: '🌘', vis: 0.25 },
+                { max: 29.99, name: 'New Moon',        icon: '🌑', vis: 0 },
+            ];
+            for (const p of names) if (phase < p.max) return { ...p, phase };
+            return names[0];
+        }
+
+        function applyMoonPhase(moonEl, labelEl, isNight) {
+            const mp = getMoonPhase(new Date());
+            labelEl.textContent = `${mp.icon} ${mp.name}`;
+            if (!isNight) return;
+            // Style moon visual based on phase
+            if (mp.name === 'Full Moon') {
+                moonEl.style.background = 'radial-gradient(circle at 35% 35%, #fffbe8, #d4cfb8)';
+                moonEl.style.boxShadow = '0 0 60px rgba(255,250,200,0.7), 0 0 120px rgba(200,200,150,0.4)';
+            } else if (mp.name === 'New Moon') {
+                moonEl.style.background = 'radial-gradient(circle at 35% 35%, #222, #111)';
+                moonEl.style.boxShadow = '0 0 20px rgba(100,100,150,0.2)';
+            } else if (mp.name.includes('Waxing Crescent') || mp.name.includes('Waning Crescent')) {
+                moonEl.style.background = 'radial-gradient(circle at 65% 35%, #e8e8d8, #555)';
+                moonEl.style.boxShadow = '0 0 30px rgba(200,200,255,0.3)';
+            } else if (mp.name.includes('Gibbous')) {
+                moonEl.style.background = 'radial-gradient(circle at 38% 35%, #f0eedd, #b0ab98)';
+                moonEl.style.boxShadow = '0 0 50px rgba(220,220,180,0.5), 0 0 90px rgba(180,180,150,0.3)';
+            } else {
+                moonEl.style.background = 'radial-gradient(circle at 50% 35%, #ddd, #888)';
+                moonEl.style.boxShadow = '0 0 40px rgba(200,200,255,0.4)';
+            }
+        }
+
+        // --- WMO weather code → XOS descriptor ---
+        function wxCodeToInfo(code) {
+            if (code === 0) return { label: 'Clear Sky', fx: 'clear' };
+            if (code <= 3) return { label: 'Partly Cloudy', fx: 'cloudy' };
+            if (code <= 9) return { label: 'Misty', fx: 'fog' };
+            if (code <= 19) return { label: 'Mist / Drizzle', fx: 'drizzle' };
+            if (code <= 29) return { label: 'Showers', fx: 'rain' };
+            if (code <= 39) return { label: 'Dusty', fx: 'clear' };
+            if (code <= 49) return { label: 'Foggy', fx: 'fog' };
+            if (code <= 59) return { label: 'Drizzle', fx: 'drizzle' };
+            if (code <= 69) return { label: 'Rain', fx: 'rain' };
+            if (code <= 79) return { label: 'Snow', fx: 'cloudy' };
+            if (code <= 84) return { label: 'Rain Showers', fx: 'rain' };
+            if (code <= 86) return { label: 'Snow Showers', fx: 'cloudy' };
+            if (code <= 89) return { label: 'Hail Showers', fx: 'rain' };
+            if (code <= 94) return { label: 'Thunderstorm', fx: 'storm' };
+            if (code <= 99) return { label: 'Thunder + Hail', fx: 'storm' };
+            return { label: 'Overcast', fx: 'cloudy' };
+        }
+
+        // --- Apply weather FX to celestial background ---
+        function applyWeatherFX(fx, phase) {
+            // Reset all layers
+            WX.rainContainer.style.opacity = '0';
+            WX.fogContainer.style.opacity = '0';
+            WX.heatHaze.style.opacity = '0';
+            stopLightning();
+            const isNight = phase === 'night';
+            applyMoonPhase(CELESTIAL.moon, WX.moonPhaseLabel, isNight);
+
+            if (fx === 'storm') {
+                // Dark stormy sky
+                CELESTIAL.sky.style.background = 'linear-gradient(to bottom, #0a0a0f 0%, #1a1a2a 25%, #2a2a3a 50%, #1a1520 100%)';
+                CELESTIAL.sunContainer.style.opacity = '0';
+                CELESTIAL.moonContainer.style.opacity = isNight ? '0.15' : '0';
+                CELESTIAL.stars.style.opacity = '0';
+                CELESTIAL.clouds.style.opacity = '1';
+                // Make clouds dark and heavy
+                document.querySelectorAll('.cloud').forEach(c => {
+                    c.style.background = 'rgba(30,30,50,0.6)';
+                    c.style.filter = 'blur(25px)';
+                });
+                generateRain('heavy');
+                setTimeout(() => { WX.rainContainer.style.opacity = '1'; }, 500);
+                WX.lightningContainer.style.opacity = '1';
+                startLightning();
+
+            } else if (fx === 'rain') {
+                CELESTIAL.sky.style.background = 'linear-gradient(to bottom, #1a1f2a 0%, #2a3040 40%, #35404f 100%)';
+                CELESTIAL.sunContainer.style.opacity = isNight ? '0' : '0.2';
+                CELESTIAL.moonContainer.style.opacity = isNight ? '0.2' : '0';
+                CELESTIAL.stars.style.opacity = '0';
+                CELESTIAL.clouds.style.opacity = '0.9';
+                document.querySelectorAll('.cloud').forEach(c => {
+                    c.style.background = 'rgba(60,70,90,0.4)';
+                    c.style.filter = 'blur(20px)';
+                });
+                generateRain('moderate');
+                setTimeout(() => { WX.rainContainer.style.opacity = '0.85'; }, 500);
+                WX.lightningContainer.style.opacity = '0';
+
+            } else if (fx === 'drizzle') {
+                CELESTIAL.sky.style.background = 'linear-gradient(to bottom, #25303a 0%, #364048 50%, #454f58 100%)';
+                CELESTIAL.sunContainer.style.opacity = isNight ? '0' : '0.35';
+                CELESTIAL.moonContainer.style.opacity = isNight ? '0.4' : '0';
+                CELESTIAL.stars.style.opacity = isNight ? '0.1' : '0';
+                CELESTIAL.clouds.style.opacity = '0.7';
+                document.querySelectorAll('.cloud').forEach(c => {
+                    c.style.background = 'rgba(100,110,130,0.3)';
+                    c.style.filter = 'blur(18px)';
+                });
+                generateRain('light');
+                setTimeout(() => { WX.rainContainer.style.opacity = '0.6'; }, 500);
+                WX.lightningContainer.style.opacity = '0';
+
+            } else if (fx === 'fog') {
+                CELESTIAL.sky.style.background = 'linear-gradient(to bottom, #2a2d35 0%, #3a3d45 50%, #4a4d55 100%)';
+                CELESTIAL.sunContainer.style.opacity = isNight ? '0' : '0.3';
+                CELESTIAL.moonContainer.style.opacity = isNight ? '0.3' : '0';
+                CELESTIAL.stars.style.opacity = isNight ? '0.15' : '0';
+                generateFog();
+                setTimeout(() => { WX.fogContainer.style.opacity = '1'; }, 500);
+                CELESTIAL.clouds.style.opacity = '0.5';
+
+            } else if (fx === 'cloudy') {
+                if (isNight) {
+                    CELESTIAL.sky.style.background = 'linear-gradient(to bottom, #080810 0%, #10101e 40%, #1a1a2e 100%)';
+                    CELESTIAL.moonContainer.style.opacity = '0.6';
+                    CELESTIAL.stars.style.opacity = '0.2';
+                } else {
+                    CELESTIAL.sky.style.background = 'linear-gradient(to bottom, #6a7a8a 0%, #8a9aaa 50%, #aabbcc 100%)';
+                    CELESTIAL.sunContainer.style.opacity = '0.4';
+                }
+                CELESTIAL.clouds.style.opacity = '0.85';
+                document.querySelectorAll('.cloud').forEach(c => {
+                    c.style.background = 'rgba(180,190,210,0.15)';
+                    c.style.filter = 'blur(20px)';
+                });
+                generateFog();
+                setTimeout(() => { WX.fogContainer.style.opacity = '0.4'; }, 700);
+
+            } else {
+                // clear — restore time-based celestial
+                const phase2 = getPhase(new Date().getHours());
+                updateCelestial(phase2);
+                document.querySelectorAll('.cloud').forEach(c => {
+                    c.style.background = 'rgba(255,255,255,0.1)';
+                    c.style.filter = 'blur(20px)';
+                });
+                if (phase2 === 'noon' || phase2 === 'morning') {
+                    setTimeout(() => { WX.heatHaze.style.opacity = '0.6'; }, 1000);
+                }
+            }
+            WX.currentWxCode = fx;
+        }
+
+        // --- Fetch weather from open-meteo (no API key needed) ---
+        async function fetchWeatherFor(lat, lon, cityName) {
+            try {
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode&temperature_unit=celsius&timezone=auto`;
+                const res = await fetch(url);
+                const data = await res.json();
+                const temp = Math.round(data.current.temperature_2m);
+                const code = data.current.weathercode;
+                const info = wxCodeToInfo(code);
+                WX.cityEl.textContent = cityName;
+                WX.tempEl.textContent = `${temp}°C`;
+                WX.condEl.textContent = info.label;
+                const phase = getPhase(new Date().getHours());
+                applyWeatherFX(info.fx, phase);
+            } catch (e) {
+                WX.cityEl.textContent = cityName || 'Error';
+                WX.tempEl.textContent = '--°C';
+                WX.condEl.textContent = 'Unavailable';
+            }
+        }
+
+        // --- Reverse geocode lat/lon to city name ---
+        async function reverseGeocode(lat, lon) {
+            try {
+                const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`);
+                const d = await r.json();
+                return d.address.city || d.address.town || d.address.village || d.address.county || 'Unknown';
+            } catch { return 'Unknown'; }
+        }
+
+        // --- IP-based fallback location ---
+        async function getIPLocation() {
+            try {
+                const r = await fetch('https://ipapi.co/json/');
+                const d = await r.json();
+                return { lat: d.latitude, lon: d.longitude, city: d.city || 'Unknown' };
+            } catch {
+                return { lat: 28.6, lon: 77.2, city: 'Delhi' }; // hard fallback
+            }
+        }
+
+        // --- Main weather init ---
+        async function initWeather() {
+            WX.cityEl.textContent = 'Locating…';
+            WX.tempEl.textContent = '--°C';
+            WX.condEl.textContent = '···';
+
+            if (!navigator.geolocation) {
+                const loc = await getIPLocation();
+                await fetchWeatherFor(loc.lat, loc.lon, loc.city);
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                async (pos) => {
+                    const { latitude: lat, longitude: lon } = pos.coords;
+                    const city = await reverseGeocode(lat, lon);
+                    await fetchWeatherFor(lat, lon, city);
+                },
+                async () => {
+                    // Denied — use IP fallback
+                    const loc = await getIPLocation();
+                    await fetchWeatherFor(loc.lat, loc.lon, loc.city);
+                },
+                { timeout: 8000 }
+            );
+        }
+
+        function refreshWeather() {
+            initWeather();
+        }
+
+        // Start weather after system launch
+        const _origLaunchSystem = launchSystem;
+        // Override launchSystem to also init weather
+        // (We re-declare here since launchSystem is already defined above)
+        window.addEventListener('DOMContentLoaded', () => {});
+
+        // Patch: call initWeather when main hub is shown
+        const _origAuthBtn = document.getElementById('auth-btn');
+        if (_origAuthBtn) {
+            _origAuthBtn.addEventListener('click', () => {
+                setTimeout(initWeather, 600);
+            });
+        }
+        // Also fire on page load if already logged in
+        window.addEventListener('load', () => {
+            const saved = localStorage.getItem('xos_user_token');
+            if (saved) setTimeout(initWeather, 800);
+        });
+
+        // ==================== END WEATHER ENGINE ====================
     </script>
 </body>
 </html>
