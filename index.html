@@ -202,6 +202,100 @@
         }
         #weather-widget:active { opacity: 0.7; }
 
+        /* ===== XOS LOCATION PERMISSION CARD ===== */
+        #loc-permission-card {
+            position: fixed;
+            bottom: -160px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 48px);
+            max-width: 360px;
+            z-index: 500;
+            background: rgba(10, 10, 14, 0.82);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border: 1px solid rgba(255,255,255,0.13);
+            border-radius: 28px;
+            padding: 20px 22px 18px;
+            box-shadow: 0 24px 60px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04) inset;
+            transition: bottom 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+        #loc-permission-card.show {
+            bottom: 24px;
+            opacity: 1;
+            pointer-events: all;
+        }
+        #loc-permission-card .loc-brand {
+            font-size: 8px;
+            letter-spacing: 0.35em;
+            color: rgba(255,255,255,0.3);
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        #loc-permission-card .loc-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: -0.01em;
+            line-height: 1.2;
+            margin-bottom: 5px;
+        }
+        #loc-permission-card .loc-sub {
+            font-size: 10px;
+            color: rgba(255,255,255,0.38);
+            letter-spacing: 0.05em;
+            margin-bottom: 18px;
+            line-height: 1.5;
+        }
+        #loc-permission-card .loc-btns {
+            display: flex;
+            gap: 10px;
+        }
+        #loc-allow-btn {
+            flex: 1;
+            background: #ffffff;
+            color: #000;
+            border: none;
+            border-radius: 14px;
+            padding: 11px 0;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            cursor: pointer;
+            font-family: 'Space Grotesk', sans-serif;
+            transition: all 0.2s ease;
+        }
+        #loc-allow-btn:active { transform: scale(0.96); opacity: 0.85; }
+        #loc-deny-btn {
+            flex: 1;
+            background: rgba(255,255,255,0.06);
+            color: rgba(255,255,255,0.45);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 14px;
+            padding: 11px 0;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            cursor: pointer;
+            font-family: 'Space Grotesk', sans-serif;
+            transition: all 0.2s ease;
+        }
+        #loc-deny-btn:active { transform: scale(0.96); opacity: 0.7; }
+        #loc-permission-card .loc-icon {
+            width: 36px; height: 36px;
+            background: rgba(0,122,255,0.15);
+            border: 1px solid rgba(0,122,255,0.3);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px;
+            margin-bottom: 12px;
+        }
+
         /* ===== RAIN EFFECT ===== */
         #rain-container {
             position: absolute;
@@ -655,6 +749,18 @@
                 </a>
             </div>
         </main>
+    </div>
+
+    <!-- XOS LOCATION PERMISSION CARD -->
+    <div id="loc-permission-card">
+        <div class="loc-icon">📍</div>
+        <div class="loc-brand">XOS Tech · Weather System</div>
+        <div class="loc-title">Allow Location Access</div>
+        <div class="loc-sub">To update weather &amp; celestial background<br>based on your current location</div>
+        <div class="loc-btns">
+            <button id="loc-allow-btn">Allow</button>
+            <button id="loc-deny-btn">Deny</button>
+        </div>
     </div>
 
     <!-- SETTINGS MODAL -->
@@ -1298,53 +1404,190 @@
         }
 
         // --- Main weather init ---
+        // Keys for localStorage
+        const LS_LOC_PERM   = 'xos_loc_perm';   // 'granted' | 'denied'
+        const LS_LOC_LAT    = 'xos_loc_lat';
+        const LS_LOC_LON    = 'xos_loc_lon';
+        const LS_LOC_CITY   = 'xos_loc_city';
+
+        const locCard        = document.getElementById('loc-permission-card');
+        const locAllowBtn    = document.getElementById('loc-allow-btn');
+        const locDenyBtn     = document.getElementById('loc-deny-btn');
+
+        let wxAutoTimer      = null;
+        let _locResolve      = null; // resolves when user taps Allow/Deny
+
+        // Show our inbuilt card and wait for user choice
+        function askLocationInbuilt() {
+            return new Promise((resolve) => {
+                _locResolve = resolve;
+                locCard.classList.add('show');
+            });
+        }
+
+        function hideLocCard() {
+            locCard.classList.remove('show');
+            _locResolve = null;
+        }
+
+        locAllowBtn.addEventListener('click', () => {
+            hideLocCard();
+            if (_locResolve) { _locResolve('allow'); _locResolve = null; }
+            else doGeoAndFetch(true);
+        });
+
+        locDenyBtn.addEventListener('click', () => {
+            hideLocCard();
+            localStorage.setItem(LS_LOC_PERM, 'denied');
+            if (_locResolve) { _locResolve('deny'); _locResolve = null; }
+            else doIPFallback();
+        });
+
+        // Actually call navigator.geolocation after user allows
+        async function doGeoAndFetch(saveChoice) {
+            WX.cityEl.textContent = 'Locating…';
+            WX.condEl.textContent = '···';
+            if (!navigator.geolocation) {
+                await doIPFallback(); return;
+            }
+            navigator.geolocation.getCurrentPosition(
+                async (pos) => {
+                    const lat = pos.coords.latitude;
+                    const lon = pos.coords.longitude;
+                    const city = await reverseGeocode(lat, lon);
+                    if (saveChoice) {
+                        localStorage.setItem(LS_LOC_PERM, 'granted');
+                        localStorage.setItem(LS_LOC_LAT, lat);
+                        localStorage.setItem(LS_LOC_LON, lon);
+                        localStorage.setItem(LS_LOC_CITY, city);
+                    }
+                    await fetchWeatherFor(lat, lon, city);
+                    startAutoRefresh();
+                },
+                async () => {
+                    // GPS failed even after allow tap — IP fallback
+                    await doIPFallback();
+                },
+                { timeout: 10000, maximumAge: 0 }
+            );
+        }
+
+        async function doIPFallback() {
+            const loc = await getIPLocation();
+            localStorage.setItem(LS_LOC_PERM, 'denied');
+            localStorage.setItem(LS_LOC_LAT, loc.lat);
+            localStorage.setItem(LS_LOC_LON, loc.lon);
+            localStorage.setItem(LS_LOC_CITY, loc.city);
+            await fetchWeatherFor(loc.lat, loc.lon, loc.city);
+            startAutoRefresh();
+        }
+
+        // Auto-refresh every 15 minutes
+        function startAutoRefresh() {
+            if (wxAutoTimer) clearInterval(wxAutoTimer);
+            wxAutoTimer = setInterval(async () => {
+                const perm = localStorage.getItem(LS_LOC_PERM);
+                if (perm === 'granted') {
+                    // Re-fetch GPS silently (maximumAge=5min ok)
+                    navigator.geolocation.getCurrentPosition(
+                        async (pos) => {
+                            const lat = pos.coords.latitude;
+                            const lon = pos.coords.longitude;
+                            const city = await reverseGeocode(lat, lon);
+                            localStorage.setItem(LS_LOC_LAT, lat);
+                            localStorage.setItem(LS_LOC_LON, lon);
+                            localStorage.setItem(LS_LOC_CITY, city);
+                            await fetchWeatherFor(lat, lon, city);
+                        },
+                        async () => {
+                            const lat = localStorage.getItem(LS_LOC_LAT);
+                            const lon = localStorage.getItem(LS_LOC_LON);
+                            const city = localStorage.getItem(LS_LOC_CITY) || '—';
+                            if (lat && lon) await fetchWeatherFor(parseFloat(lat), parseFloat(lon), city);
+                        },
+                        { timeout: 8000, maximumAge: 300000 }
+                    );
+                } else {
+                    const lat = localStorage.getItem(LS_LOC_LAT);
+                    const lon = localStorage.getItem(LS_LOC_LON);
+                    const city = localStorage.getItem(LS_LOC_CITY) || '—';
+                    if (lat && lon) await fetchWeatherFor(parseFloat(lat), parseFloat(lon), city);
+                }
+            }, 15 * 60 * 1000);
+        }
+
+        // Entry point on hub launch
         async function initWeather() {
             WX.cityEl.textContent = 'Locating…';
             WX.tempEl.textContent = '--°C';
             WX.condEl.textContent = '···';
 
-            if (!navigator.geolocation) {
-                const loc = await getIPLocation();
-                await fetchWeatherFor(loc.lat, loc.lon, loc.city);
-                return;
+            const perm = localStorage.getItem(LS_LOC_PERM);
+
+            if (perm === 'granted') {
+                // Use stored coords immediately, then refresh silently
+                const lat  = parseFloat(localStorage.getItem(LS_LOC_LAT));
+                const lon  = parseFloat(localStorage.getItem(LS_LOC_LON));
+                const city = localStorage.getItem(LS_LOC_CITY) || '—';
+                await fetchWeatherFor(lat, lon, city);
+                startAutoRefresh();
+                // Also quietly update GPS in background
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        async (pos) => {
+                            const nlat = pos.coords.latitude;
+                            const nlon = pos.coords.longitude;
+                            const ncity = await reverseGeocode(nlat, nlon);
+                            localStorage.setItem(LS_LOC_LAT, nlat);
+                            localStorage.setItem(LS_LOC_LON, nlon);
+                            localStorage.setItem(LS_LOC_CITY, ncity);
+                            await fetchWeatherFor(nlat, nlon, ncity);
+                        },
+                        () => {}, { timeout: 8000, maximumAge: 300000 }
+                    );
+                }
+            } else if (perm === 'denied') {
+                // Use stored IP coords
+                const lat  = parseFloat(localStorage.getItem(LS_LOC_LAT));
+                const lon  = parseFloat(localStorage.getItem(LS_LOC_LON));
+                const city = localStorage.getItem(LS_LOC_CITY) || '—';
+                if (lat && lon) { await fetchWeatherFor(lat, lon, city); }
+                else { await doIPFallback(); }
+                startAutoRefresh();
+            } else {
+                // First time — show our inbuilt card
+                const choice = await askLocationInbuilt();
+                if (choice === 'allow') {
+                    await doGeoAndFetch(true);
+                } else {
+                    await doIPFallback();
+                }
             }
-
-            navigator.geolocation.getCurrentPosition(
-                async (pos) => {
-                    const { latitude: lat, longitude: lon } = pos.coords;
-                    const city = await reverseGeocode(lat, lon);
-                    await fetchWeatherFor(lat, lon, city);
-                },
-                async () => {
-                    // Denied — use IP fallback
-                    const loc = await getIPLocation();
-                    await fetchWeatherFor(loc.lat, loc.lon, loc.city);
-                },
-                { timeout: 8000 }
-            );
         }
 
+        // When user taps weather widget → ask again via our card (travel use case)
         function refreshWeather() {
-            initWeather();
+            // Show the card again regardless of past choice
+            locCard.classList.add('show');
+            _locResolve = async (choice) => {
+                if (choice === 'allow') {
+                    await doGeoAndFetch(true);
+                } else {
+                    await doIPFallback();
+                }
+            };
         }
 
-        // Start weather after system launch
-        const _origLaunchSystem = launchSystem;
-        // Override launchSystem to also init weather
-        // (We re-declare here since launchSystem is already defined above)
-        window.addEventListener('DOMContentLoaded', () => {});
-
-        // Patch: call initWeather when main hub is shown
+        // Patch auth button and page load
         const _origAuthBtn = document.getElementById('auth-btn');
         if (_origAuthBtn) {
             _origAuthBtn.addEventListener('click', () => {
-                setTimeout(initWeather, 600);
+                setTimeout(initWeather, 700);
             });
         }
-        // Also fire on page load if already logged in
         window.addEventListener('load', () => {
             const saved = localStorage.getItem('xos_user_token');
-            if (saved) setTimeout(initWeather, 800);
+            if (saved) setTimeout(initWeather, 900);
         });
 
         // ==================== END WEATHER ENGINE ====================
