@@ -3,798 +3,168 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>XOS · CELESTIAL TERMINAL</title>
+    <title>XOS \u00b7 CELESTIAL TERMINAL</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
     <style>
         :root { --bg: #000000; --accent: #007aff; --card: rgba(10, 10, 10, 0.55); --border: rgba(255, 255, 255, 0.12); }
         body { background-color: #000; color: #ffffff; font-family: 'Space Grotesk', sans-serif; margin: 0; overflow: hidden; height: 100vh; width: 100vw; }
         
-        /* CELESTIAL BACKGROUND (dynamic sky) */
-        #celestial-container {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -1;
-            overflow: hidden;
-            transition: background 2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .sky-gradient {
-            position: absolute;
-            inset: 0;
-            transition: all 3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .sun-container {
-            position: absolute;
-            width: 300px;
-            height: 300px;
-            left: 50%;
-            transform: translateX(-50%);
-            transition: all 3s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 1;
-        }
-        .sun {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            transition: all 3s ease;
-        }
-        .sun-rays {
-            position: absolute;
-            inset: -50%;
-            animation: rotate 20s linear infinite;
-        }
-        .sun-rays::before,
-        .sun-rays::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: 50%;
-            background: conic-gradient(
-                from 0deg,
-                transparent 0deg,
-                rgba(255, 200, 0, 0.1) 10deg,
-                transparent 20deg,
-                rgba(255, 200, 0, 0.1) 30deg,
-                transparent 40deg,
-                rgba(255, 200, 0, 0.1) 50deg,
-                transparent 60deg,
-                rgba(255, 200, 0, 0.1) 70deg,
-                transparent 80deg,
-                rgba(255, 200, 0, 0.1) 90deg,
-                transparent 100deg
-            );
-            animation: rotate 30s linear infinite reverse;
-        }
-        .sun-rays::after {
-            animation: rotate 40s linear infinite;
-            opacity: 0.5;
-        }
-        @keyframes rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        .moon-container {
-            position: absolute;
-            width: 200px;
-            height: 200px;
-            left: 50%;
-            transform: translateX(-50%);
-            transition: all 3s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 1;
-        }
-        .moon {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, #f5f5f5, #c0c0c0);
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            box-shadow: 0 0 60px rgba(200, 200, 255, 0.5), 0 0 100px rgba(150, 150, 255, 0.3), inset -10px -10px 20px rgba(0, 0, 0, 0.2);
-            transition: all 3s ease;
-        }
-        .moon::before {
-            content: '';
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            background: rgba(0, 0, 0, 0.1);
-            border-radius: 50%;
-            top: 30%;
-            left: 25%;
-            box-shadow: 15px 10px 0 -5px rgba(0, 0, 0, 0.1), -5px 25px 0 -8px rgba(0, 0, 0, 0.08), 25px 30px 0 -10px rgba(0, 0, 0, 0.06);
-        }
-        .stars-container {
-            position: absolute;
-            inset: 0;
-            opacity: 0;
-            transition: opacity 2s ease;
-        }
-        .star {
-            position: absolute;
-            background: white;
-            border-radius: 50%;
-            animation: twinkle var(--duration) ease-in-out infinite;
-        }
-        @keyframes twinkle {
-            0%, 100% { opacity: 0.2; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.2); }
-        }
-        .shooting-star {
-            position: absolute;
-            width: 100px;
-            height: 2px;
-            background: linear-gradient(90deg, white, transparent);
-            opacity: 0;
-            animation: shoot 3s linear infinite;
-            animation-delay: var(--delay);
-        }
-        @keyframes shoot {
-            0% { transform: translateX(0) translateY(0); opacity: 1; }
-            100% { transform: translateX(-300px) translateY(300px); opacity: 0; }
-        }
-        .clouds-container {
-            position: absolute;
-            inset: 0;
-            opacity: 0;
-            transition: opacity 2s ease;
-        }
-        .cloud {
-            position: absolute;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 100px;
-            filter: blur(20px);
-            animation: float 20s ease-in-out infinite;
-        }
-        @keyframes float {
-            0%, 100% { transform: translateX(0); }
-            50% { transform: translateX(30px); }
-        }
-        .horizon-glow {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 40%;
-            background: linear-gradient(to top, rgba(0,122,255,0.3), transparent);
-            opacity: 0;
-            transition: all 3s ease;
-            pointer-events: none;
-        }
+        #celestial-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; overflow: hidden; transition: background 2s cubic-bezier(0.4, 0, 0.2, 1); }
+        .sky-gradient { position: absolute; inset: 0; transition: all 3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .sun-container { position: absolute; width: 300px; height: 300px; left: 50%; transform: translateX(-50%); transition: all 3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1; }
+        .sun { width: 120px; height: 120px; border-radius: 50%; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); transition: all 3s ease; }
+        .sun-rays { position: absolute; inset: -50%; animation: rotate 20s linear infinite; }
+        .sun-rays::before, .sun-rays::after { content: ''; position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(from 0deg, transparent 0deg, rgba(255, 200, 0, 0.1) 10deg, transparent 20deg, rgba(255, 200, 0, 0.1) 30deg, transparent 40deg, rgba(255, 200, 0, 0.1) 50deg, transparent 60deg, rgba(255, 200, 0, 0.1) 70deg, transparent 80deg, rgba(255, 200, 0, 0.1) 90deg, transparent 100deg); animation: rotate 30s linear infinite reverse; }
+        .sun-rays::after { animation: rotate 40s linear infinite; opacity: 0.5; }
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .moon-container { position: absolute; width: 200px; height: 200px; left: 50%; transform: translateX(-50%); transition: all 3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1; }
+        .moon { width: 100px; height: 100px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #f5f5f5, #c0c0c0); position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 60px rgba(200, 200, 255, 0.5), 0 0 100px rgba(150, 150, 255, 0.3), inset -10px -10px 20px rgba(0, 0, 0, 0.2); transition: all 3s ease; }
+        .moon::before { content: ''; position: absolute; width: 20px; height: 20px; background: rgba(0, 0, 0, 0.1); border-radius: 50%; top: 30%; left: 25%; box-shadow: 15px 10px 0 -5px rgba(0, 0, 0, 0.1), -5px 25px 0 -8px rgba(0, 0, 0, 0.08), 25px 30px 0 -10px rgba(0, 0, 0, 0.06); }
+        .stars-container { position: absolute; inset: 0; opacity: 0; transition: opacity 2s ease; }
+        .star { position: absolute; background: white; border-radius: 50%; animation: twinkle var(--duration) ease-in-out infinite; }
+        @keyframes twinkle { 0%, 100% { opacity: 0.2; transform: scale(1); } 50% { opacity: 1; transform: scale(1.2); } }
+        .shooting-star { position: absolute; width: 100px; height: 2px; background: linear-gradient(90deg, white, transparent); opacity: 0; animation: shoot 3s linear infinite; animation-delay: var(--delay); }
+        @keyframes shoot { 0% { transform: translateX(0) translateY(0); opacity: 1; } 100% { transform: translateX(-300px) translateY(300px); opacity: 0; } }
+        .clouds-container { position: absolute; inset: 0; opacity: 0; transition: opacity 2s ease; }
+        .cloud { position: absolute; background: rgba(255, 255, 255, 0.1); border-radius: 100px; filter: blur(20px); animation: float 20s ease-in-out infinite; }
+        @keyframes float { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(30px); } }
+        .horizon-glow { position: absolute; bottom: 0; left: 0; right: 0; height: 40%; background: linear-gradient(to top, rgba(0,122,255,0.3), transparent); opacity: 0; transition: all 3s ease; pointer-events: none; }
         
-        /* ===== WEATHER WIDGET ===== */
-        #weather-widget {
-            display: inline-flex;
-            flex-direction: column;
-            align-items: flex-end;
-            margin-top: 6px;
-            cursor: pointer;
-            user-select: none;
-        }
-        #weather-city {
-            font-size: 8px;
-            letter-spacing: 0.15em;
-            color: #888;
-            text-transform: uppercase;
-            font-weight: 600;
-        }
-        #weather-temp {
-            font-size: 13px;
-            font-weight: 700;
-            color: #fff;
-            letter-spacing: 0.05em;
-            line-height: 1.1;
-        }
-        #weather-cond {
-            font-size: 7px;
-            letter-spacing: 0.2em;
-            color: #666;
-            text-transform: uppercase;
-        }
+        #weather-widget { display: inline-flex; flex-direction: column; align-items: flex-end; margin-top: 6px; cursor: pointer; user-select: none; }
+        #weather-city { font-size: 8px; letter-spacing: 0.15em; color: #888; text-transform: uppercase; font-weight: 600; }
+        #weather-temp { font-size: 13px; font-weight: 700; color: #fff; letter-spacing: 0.05em; line-height: 1.1; }
+        #weather-cond { font-size: 7px; letter-spacing: 0.2em; color: #666; text-transform: uppercase; }
         #weather-widget:active { opacity: 0.7; }
 
-        /* ===== XOS LOCATION PERMISSION CARD ===== */
-        #loc-permission-card {
-            position: fixed;
-            bottom: -160px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: calc(100% - 48px);
-            max-width: 360px;
-            z-index: 500;
-            background: rgba(10, 10, 14, 0.82);
-            backdrop-filter: blur(24px) saturate(180%);
-            -webkit-backdrop-filter: blur(24px) saturate(180%);
-            border: 1px solid rgba(255,255,255,0.13);
-            border-radius: 28px;
-            padding: 20px 22px 18px;
-            box-shadow: 0 24px 60px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04) inset;
-            transition: bottom 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
-            opacity: 0;
-            pointer-events: none;
-        }
-        #loc-permission-card.show {
-            bottom: 24px;
-            opacity: 1;
-            pointer-events: all;
-        }
-        #loc-permission-card .loc-brand {
-            font-size: 8px;
-            letter-spacing: 0.35em;
-            color: rgba(255,255,255,0.3);
-            text-transform: uppercase;
-            margin-bottom: 10px;
-            font-weight: 600;
-        }
-        #loc-permission-card .loc-title {
-            font-size: 15px;
-            font-weight: 700;
-            color: #fff;
-            letter-spacing: -0.01em;
-            line-height: 1.2;
-            margin-bottom: 5px;
-        }
-        #loc-permission-card .loc-sub {
-            font-size: 10px;
-            color: rgba(255,255,255,0.38);
-            letter-spacing: 0.05em;
-            margin-bottom: 18px;
-            line-height: 1.5;
-        }
-        #loc-permission-card .loc-btns {
-            display: flex;
-            gap: 10px;
-        }
-        #loc-allow-btn {
-            flex: 1;
-            background: #ffffff;
-            color: #000;
-            border: none;
-            border-radius: 14px;
-            padding: 11px 0;
-            font-size: 11px;
-            font-weight: 800;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            cursor: pointer;
-            font-family: 'Space Grotesk', sans-serif;
-            transition: all 0.2s ease;
-        }
+        #loc-permission-card { position: fixed; bottom: -160px; left: 50%; transform: translateX(-50%); width: calc(100% - 48px); max-width: 360px; z-index: 500; background: rgba(10, 10, 14, 0.82); backdrop-filter: blur(24px) saturate(180%); -webkit-backdrop-filter: blur(24px) saturate(180%); border: 1px solid rgba(255,255,255,0.13); border-radius: 28px; padding: 20px 22px 18px; box-shadow: 0 24px 60px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04) inset; transition: bottom 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease; opacity: 0; pointer-events: none; }
+        #loc-permission-card.show { bottom: 24px; opacity: 1; pointer-events: all; }
+        #loc-permission-card .loc-brand { font-size: 8px; letter-spacing: 0.35em; color: rgba(255,255,255,0.3); text-transform: uppercase; margin-bottom: 10px; font-weight: 600; }
+        #loc-permission-card .loc-title { font-size: 15px; font-weight: 700; color: #fff; letter-spacing: -0.01em; line-height: 1.2; margin-bottom: 5px; }
+        #loc-permission-card .loc-sub { font-size: 10px; color: rgba(255,255,255,0.38); letter-spacing: 0.05em; margin-bottom: 18px; line-height: 1.5; }
+        #loc-permission-card .loc-btns { display: flex; gap: 10px; }
+        #loc-allow-btn { flex: 1; background: #ffffff; color: #000; border: none; border-radius: 14px; padding: 11px 0; font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; font-family: 'Space Grotesk', sans-serif; transition: all 0.2s ease; }
         #loc-allow-btn:active { transform: scale(0.96); opacity: 0.85; }
-        #loc-deny-btn {
-            flex: 1;
-            background: rgba(255,255,255,0.06);
-            color: rgba(255,255,255,0.45);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 14px;
-            padding: 11px 0;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            cursor: pointer;
-            font-family: 'Space Grotesk', sans-serif;
-            transition: all 0.2s ease;
-        }
+        #loc-deny-btn { flex: 1; background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.45); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 11px 0; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; font-family: 'Space Grotesk', sans-serif; transition: all 0.2s ease; }
         #loc-deny-btn:active { transform: scale(0.96); opacity: 0.7; }
-        #loc-permission-card .loc-icon {
-            width: 36px; height: 36px;
-            background: rgba(0,122,255,0.15);
-            border: 1px solid rgba(0,122,255,0.3);
-            border-radius: 10px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 18px;
-            margin-bottom: 12px;
-        }
+        #loc-permission-card .loc-icon { width: 36px; height: 36px; background: rgba(0,122,255,0.15); border: 1px solid rgba(0,122,255,0.3); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-bottom: 12px; }
 
-        /* ===== RAIN EFFECT ===== */
-        #rain-container {
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 1.5s ease;
-            overflow: hidden;
-        }
-        .raindrop {
-            position: absolute;
-            width: 1px;
-            background: linear-gradient(to bottom, transparent, rgba(150,200,255,0.6));
-            animation: fall linear infinite;
-            border-radius: 2px;
-        }
-        @keyframes fall {
-            0% { transform: translateY(-10vh) translateX(0); opacity: 0.8; }
-            100% { transform: translateY(110vh) translateX(20px); opacity: 0.3; }
-        }
-        #lightning-container {
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-            opacity: 0;
-        }
-        .lightning-bolt {
-            position: absolute;
-            top: 0;
-            width: 3px;
-            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0.95), rgba(180,220,255,0.8), rgba(255,255,255,0));
-            border-radius: 2px;
-            opacity: 0;
-            filter: blur(0.5px) drop-shadow(0 0 8px white);
-        }
-        @keyframes lightning-flash {
-            0%   { opacity: 0; transform: scaleX(1); }
-            5%   { opacity: 1; transform: scaleX(1.3); }
-            10%  { opacity: 0.4; transform: scaleX(0.8); }
-            15%  { opacity: 1; transform: scaleX(1.1); }
-            20%  { opacity: 0; }
-            100% { opacity: 0; }
-        }
-        .lightning-glow {
-            position: absolute;
-            inset: 0;
-            background: rgba(180, 220, 255, 0);
-            pointer-events: none;
-            transition: background 0.05s;
-        }
+        #rain-container { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 1.5s ease; overflow: hidden; }
+        .raindrop { position: absolute; width: 1px; background: linear-gradient(to bottom, transparent, rgba(150,200,255,0.6)); animation: fall linear infinite; border-radius: 2px; }
+        @keyframes fall { 0% { transform: translateY(-10vh) translateX(0); opacity: 0.8; } 100% { transform: translateY(110vh) translateX(20px); opacity: 0.3; } }
+        #lightning-container { position: absolute; inset: 0; pointer-events: none; opacity: 0; }
+        .lightning-bolt { position: absolute; top: 0; width: 3px; background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0.95), rgba(180,220,255,0.8), rgba(255,255,255,0)); border-radius: 2px; opacity: 0; filter: blur(0.5px) drop-shadow(0 0 8px white); }
+        @keyframes lightning-flash { 0% { opacity: 0; transform: scaleX(1); } 5% { opacity: 1; transform: scaleX(1.3); } 10% { opacity: 0.4; transform: scaleX(0.8); } 15% { opacity: 1; transform: scaleX(1.1); } 20% { opacity: 0; } 100% { opacity: 0; } }
+        .lightning-glow { position: absolute; inset: 0; background: rgba(180, 220, 255, 0); pointer-events: none; transition: background 0.05s; }
+        #fog-container { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 2s ease; }
+        .fog-layer { position: absolute; left: -10%; width: 120%; border-radius: 50%; background: rgba(180, 190, 210, 0.12); filter: blur(40px); animation: drift linear infinite; }
+        @keyframes drift { from { transform: translateX(-5%); } to { transform: translateX(5%); } }
+        #moon-phase-label { position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%); font-size: 6px; letter-spacing: 0.15em; color: rgba(200,200,255,0.5); white-space: nowrap; text-transform: uppercase; font-family: 'Space Grotesk', sans-serif; }
+        #heat-haze { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity 2s ease; background: radial-gradient(ellipse at 50% 80%, rgba(255,160,50,0.12) 0%, transparent 70%); }
 
-        /* ===== FOG/MIST for cloudy ===== */
-        #fog-container {
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 2s ease;
-        }
-        .fog-layer {
-            position: absolute;
-            left: -10%;
-            width: 120%;
-            border-radius: 50%;
-            background: rgba(180, 190, 210, 0.12);
-            filter: blur(40px);
-            animation: drift linear infinite;
-        }
-        @keyframes drift {
-            from { transform: translateX(-5%); }
-            to   { transform: translateX(5%); }
-        }
-
-        /* ===== MOON PHASE ===== */
-        #moon-phase-label {
-            position: absolute;
-            bottom: -18px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 6px;
-            letter-spacing: 0.15em;
-            color: rgba(200,200,255,0.5);
-            white-space: nowrap;
-            text-transform: uppercase;
-            font-family: 'Space Grotesk', sans-serif;
-        }
-
-        /* ===== HAZE for hot/sunny ===== */
-        #heat-haze {
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 2s ease;
-            background: radial-gradient(ellipse at 50% 80%, rgba(255,160,50,0.12) 0%, transparent 70%);
-        }
-
-        /* CRT/Scanline Overlay */
-        .overlay::before {
-            content: " "; display: block; position: fixed;
-            inset: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%);
-            background-size: 100% 4px;
-            z-index: 200;
-            pointer-events: none;
-            opacity: 0.3;
-        }
-
+        .overlay::before { content: " "; display: block; position: fixed; inset: 0; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%); background-size: 100% 4px; z-index: 200; pointer-events: none; opacity: 0.3; }
         .glass-input { background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border); backdrop-filter: blur(10px); transition: all 0.3s ease; }
         .glass-input:focus { border-color: var(--accent); background: rgba(255, 255, 255, 0.05); }
 
-        /* GLASSY TRANSPARENT BUTTONS */
-        .utility-card {
-            background: rgba(10, 10, 10, 0.55);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
-            position: relative;
-            overflow: hidden;
-        }
-        .utility-card::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, transparent, rgba(255,255,255,0.08), transparent);
-            transform: translateX(-100%);
-            transition: 0.6s;
-        }
-        .utility-card:hover::before {
-            transform: translateX(100%);
-        }
-        .utility-card:hover {
-            border-color: rgba(255, 255, 255, 0.3);
-            background: rgba(10, 10, 10, 0.7);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-        }
-        .utility-card:active {
-            transform: scale(0.98);
-        }
+        .utility-card { background: rgba(10, 10, 10, 0.55); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.12); }
 
-        .dev-badge {
-            font-size: 8px; letter-spacing: 0.2em; border: 1px solid #333;
-            padding: 4px 10px; border-radius: 99px; color: #666; transition: all 0.3s;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(4px);
-        }
-        .dev-badge:active { background: white; color: black; border-color: white; }
+        /* SETTINGS BTN */
+        .settings-btn { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; color: rgba(255,255,255,0.6); transition: all 0.2s; }
+        .settings-btn:active { background: rgba(255,255,255,0.12); }
 
-        .posts-btn {
-            font-size: 8px; letter-spacing: 0.2em; background: #ffffff; color: #000000;
-            padding: 4px 12px; border-radius: 99px; transition: all 0.3s;
-        }
-        .posts-btn:active { transform: scale(0.9); opacity: 0.8; }
+        /* ===== NOTIFICATION BELL ===== */
+        .notif-bell-wrap { position: relative; display: flex; align-items: center; justify-content: center; }
+        #notif-bell-btn { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; color: rgba(255,255,255,0.6); transition: all 0.2s; position: relative; }
+        #notif-bell-btn:active { background: rgba(255,255,255,0.12); }
+        #notif-badge { position: absolute; top: -4px; right: -4px; width: 16px; height: 16px; background: #ff3b30; border-radius: 50%; font-size: 8px; font-weight: 800; color: #fff; display: flex; align-items: center; justify-content: center; border: 2px solid #000; display: none; }
 
-        /* Settings button */
-        .settings-btn {
-            cursor: pointer;
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.08);
-            backdrop-filter: blur(4px);
-            transition: all 0.2s ease;
-            color: rgba(255,255,255,0.8);
-            font-size: 18px;
-        }
-        .settings-btn:hover {
-            background: rgba(255,255,255,0.2);
-            transform: rotate(30deg);
-            color: white;
-        }
+        /* ===== NOTIFICATION PANEL ===== */
+        #notif-panel { position: fixed; top: 0; right: -100%; width: 100%; max-width: 360px; height: 100vh; background: rgba(6,6,10,0.97); backdrop-filter: blur(30px); border-left: 1px solid rgba(255,255,255,0.08); z-index: 800; transition: right 0.4s cubic-bezier(0.34, 1.1, 0.64, 1); display: flex; flex-direction: column; }
+        #notif-panel.open { right: 0; }
+        .notif-panel-header { padding: 20px 20px 16px; border-bottom: 1px solid rgba(255,255,255,0.07); display: flex; justify-content: space-between; align-items: center; }
+        .notif-panel-title { font-size: 11px; font-weight: 800; letter-spacing: 0.35em; text-transform: uppercase; color: rgba(255,255,255,0.8); }
+        .notif-close-btn { width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,0.07); border: none; color: rgba(255,255,255,0.5); font-size: 16px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .notif-user-code-bar { padding: 12px 20px; background: rgba(0,122,255,0.08); border-bottom: 1px solid rgba(0,122,255,0.15); display: flex; align-items: center; gap: 10px; }
+        .notif-code-label { font-size: 7px; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(255,255,255,0.35); }
+        .notif-code-value { font-size: 16px; font-weight: 800; letter-spacing: 0.2em; color: #007aff; font-family: monospace; }
+        .notif-list { flex: 1; overflow-y: auto; padding: 12px 16px; }
+        .notif-list::-webkit-scrollbar { width: 0; }
+        .notif-empty { text-align: center; padding: 60px 20px; color: rgba(255,255,255,0.15); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; }
+        .notif-item { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 14px 16px; margin-bottom: 10px; }
+        .notif-item.unread { border-color: rgba(0,122,255,0.3); background: rgba(0,122,255,0.06); }
+        .notif-item-type { font-size: 7px; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+        .notif-item-type.reply-type { color: #34c759; }
+        .notif-item-type.bug-type { color: #ff9f0a; }
+        .notif-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+        .notif-item-msg { font-size: 12px; color: rgba(255,255,255,0.85); line-height: 1.5; margin-bottom: 6px; }
+        .notif-item-time { font-size: 8px; color: rgba(255,255,255,0.25); letter-spacing: 0.1em; }
+        .notif-screenshot { width: 100%; border-radius: 10px; margin-top: 8px; max-height: 140px; object-fit: cover; opacity: 0.8; }
 
-        /* Modal */
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(8px);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            visibility: hidden;
-            opacity: 0;
-            transition: all 0.3s ease;
-        }
-        .modal-overlay.active {
-            visibility: visible;
-            opacity: 1;
-        }
-        .modal-container {
-            background: rgba(10,10,10,0.9);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 32px;
-            width: 280px;
-            padding: 24px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-            transform: scale(0.95);
-            transition: transform 0.2s;
-        }
-        .modal-overlay.active .modal-container {
-            transform: scale(1);
-        }
-        .toggle-switch {
-            position: relative;
-            display: inline-block;
-            width: 52px;
-            height: 28px;
-        }
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(255,255,255,0.2);
-            transition: 0.3s;
-            border-radius: 34px;
-        }
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 22px;
-            width: 22px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: 0.3s;
-            border-radius: 50%;
-        }
-        input:checked + .slider {
-            background-color: #007aff;
-        }
-        input:checked + .slider:before {
-            transform: translateX(24px);
-        }
-        .signout-btn {
-            background: rgba(255,59,48,0.8);
-            border: none;
-            padding: 12px;
-            border-radius: 24px;
-            font-weight: bold;
-            font-size: 12px;
-            letter-spacing: 1px;
-            transition: all 0.2s;
-            cursor: pointer;
-        }
-        .signout-btn:hover {
-            background: rgba(255,59,48,1);
-            transform: scale(1.02);
-        }
-        
-        /* Report Bug Button */
-        .report-btn {
-            background: rgba(255,149,0,0.8);
-            border: none;
-            padding: 12px;
-            border-radius: 24px;
-            font-weight: bold;
-            font-size: 12px;
-            letter-spacing: 1px;
-            transition: all 0.2s;
-            cursor: pointer;
-            margin-top: 12px;
-            width: 100%;
-            color: white;
-        }
-        .report-btn:hover {
-            background: rgba(255,149,0,1);
-            transform: scale(1.02);
-        }
-        
-        /* Report Modal */
-        #report-modal {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(12px);
-            z-index: 1100;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            visibility: hidden;
-            opacity: 0;
-            transition: all 0.3s ease;
-        }
-        #report-modal.active {
-            visibility: visible !important;
-            opacity: 1 !important;
-        }
-        .report-container {
-            background: rgba(10,10,10,0.95);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 32px;
-            width: 320px;
-            max-width: 90%;
-            padding: 24px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-            transform: scale(0.95);
-            transition: transform 0.2s;
-        }
-        #report-modal.active .report-container {
-            transform: scale(1);
-        }
-        .report-container textarea {
-            width: 100%;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 16px;
-            padding: 12px;
-            color: white;
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 12px;
-            resize: vertical;
-            margin: 12px 0;
-        }
-        .report-container textarea:focus {
-            outline: none;
-            border-color: #007aff;
-        }
-        .file-input-wrapper {
-            background: rgba(255,255,255,0.05);
-            border: 1px dashed rgba(255,255,255,0.3);
-            border-radius: 16px;
-            padding: 12px;
-            text-align: center;
-            margin: 12px 0;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .file-input-wrapper:hover {
-            background: rgba(255,255,255,0.1);
-            border-color: #007aff;
-        }
-        #screenshot-preview {
-            max-width: 100%;
-            max-height: 150px;
-            margin-top: 10px;
-            border-radius: 12px;
-            display: none;
-        }
-        .report-buttons {
-            display: flex;
-            gap: 12px;
-            margin-top: 16px;
-        }
-        .report-submit {
-            flex: 1;
-            background: #007aff;
-            border: none;
-            padding: 12px;
-            border-radius: 24px;
-            font-weight: bold;
-            font-size: 12px;
-            letter-spacing: 1px;
-            cursor: pointer;
-            color: white;
-        }
-        .report-cancel {
-            flex: 1;
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            padding: 12px;
-            border-radius: 24px;
-            font-weight: bold;
-            font-size: 12px;
-            letter-spacing: 1px;
-            cursor: pointer;
-            color: white;
-        }
-        
-        /* Toast Notification */
-        #toast-notification {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 20px;
-            padding: 12px 24px;
-            z-index: 1200;
-            opacity: 0;
-            transition: all 0.3s ease;
-            pointer-events: none;
-            text-align: center;
-            max-width: 90%;
-            font-size: 12px;
-            font-weight: 500;
-            letter-spacing: 0.5px;
-        }
-        #toast-notification.show {
-            transform: translateX(-50%) translateY(0);
-            opacity: 1;
-        }
-        
-        /* Need help link */
-        .need-help-link {
-            margin-top: 20px;
-            text-align: center;
-            font-size: 9px;
-            letter-spacing: 0.2em;
-            color: rgba(255,255,255,0.4);
-            cursor: pointer;
-            transition: color 0.2s;
-        }
-        .need-help-link:hover {
-            color: rgba(255,255,255,0.8);
-        }
-        
-        /* Help dropdown */
-        .help-dropdown {
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(10,10,10,0.95);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 20px;
-            padding: 8px 0;
-            width: 200px;
-            margin-bottom: 8px;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.2s;
-            z-index: 100;
-        }
-        .help-dropdown.show {
-            opacity: 1;
-            visibility: visible;
-        }
-        .help-dropdown-item {
-            padding: 10px 16px;
-            font-size: 10px;
-            letter-spacing: 0.1em;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .help-dropdown-item:hover {
-            background: rgba(255,255,255,0.1);
-        }
-        .help-dropdown-item i {
-            margin-right: 8px;
-            font-size: 10px;
-        }
+        /* MODAL */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px); z-index: 700; display: flex; align-items: flex-end; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        .modal-container { background: rgba(15, 15, 20, 0.95); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 28px 28px 0 0; padding: 28px 24px 40px; width: 100%; max-width: 480px; transform: translateY(20px); transition: transform 0.3s ease; }
+        .modal-overlay.active .modal-container { transform: translateY(0); }
+        .toggle-switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.1); border-radius: 24px; transition: .3s; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: .3s; }
+        input:checked + .slider { background: var(--accent); }
+        input:checked + .slider:before { transform: translateX(20px); }
+        .report-btn { width: 100%; background: rgba(255, 159, 10, 0.1); border: 1px solid rgba(255, 159, 10, 0.4); color: #ff9f0a; border-radius: 14px; padding: 13px; font-size: 10px; font-family: 'Space Grotesk', sans-serif; cursor: pointer; transition: all 0.2s; }
+        .report-btn:active { transform: scale(0.97); }
+        .signout-btn { background: rgba(255, 59, 48, 0.08); border: 1px solid rgba(255, 59, 48, 0.3); color: #ff3b30; border-radius: 14px; padding: 13px; font-size: 10px; font-family: 'Space Grotesk', sans-serif; cursor: pointer; }
+
+        /* REPORT MODAL */
+        #report-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(12px); z-index: 750; display: flex; align-items: flex-end; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        #report-modal.active { opacity: 1; pointer-events: all; }
+        .report-container { background: rgba(12,12,18,0.98); border: 1px solid rgba(255,255,255,0.1); border-radius: 28px 28px 0 0; padding: 28px 24px 44px; width: 100%; max-width: 480px; }
+        .report-container textarea { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: 14px; color: #fff; font-family: 'Space Grotesk', sans-serif; font-size: 12px; resize: none; outline: none; margin-bottom: 14px; }
+        .report-container textarea:focus { border-color: rgba(255,159,10,0.5); }
+        .file-input-wrapper { border: 1px dashed rgba(255,255,255,0.12); border-radius: 12px; padding: 12px 16px; font-size: 10px; color: rgba(255,255,255,0.35); letter-spacing: 0.15em; cursor: pointer; text-align: center; margin-bottom: 12px; }
+        .file-input-wrapper:active { background: rgba(255,255,255,0.04); }
+        #screenshot-preview { width: 100%; border-radius: 12px; max-height: 160px; object-fit: cover; display: none; margin-bottom: 12px; }
+        .report-buttons { display: flex; gap: 10px; }
+        .report-submit { flex: 1; background: rgba(255,159,10,0.15); border: 1px solid rgba(255,159,10,0.5); color: #ff9f0a; border-radius: 14px; padding: 13px; font-size: 10px; font-family: 'Space Grotesk', sans-serif; letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer; }
+        .report-cancel { flex: 1; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.4); border-radius: 14px; padding: 13px; font-size: 10px; font-family: 'Space Grotesk', sans-serif; letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer; }
+
+        /* POSTS BTN */
+        .posts-btn { font-size: 9px; letter-spacing: 0.3em; color: rgba(255,255,255,0.4); border: 1px solid rgba(255,255,255,0.1); padding: 6px 14px; border-radius: 20px; text-decoration: none; transition: all 0.2s; }
+        .posts-btn:active { background: rgba(255,255,255,0.06); }
+        .dev-badge { font-size: 8px; letter-spacing: 0.25em; color: #007aff; border: 1px solid rgba(0,122,255,0.3); padding: 4px 12px; border-radius: 20px; text-decoration: none; }
+
+        /* TOAST */
+        #toast-notification { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px); background: rgba(20,20,28,0.95); border: 1px solid rgba(255,255,255,0.12); border-radius: 20px; padding: 12px 22px; font-size: 11px; color: #fff; z-index: 1000; opacity: 0; transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1); pointer-events: none; text-align: center; max-width: 320px; font-weight: 500; letter-spacing: 0.5px; }
+        #toast-notification.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+        .need-help-link { margin-top: 20px; text-align: center; font-size: 9px; letter-spacing: 0.2em; color: rgba(255,255,255,0.4); cursor: pointer; transition: color 0.2s; }
+        .need-help-link:hover { color: rgba(255,255,255,0.8); }
+        .help-dropdown { position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: rgba(10,10,10,0.95); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.15); border-radius: 20px; padding: 8px 0; width: 200px; margin-bottom: 8px; opacity: 0; visibility: hidden; transition: all 0.2s; z-index: 100; }
+        .help-dropdown.show { opacity: 1; visibility: visible; }
+        .help-dropdown-item { padding: 10px 16px; font-size: 10px; letter-spacing: 0.1em; cursor: pointer; transition: background 0.2s; }
+        .help-dropdown-item:hover { background: rgba(255,255,255,0.1); }
+        .help-dropdown-item i { margin-right: 8px; font-size: 10px; }
 
         .hidden { display: none !important; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .animate-slide { animation: slideUp 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards; }
+        #ai-fab { box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); background: #ffffff; }
+        #login-screen { background: #000000 !important; backdrop-filter: none !important; }
+        #main-hub, #main-hub > main, #main-hub > main > *, #main-hub > nav, #main-hub header { background: transparent !important; }
+        nav { background: rgba(0, 0, 0, 0.55) !important; backdrop-filter: blur(16px); border-bottom: 1px solid rgba(255,255,255,0.08); }
+        .utility-card { background: rgba(10, 10, 10, 0.55) !important; }
+        .bg-black, .bg-black\/80, .bg-black\/65 { background: transparent !important; }
 
-        #ai-fab {
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            background: #ffffff;
-        }
-        
-        /* LOGIN SCREEN: SOLID BLACK */
-        #login-screen {
-            background: #000000 !important;
-            backdrop-filter: none !important;
-        }
-        
-        /* MAIN HUB: FULLY TRANSPARENT */
-        #main-hub,
-        #main-hub > main,
-        #main-hub > main > *,
-        #main-hub > nav,
-        #main-hub header {
-            background: transparent !important;
-        }
-        nav {
-            background: rgba(0, 0, 0, 0.55) !important;
-            backdrop-filter: blur(16px);
-            border-bottom: 1px solid rgba(255,255,255,0.08);
-        }
-        .utility-card {
-            background: rgba(10, 10, 10, 0.55) !important;
-        }
-        .bg-black, .bg-black\/80, .bg-black\/65 {
-            background: transparent !important;
-        }
+        /* USER CODE CHIP in nav */
+        .user-code-chip { font-size: 7px; letter-spacing: 0.2em; color: rgba(0,122,255,0.7); background: rgba(0,122,255,0.08); border: 1px solid rgba(0,122,255,0.2); border-radius: 8px; padding: 2px 7px; font-family: monospace; font-weight: 700; display: inline-block; margin-top: 2px; cursor: pointer; }
     </style>
 </head>
 <body class="select-none">
 
-    <!-- CELESTIAL BACKGROUND CONTAINER -->
+    <!-- CELESTIAL BACKGROUND -->
     <div id="celestial-container">
         <div class="sky-gradient" id="sky"></div>
         <div class="sun-container" id="sun-container">
@@ -808,9 +178,8 @@
         <div class="stars-container" id="stars"></div>
         <div class="clouds-container" id="clouds"></div>
         <div class="horizon-glow" id="horizon"></div>
-        <div class="orbit-ring" style="width: 600px; height: 600px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); border: 1px solid rgba(255,255,255,0.05); border-radius: 50%;"></div>
-        <div class="orbit-ring" style="width: 800px; height: 800px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); border: 1px solid rgba(255,255,255,0.03); border-radius: 50%;"></div>
-        <!-- Weather FX layers -->
+        <div class="orbit-ring" style="width:600px;height:600px;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);border:1px solid rgba(255,255,255,0.05);border-radius:50%;"></div>
+        <div class="orbit-ring" style="width:800px;height:800px;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);border:1px solid rgba(255,255,255,0.03);border-radius:50%;"></div>
         <div id="rain-container"></div>
         <div id="lightning-container"><div class="lightning-glow" id="lightning-glow"></div></div>
         <div id="fog-container"></div>
@@ -828,7 +197,7 @@
         <div class="w-full max-w-sm mx-auto space-y-10 animate-slide">
             <div class="space-y-4">
                 <div class="space-y-1">
-                    <label class="text-[8px] tracking-[0.4em] text-zinc-500 uppercase ml-1">Identity </label>
+                    <label class="text-[8px] tracking-[0.4em] text-zinc-500 uppercase ml-1">Identity</label>
                     <input type="text" id="name-input" autocomplete="off" placeholder="ENTER YOUR NAME" 
                         class="glass-input w-full p-5 rounded-2xl text-xs tracking-[0.3em] uppercase font-bold text-center focus:outline-none">
                 </div>
@@ -843,7 +212,6 @@
                         <div class="help-dropdown-item" data-help="login">
                             <i class="fas fa-sign-in-alt"></i> Login Problem
                         </div>
-                        <!-- No report problem option here -->
                     </div>
                 </div>
             </div>
@@ -855,7 +223,7 @@
 
         <footer class="flex justify-between items-end text-[7px] tracking-[0.4em] text-zinc-800 uppercase">
             <span>XOS INDIA</span>
-            <span>© 2026 XOS Tech</span>
+            <span>\u00a9 2026 XOS Tech</span>
         </footer>
     </section>
 
@@ -870,12 +238,21 @@
                 <a href="posts.html" onclick="sendInteractionLog('posts')" class="posts-btn uppercase font-black">Posts</a>
             </div>
             <div class="flex items-center gap-3">
+                <!-- NOTIFICATION BELL -->
+                <div class="notif-bell-wrap">
+                    <div id="notif-bell-btn" onclick="openNotifPanel()">
+                        <i class="fas fa-bell"></i>
+                        <span id="notif-badge">0</span>
+                    </div>
+                </div>
+                <!-- SETTINGS -->
                 <div class="settings-btn" id="settings-btn">
                     <i class="fas fa-cog"></i>
                 </div>
                 <div class="text-right pl-6 border-l border-white/10">
                     <span id="user-greeting" class="text-[10px] font-bold text-blue-500 tracking-widest uppercase"></span>
                     <p class="text-[7px] text-zinc-600 tracking-[0.2em] uppercase">Authorized Session</p>
+                    <span id="user-code-chip" class="user-code-chip" title="Your unique XOS ID" onclick="copyUserCode()"></span>
                 </div>
             </div>
         </nav>
@@ -892,15 +269,14 @@
                 <div class="flex flex-col items-end gap-1">
                     <a href="https://nikhil007-eng.github.io/xos-social-Id/" onclick="sendInteractionLog('developer')" class="dev-badge mt-2 uppercase font-bold">Developer</a>
                     <div id="weather-widget" onclick="refreshWeather()" title="Tap to refresh">
-                        <span id="weather-city">Locating…</span>
-                        <span id="weather-temp">--°C</span>
-                        <span id="weather-cond">···</span>
+                        <span id="weather-city">Locating\u2026</span>
+                        <span id="weather-temp">--\u00b0C</span>
+                        <span id="weather-cond">\u00b7\u00b7\u00b7</span>
                     </div>
                 </div>
             </header>
 
             <div class="grid gap-4">
-                <!-- Audio Trimmer -->
                 <div id="trimmer-trigger" class="utility-card p-6 rounded-[2rem] flex items-center gap-5 cursor-pointer">
                     <div class="w-12 h-12 rounded-2xl bg-zinc-800/80 flex items-center justify-center text-blue-500 border border-white/10 backdrop-blur-sm">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg>
@@ -911,7 +287,6 @@
                     </div>
                 </div>
 
-                <!-- XOS Matrix -->
                 <a href="Matrix.html" class="utility-card p-6 rounded-[2rem] flex items-center gap-5">
                     <div class="w-12 h-12 rounded-2xl bg-zinc-800/80 flex items-center justify-center text-cyan-500 border border-white/10 backdrop-blur-sm">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
@@ -922,7 +297,6 @@
                     </div>
                 </a>
 
-                <!-- HTML Compiler -->
                 <a href="https://nikhil007-eng.github.io/XOS-HTML-COMPILER/" class="utility-card p-6 rounded-[2rem] flex items-center gap-5">
                     <div class="w-12 h-12 rounded-2xl bg-zinc-800/80 flex items-center justify-center text-blue-400 border border-white/10 backdrop-blur-sm">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
@@ -933,7 +307,6 @@
                     </div>
                 </a>
 
-                <!-- XOS Vault -->
                 <a href="shadow_vault.html" class="utility-card p-6 rounded-[2rem] flex items-center gap-5">
                     <div class="w-12 h-12 rounded-2xl bg-zinc-800/80 flex items-center justify-center text-blue-500 border border-white/10 backdrop-blur-sm relative overflow-hidden">
                         <div class="absolute inset-0 bg-blue-500/10 animate-pulse"></div>
@@ -945,7 +318,6 @@
                     </div>
                 </a>
                 
-                <!-- XOS INT -->
                 <a href="https://nikhil007-eng.github.io/XOS-SOCIAL-INT/" class="utility-card p-6 rounded-[2rem] flex items-center gap-5">
                     <div class="w-12 h-12 rounded-2xl bg-zinc-800/80 flex items-center justify-center text-green-400 border border-white/10 backdrop-blur-sm">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
@@ -959,10 +331,30 @@
         </main>
     </div>
 
+    <!-- NOTIFICATION PANEL -->
+    <div id="notif-panel">
+        <div class="notif-panel-header">
+            <span class="notif-panel-title"><i class="fas fa-bell mr-2" style="color:#007aff;"></i>Notifications</span>
+            <button class="notif-close-btn" onclick="closeNotifPanel()">\u00d7</button>
+        </div>
+        <div class="notif-user-code-bar">
+            <div>
+                <div class="notif-code-label">Your XOS ID</div>
+                <div class="notif-code-value" id="notif-code-display">------</div>
+            </div>
+            <div style="margin-left:auto;font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:0.1em;">Use this ID to<br>report issues</div>
+        </div>
+        <div class="notif-list" id="notif-list">
+            <div class="notif-empty"><i class="fas fa-bell-slash" style="display:block;font-size:24px;margin-bottom:10px;"></i>No notifications yet</div>
+        </div>
+    </div>
+    <!-- Notif panel backdrop -->
+    <div id="notif-backdrop" onclick="closeNotifPanel()" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:799;display:none;backdrop-filter:blur(4px);"></div>
+
     <!-- XOS LOCATION PERMISSION CARD -->
     <div id="loc-permission-card">
-        <div class="loc-icon">📍</div>
-        <div class="loc-brand">XOS Tech · Weather System</div>
+        <div class="loc-icon">\ud83d\udccd</div>
+        <div class="loc-brand">XOS Tech \u00b7 Weather System</div>
         <div class="loc-title">Allow Location Access</div>
         <div class="loc-sub">To update weather &amp; celestial background<br>based on your current location</div>
         <div class="loc-btns">
@@ -986,7 +378,9 @@
                         <span class="slider"></span>
                     </label>
                 </div>
-                <button id="report-bug-settings" class="report-btn uppercase tracking-wider">Report Bug</button>
+                <button id="report-bug-settings" class="report-btn uppercase tracking-wider">
+                    <i class="fas fa-bug mr-2"></i>Report Bug
+                </button>
                 <button id="signout-btn" class="signout-btn w-full text-white uppercase tracking-wider">Sign Out</button>
             </div>
         </div>
@@ -995,12 +389,12 @@
     <!-- REPORT BUG MODAL -->
     <div id="report-modal">
         <div class="report-container">
-            <h3 class="text-sm font-bold tracking-wider mb-2">Report Issue</h3>
-            <p class="text-[9px] text-zinc-400 mb-3">Describe the problem you're facing</p>
+            <h3 class="text-sm font-bold tracking-wider mb-1">Report Issue</h3>
+            <p class="text-[9px] text-zinc-400 mb-3 tracking-wider">YOUR ID: <span id="report-user-id-label" style="color:#007aff;font-family:monospace;font-weight:700;"></span></p>
             <textarea id="report-message" rows="4" placeholder="What went wrong? Please provide details..."></textarea>
             <div class="file-input-wrapper" id="screenshot-trigger">
                 <i class="fas fa-camera mr-2"></i> Attach Screenshot (Optional)
-                <input type="file" id="screenshot-input" accept="image/*" style="display: none;">
+                <input type="file" id="screenshot-input" accept="image/*" style="display:none;">
             </div>
             <img id="screenshot-preview" alt="Preview">
             <div class="report-buttons">
@@ -1010,7 +404,7 @@
         </div>
     </div>
 
-    <!-- TOAST NOTIFICATION -->
+    <!-- TOAST -->
     <div id="toast-notification"></div>
 
     <button id="ai-fab" class="hidden fixed bottom-10 right-6 z-[250] w-14 h-14 rounded-2xl flex items-center justify-center active:scale-90 transition-transform">
@@ -1020,945 +414,593 @@
         </div>
     </button>
 
+    <!-- FIREBASE -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
     <script>
-        // ==================== CELESTIAL BACKGROUND ENGINE ====================
-        const CELESTIAL = {
-            container: document.getElementById('celestial-container'),
-            sky: document.getElementById('sky'),
-            sunContainer: document.getElementById('sun-container'),
-            sun: document.getElementById('sun'),
-            sunRays: document.getElementById('sun-rays'),
-            moonContainer: document.getElementById('moon-container'),
-            moon: document.getElementById('moon'),
-            stars: document.getElementById('stars'),
-            clouds: document.getElementById('clouds'),
-            horizon: document.getElementById('horizon'),
-            body: document.body
-        };
+    // ==================== FIREBASE INIT ====================
+    let db = null;
+    try {
+        firebase.initializeApp({
+            apiKey: "AIzaSyAUk6bBCFPoq-Tu-AiX1nD3LFvhc6g7B7g",
+            authDomain: "steel-melody-464711-d6.firebaseapp.com",
+            databaseURL: "https://steel-melody-464711-d6-default-rtdb.firebaseio.com",
+            projectId: "steel-melody-464711-d6",
+            storageBucket: "steel-melody-464711-d6.firebasestorage.app",
+            messagingSenderId: "288849938458",
+            appId: "1:288849938458:web:d615242bb9f1e1ee0fe9a3"
+        });
+        db = firebase.database();
+    } catch(e) { console.warn('Firebase init error:', e); }
 
-        const PHASES = {
-            dawn: {
-                sky: 'linear-gradient(to bottom, #1a1a2e 0%, #16213e 30%, #533483 60%, #e94560 100%)',
-                sunColor: '#ff6b35',
-                sunShadow: '0 0 40px rgba(255, 107, 53, 0.8), 0 0 80px rgba(255, 150, 100, 0.4)',
-                sunPos: { top: '60%', opacity: 0.8 },
-                moonOpacity: 0.3,
-                starsOpacity: 0.4,
-                cloudsOpacity: 0.2,
-                horizonColor: 'rgba(233, 69, 96, 0.3)'
-            },
-            morning: {
-                sky: 'linear-gradient(to bottom, #87CEEB 0%, #98D8E8 30%, #B0E0E6 70%, #F0F8FF 100%)',
-                sunColor: '#FFD700',
-                sunShadow: '0 0 60px rgba(255, 215, 0, 0.8), 0 0 120px rgba(255, 200, 100, 0.5)',
-                sunPos: { top: '20%', opacity: 1 },
-                moonOpacity: 0,
-                starsOpacity: 0,
-                cloudsOpacity: 0.6,
-                horizonColor: 'rgba(135, 206, 235, 0.2)'
-            },
-            noon: {
-                sky: 'linear-gradient(to bottom, #00BFFF 0%, #87CEEB 50%, #E0F6FF 100%)',
-                sunColor: '#FFFACD',
-                sunShadow: '0 0 80px rgba(255, 250, 205, 0.9), 0 0 150px rgba(255, 255, 200, 0.6)',
-                sunPos: { top: '5%', opacity: 1 },
-                moonOpacity: 0,
-                starsOpacity: 0,
-                cloudsOpacity: 0.8,
-                horizonColor: 'rgba(0, 191, 255, 0.15)'
-            },
-            evening: {
-                sky: 'linear-gradient(to bottom, #2c3e50 0%, #fd746c 40%, #ff9068 70%, #ffb347 100%)',
-                sunColor: '#ff6347',
-                sunShadow: '0 0 50px rgba(255, 99, 71, 0.8), 0 0 100px rgba(255, 140, 100, 0.5)',
-                sunPos: { top: '70%', opacity: 0.9 },
-                moonOpacity: 0.2,
-                starsOpacity: 0.3,
-                cloudsOpacity: 0.4,
-                horizonColor: 'rgba(255, 99, 71, 0.4)'
-            },
-            night: {
-                sky: 'linear-gradient(to bottom, #000000 0%, #0a0a1a 30%, #1a1a2e 70%, #16213e 100%)',
-                sunColor: '#ff4500',
-                sunShadow: 'none',
-                sunPos: { top: '120%', opacity: 0 },
-                moonOpacity: 1,
-                starsOpacity: 1,
-                cloudsOpacity: 0.1,
-                horizonColor: 'rgba(30, 58, 138, 0.3)'
-            }
-        };
+    // ==================== CLOUDINARY ====================
+    const CLOUD  = "dptphdatf";
+    const PRESET = "vagprxhr";
 
-        function getPhase(hours) {
-            if (hours >= 4 && hours < 7) return 'dawn';
-            if (hours >= 7 && hours < 11) return 'morning';
-            if (hours >= 11 && hours < 16) return 'noon';
-            if (hours >= 16 && hours < 19) return 'evening';
-            return 'night';
+    // ==================== CELESTIAL ENGINE ====================
+    const CELESTIAL = {
+        container: document.getElementById('celestial-container'),
+        sky: document.getElementById('sky'),
+        sunContainer: document.getElementById('sun-container'),
+        sun: document.getElementById('sun'),
+        sunRays: document.getElementById('sun-rays'),
+        moonContainer: document.getElementById('moon-container'),
+        moon: document.getElementById('moon'),
+        stars: document.getElementById('stars'),
+        clouds: document.getElementById('clouds'),
+        horizon: document.getElementById('horizon'),
+        body: document.body
+    };
+
+    const PHASES = {
+        dawn: { sky: 'linear-gradient(to bottom, #1a1a2e 0%, #16213e 30%, #533483 60%, #e94560 100%)', sunColor: '#ff6b35', sunShadow: '0 0 40px rgba(255, 107, 53, 0.8)', sunPos: { top: '60%', opacity: 0.8 }, moonOpacity: 0.3, starsOpacity: 0.4, cloudsOpacity: 0.2 },
+        morning: { sky: 'linear-gradient(to bottom, #87CEEB 0%, #98D8E8 30%, #B0E0E6 70%, #F0F8FF 100%)', sunColor: '#FFD700', sunShadow: '0 0 60px rgba(255, 215, 0, 0.8)', sunPos: { top: '20%', opacity: 1 }, moonOpacity: 0, starsOpacity: 0, cloudsOpacity: 0.4 },
+        noon: { sky: 'linear-gradient(to bottom, #1a6bb5 0%, #2d8fd4 30%, #52b3f5 70%, #87ceeb 100%)', sunColor: '#fffbe6', sunShadow: '0 0 80px rgba(255, 250, 230, 0.9)', sunPos: { top: '5%', opacity: 1 }, moonOpacity: 0, starsOpacity: 0, cloudsOpacity: 0.3 },
+        afternoon: { sky: 'linear-gradient(to bottom, #1565c0 0%, #1976d2 30%, #42a5f5 70%, #90caf9 100%)', sunColor: '#FFD700', sunShadow: '0 0 60px rgba(255, 200, 0, 0.7)', sunPos: { top: '30%', opacity: 0.95 }, moonOpacity: 0, starsOpacity: 0, cloudsOpacity: 0.4 },
+        dusk: { sky: 'linear-gradient(to bottom, #0d1b2a 0%, #1b2838 20%, #b5451b 55%, #f77f00 80%, #fcbf49 100%)', sunColor: '#ff7700', sunShadow: '0 0 50px rgba(255, 119, 0, 0.8)', sunPos: { top: '65%', opacity: 0.85 }, moonOpacity: 0.2, starsOpacity: 0.2, cloudsOpacity: 0.3 },
+        night: { sky: 'linear-gradient(to bottom, #000000 0%, #020408 40%, #050d1a 70%, #0a1628 100%)', sunColor: 'transparent', sunShadow: 'none', sunPos: { top: '110%', opacity: 0 }, moonOpacity: 1, starsOpacity: 1, cloudsOpacity: 0.1 }
+    };
+
+    function getPhase(h) {
+        if (h >= 5 && h < 7)   return 'dawn';
+        if (h >= 7 && h < 11)  return 'morning';
+        if (h >= 11 && h < 14) return 'noon';
+        if (h >= 14 && h < 18) return 'afternoon';
+        if (h >= 18 && h < 21) return 'dusk';
+        return 'night';
+    }
+
+    function updateCelestial(phase) {
+        const p = PHASES[phase];
+        if (!p) return;
+        CELESTIAL.sky.style.background = p.sky;
+        CELESTIAL.sun.style.background = `radial-gradient(circle at 40% 40%, ${p.sunColor}, ${p.sunColor === 'transparent' ? 'transparent' : p.sunColor + 'aa'})`;
+        CELESTIAL.sun.style.boxShadow = p.sunShadow;
+        CELESTIAL.sunContainer.style.top = p.sunPos.top;
+        CELESTIAL.sunContainer.style.opacity = p.sunPos.opacity;
+        CELESTIAL.moonContainer.style.opacity = p.moonOpacity;
+        CELESTIAL.stars.style.opacity = p.starsOpacity;
+        CELESTIAL.clouds.style.opacity = p.cloudsOpacity;
+    }
+
+    // Generate stars
+    (function() {
+        const frag = document.createDocumentFragment();
+        for (let i = 0; i < 150; i++) {
+            const s = document.createElement('div');
+            s.className = 'star';
+            const size = Math.random() * 2.5 + 0.5;
+            s.style.cssText = `width:${size}px;height:${size}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--duration:${Math.random()*3+2}s;animation-delay:${Math.random()*3}s;`;
+            frag.appendChild(s);
         }
+        CELESTIAL.stars.appendChild(frag);
+    })();
 
-        function updateCelestial(phase) {
-            const config = PHASES[phase];
-            CELESTIAL.sky.style.background = config.sky;
-            CELESTIAL.sunContainer.style.top = config.sunPos.top;
-            CELESTIAL.sunContainer.style.opacity = config.sunPos.opacity;
-            CELESTIAL.sun.style.background = config.sunColor;
-            CELESTIAL.sun.style.boxShadow = config.sunShadow;
-            CELESTIAL.sunRays.style.opacity = phase === 'night' ? 0 : 0.5;
-            CELESTIAL.moonContainer.style.opacity = config.moonOpacity;
-            CELESTIAL.moonContainer.style.top = phase === 'night' ? '15%' : '40%';
-            CELESTIAL.stars.style.opacity = config.starsOpacity;
-            CELESTIAL.clouds.style.opacity = config.cloudsOpacity;
-            CELESTIAL.horizon.style.background = `linear-gradient(to top, ${config.horizonColor}, transparent)`;
-            CELESTIAL.horizon.style.opacity = 1;
+    // Generate clouds
+    (function() {
+        const frag = document.createDocumentFragment();
+        for (let i = 0; i < 8; i++) {
+            const c = document.createElement('div');
+            c.className = 'cloud';
+            c.style.cssText = `width:${Math.random()*200+100}px;height:${Math.random()*60+40}px;top:${Math.random()*40+10}%;left:${Math.random()*80}%;animation-delay:${i*3}s;animation-duration:${Math.random()*10+20}s;`;
+            frag.appendChild(c);
         }
+        CELESTIAL.clouds.appendChild(frag);
+    })();
 
-        function generateStars() {
-            const fragment = document.createDocumentFragment();
-            for (let i = 0; i < 150; i++) {
-                const star = document.createElement('div');
-                star.className = 'star';
-                star.style.left = Math.random() * 100 + '%';
-                star.style.top = Math.random() * 60 + '%';
-                star.style.width = Math.random() * 3 + 1 + 'px';
-                star.style.height = star.style.width;
-                star.style.setProperty('--duration', Math.random() * 3 + 2 + 's');
-                star.style.animationDelay = Math.random() * 5 + 's';
-                fragment.appendChild(star);
-            }
-            for (let i = 0; i < 3; i++) {
-                const shooting = document.createElement('div');
-                shooting.className = 'shooting-star';
-                shooting.style.top = Math.random() * 30 + '%';
-                shooting.style.left = Math.random() * 50 + 50 + '%';
-                shooting.style.setProperty('--delay', i * 7 + Math.random() * 5 + 's');
-                fragment.appendChild(shooting);
-            }
-            CELESTIAL.stars.appendChild(fragment);
-        }
+    // ==================== TELEGRAM CONFIG ====================
+    const CONFIG = { token: '8668013778:AAEnWA0uY3tDUOQP1uHQEVJdcAGaWgfy4eA', chatId: '7217028526' };
 
-        function generateClouds() {
-            const fragment = document.createDocumentFragment();
-            for (let i = 0; i < 6; i++) {
-                const cloud = document.createElement('div');
-                cloud.className = 'cloud';
-                cloud.style.width = Math.random() * 200 + 100 + 'px';
-                cloud.style.height = Math.random() * 60 + 40 + 'px';
-                cloud.style.top = Math.random() * 40 + 10 + '%';
-                cloud.style.left = Math.random() * 80 + '%';
-                cloud.style.animationDelay = i * 3 + 's';
-                cloud.style.animationDuration = Math.random() * 10 + 20 + 's';
-                fragment.appendChild(cloud);
-            }
-            CELESTIAL.clouds.appendChild(fragment);
-        }
+    // ==================== CORE ELEMENTS ====================
+    const loginScreen = document.getElementById('login-screen');
+    const mainHub     = document.getElementById('main-hub');
+    const nameInput   = document.getElementById('name-input');
+    const authBtn     = document.getElementById('auth-btn');
+    const greeting    = document.getElementById('user-greeting');
+    const clockEl     = document.getElementById('nav-clock');
+    const aiFab       = document.getElementById('ai-fab');
 
-        // ==================== ORIGINAL XOS FUNCTIONALITY ====================
-        const CONFIG = { token: '8668013778:AAEnWA0uY3tDUOQP1uHQEVJdcAGaWgfy4eA', chatId: '7217028526' };
-        const loginScreen = document.getElementById('login-screen');
-        const mainHub = document.getElementById('main-hub');
-        const nameInput = document.getElementById('name-input');
-        const authBtn = document.getElementById('auth-btn');
-        const greeting = document.getElementById('user-greeting');
-        const clockEl = document.getElementById('nav-clock');
-        const aiFab = document.getElementById('ai-fab');
+    const settingsBtn         = document.getElementById('settings-btn');
+    const modalOverlay        = document.getElementById('settings-modal');
+    const closeModalBtn       = document.getElementById('close-modal');
+    const bgToggle            = document.getElementById('bg-toggle');
+    const signoutBtn          = document.getElementById('signout-btn');
+    const reportBugSettingsBtn = document.getElementById('report-bug-settings');
+    const reportModal         = document.getElementById('report-modal');
+    const reportMessage       = document.getElementById('report-message');
+    const screenshotInput     = document.getElementById('screenshot-input');
+    const screenshotTrigger   = document.getElementById('screenshot-trigger');
+    const screenshotPreview   = document.getElementById('screenshot-preview');
+    const reportSubmit        = document.getElementById('report-submit');
+    const reportCancel        = document.getElementById('report-cancel');
+    const needHelpTrigger     = document.getElementById('need-help-trigger');
+    const helpDropdown        = document.getElementById('help-dropdown');
 
-        // Settings Modal elements
-        const settingsBtn = document.getElementById('settings-btn');
-        const modalOverlay = document.getElementById('settings-modal');
-        const closeModalBtn = document.getElementById('close-modal');
-        const bgToggle = document.getElementById('bg-toggle');
-        const signoutBtn = document.getElementById('signout-btn');
-        const reportBugSettingsBtn = document.getElementById('report-bug-settings');
+    let selectedScreenshot = null;
+    let modalOpenFlag  = false;
+    let reportModalOpen = false;
+    let handlingPopState = false;
+    let currentUserCode = null;
+    let notifListener = null;
 
-        // Report Modal elements
-        const reportModal = document.getElementById('report-modal');
-        const reportMessage = document.getElementById('report-message');
-        const screenshotInput = document.getElementById('screenshot-input');
-        const screenshotTrigger = document.getElementById('screenshot-trigger');
-        const screenshotPreview = document.getElementById('screenshot-preview');
-        const reportSubmit = document.getElementById('report-submit');
-        const reportCancel = document.getElementById('report-cancel');
-        
-        // Help dropdown
-        const needHelpTrigger = document.getElementById('need-help-trigger');
-        const helpDropdown = document.getElementById('help-dropdown');
-        
-        let selectedScreenshot = null;
-        let modalOpenFlag = false;
-        let handlingPopState = false;
-        let reportModalOpen = false;
+    // ==================== USER CODE SYSTEM ====================
+    function generateUserCode() {
+        return Math.floor(100000 + Math.random() * 900000).toString();
+    }
 
-        function openModal() {
-            if (modalOpenFlag) return;
-            modalOpenFlag = true;
-            modalOverlay.classList.add('active');
-            history.pushState({ modal: true }, '', window.location.href);
-        }
-
-        function closeModal() {
-            if (!modalOpenFlag) return;
-            modalOpenFlag = false;
-            modalOverlay.classList.remove('active');
-            if (history.state && history.state.modal) {
-                handlingPopState = true;
-                history.back();
-                handlingPopState = false;
+    function getUserCode(userName) {
+        const key = 'xos_code_' + userName.toLowerCase().replace(/\s+/g, '_');
+        let code = localStorage.getItem(key);
+        if (!code) {
+            code = generateUserCode();
+            localStorage.setItem(key, code);
+            // Also register in Firebase so admin can look it up
+            if (db) {
+                db.ref('xos_users/' + code).set({
+                    name: userName,
+                    code: code,
+                    createdAt: Date.now()
+                });
             }
         }
-        
-        function openReportModal() {
-            if (reportModalOpen) return;
-            reportModalOpen = true;
-            reportModal.classList.add('active');
-            console.log('Report modal opened');
-            history.pushState({ report: true }, '', window.location.href);
+        return code;
+    }
+
+    function copyUserCode() {
+        if (!currentUserCode) return;
+        navigator.clipboard.writeText(currentUserCode).then(() => {
+            showToast('XOS ID ' + currentUserCode + ' copied!');
+        }).catch(() => {
+            showToast('Your XOS ID: ' + currentUserCode);
+        });
+    }
+
+    // ==================== NOTIFICATION SYSTEM ====================
+    function openNotifPanel() {
+        document.getElementById('notif-panel').classList.add('open');
+        document.getElementById('notif-backdrop').style.display = 'block';
+        markAllRead();
+    }
+
+    function closeNotifPanel() {
+        document.getElementById('notif-panel').classList.remove('open');
+        document.getElementById('notif-backdrop').style.display = 'none';
+    }
+
+    function markAllRead() {
+        if (!db || !currentUserCode) return;
+        db.ref('xos_notifications/' + currentUserCode).once('value', snap => {
+            const d = snap.val();
+            if (!d) return;
+            Object.keys(d).forEach(k => {
+                if (!d[k].read) {
+                    db.ref('xos_notifications/' + currentUserCode + '/' + k + '/read').set(true);
+                }
+            });
+        });
+        document.getElementById('notif-badge').style.display = 'none';
+    }
+
+    function renderNotifications(data) {
+        const list = document.getElementById('notif-list');
+        if (!data) {
+            list.innerHTML = '<div class="notif-empty"><i class="fas fa-bell-slash" style="display:block;font-size:24px;margin-bottom:10px;"></i>No notifications yet</div>';
+            document.getElementById('notif-badge').style.display = 'none';
+            return;
         }
-        
-        function closeReportModal() {
-            if (!reportModalOpen) return;
-            reportModalOpen = false;
-            reportModal.classList.remove('active');
-            reportMessage.value = '';
+
+        const items = Object.entries(data).sort((a, b) => (b[1].timestamp || 0) - (a[1].timestamp || 0));
+        const unreadCount = items.filter(([, v]) => !v.read).length;
+
+        if (unreadCount > 0) {
+            const badge = document.getElementById('notif-badge');
+            badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
+            badge.style.display = 'flex';
+        } else {
+            document.getElementById('notif-badge').style.display = 'none';
+        }
+
+        list.innerHTML = items.map(([key, n]) => {
+            const isReply  = n.type === 'reply';
+            const isBug    = n.type === 'bug_report';
+            const typeLabel = isReply ? '\u2190 Admin Reply' : '\u2191 Bug Report Sent';
+            const typeClass = isReply ? 'reply-type' : 'bug-type';
+            const icon      = isReply ? 'fa-reply' : 'fa-bug';
+            const time = n.timestamp ? new Date(n.timestamp).toLocaleString('en-IN', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }) : '';
+
+            return `
+            <div class="notif-item ${!n.read ? 'unread' : ''}">
+                <div class="notif-item-type ${typeClass}">
+                    <span class="notif-dot"></span>
+                    <i class="fas ${icon}"></i> ${typeLabel}
+                </div>
+                <div class="notif-item-msg">${n.message || ''}</div>
+                ${n.screenshotUrl ? `<img src="${n.screenshotUrl}" class="notif-screenshot" alt="Screenshot">` : ''}
+                <div class="notif-item-time">${time}</div>
+            </div>`;
+        }).join('');
+    }
+
+    function listenForNotifications(code) {
+        if (!db || !code) return;
+        if (notifListener) notifListener();
+        const ref = db.ref('xos_notifications/' + code);
+        ref.on('value', snap => {
+            renderNotifications(snap.val());
+        });
+    }
+
+    // ==================== MODAL CONTROLS ====================
+    function openModal() {
+        if (modalOpenFlag) return;
+        modalOpenFlag = true;
+        modalOverlay.classList.add('active');
+        history.pushState({ modal: true }, '', window.location.href);
+    }
+
+    function closeModal() {
+        if (!modalOpenFlag) return;
+        modalOpenFlag = false;
+        modalOverlay.classList.remove('active');
+        if (history.state && history.state.modal) {
+            handlingPopState = true;
+            history.back();
+            handlingPopState = false;
+        }
+    }
+
+    function openReportModal() {
+        if (reportModalOpen) return;
+        reportModalOpen = true;
+        reportModal.classList.add('active');
+        document.getElementById('report-user-id-label').textContent = currentUserCode || '------';
+        history.pushState({ report: true }, '', window.location.href);
+    }
+
+    function closeReportModal() {
+        if (!reportModalOpen) return;
+        reportModalOpen = false;
+        reportModal.classList.remove('active');
+        reportMessage.value = '';
+        selectedScreenshot = null;
+        screenshotPreview.style.display = 'none';
+        screenshotPreview.src = '';
+        if (history.state && history.state.report) {
+            handlingPopState = true;
+            history.back();
+            handlingPopState = false;
+        }
+    }
+
+    function showToast(message, duration = 4000) {
+        const toast = document.getElementById('toast-notification');
+        toast.textContent = message;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), duration);
+    }
+
+    window.addEventListener('popstate', (e) => {
+        if (handlingPopState) return;
+        if (reportModalOpen)  closeReportModal();
+        else if (modalOpenFlag) closeModal();
+    });
+
+    // ==================== BACKGROUND TOGGLE ====================
+    function toggleCelestial(visible) {
+        CELESTIAL.container.style.display = visible ? 'block' : 'none';
+    }
+
+    const savedBgState = localStorage.getItem('xos_atmosphere');
+    if (savedBgState !== null) {
+        const isOn = savedBgState === 'on';
+        bgToggle.checked = isOn;
+        toggleCelestial(isOn);
+    }
+
+    bgToggle.addEventListener('change', (e) => {
+        toggleCelestial(e.target.checked);
+        localStorage.setItem('xos_atmosphere', e.target.checked ? 'on' : 'off');
+    });
+
+    // ==================== SIGN OUT ====================
+    function signOut() {
+        if (modalOpenFlag) closeModal();
+        if (reportModalOpen) closeReportModal();
+        if (notifListener) notifListener();
+        localStorage.removeItem('xos_user_token');
+        history.replaceState(null, '', window.location.href);
+        mainHub.classList.add('hidden');
+        loginScreen.style.display = 'flex';
+        nameInput.value = '';
+        aiFab.classList.add('hidden');
+        currentUserCode = null;
+        document.getElementById('notif-badge').style.display = 'none';
+    }
+
+    signoutBtn.addEventListener('click', signOut);
+
+    // Modal controls
+    settingsBtn.addEventListener('click', openModal);
+    closeModalBtn.addEventListener('click', closeModal);
+    modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
+    reportBugSettingsBtn.addEventListener('click', () => { closeModal(); setTimeout(openReportModal, 50); });
+    reportCancel.addEventListener('click', closeReportModal);
+    reportModal.addEventListener('click', (e) => { if (e.target === reportModal) closeReportModal(); });
+
+    // Screenshot pick
+    screenshotTrigger.addEventListener('click', () => screenshotInput.click());
+    screenshotInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file && file.type.startsWith('image/')) {
+            selectedScreenshot = file;
+            const reader = new FileReader();
+            reader.onload = (ev) => { screenshotPreview.src = ev.target.result; screenshotPreview.style.display = 'block'; };
+            reader.readAsDataURL(file);
+        } else {
             selectedScreenshot = null;
             screenshotPreview.style.display = 'none';
-            screenshotPreview.src = '';
-            if (history.state && history.state.report) {
-                handlingPopState = true;
-                history.back();
-                handlingPopState = false;
+        }
+    });
+
+    // ==================== REPORT SUBMIT ====================
+    reportSubmit.addEventListener('click', async () => {
+        const userName = localStorage.getItem('xos_user_token') || 'Anonymous';
+        const message  = reportMessage.value.trim();
+        if (!message) { showToast('Please describe the issue before submitting.'); return; }
+
+        reportSubmit.disabled = true;
+        reportSubmit.textContent = 'Sending\u2026';
+
+        try {
+            let screenshotUrl = null;
+
+            // Upload screenshot to Cloudinary
+            if (selectedScreenshot) {
+                const fd = new FormData();
+                fd.append('file', selectedScreenshot);
+                fd.append('upload_preset', PRESET);
+                fd.append('folder', 'xos_bug_reports');
+                const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD}/image/upload`, { method: 'POST', body: fd });
+                const json = await res.json();
+                screenshotUrl = json.secure_url || null;
             }
-        }
-        
-        function showToast(message, duration = 4000) {
-            const toast = document.getElementById('toast-notification');
-            toast.textContent = message;
-            toast.classList.add('show');
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, duration);
-        }
 
-        // Popstate event handler
-        window.addEventListener('popstate', (event) => {
-            if (handlingPopState) return;
-            if (reportModalOpen) {
-                closeReportModal();
-            } else if (modalOpenFlag) {
-                closeModal();
-            }
-        });
-
-        // Toggle celestial background
-        function toggleCelestial(visible) {
-            CELESTIAL.container.style.display = visible ? 'block' : 'none';
-        }
-
-        const savedBgState = localStorage.getItem('xos_atmosphere');
-        if (savedBgState !== null) {
-            const isOn = savedBgState === 'on';
-            bgToggle.checked = isOn;
-            toggleCelestial(isOn);
-        } else {
-            bgToggle.checked = true;
-            toggleCelestial(true);
-        }
-
-        bgToggle.addEventListener('change', (e) => {
-            const isChecked = e.target.checked;
-            toggleCelestial(isChecked);
-            localStorage.setItem('xos_atmosphere', isChecked ? 'on' : 'off');
-        });
-
-        // Sign out function
-        function signOut() {
-            if (modalOpenFlag) closeModal();
-            if (reportModalOpen) closeReportModal();
-            localStorage.removeItem('xos_user_token');
-            history.replaceState(null, '', window.location.href);
-            mainHub.classList.add('hidden');
-            loginScreen.style.display = 'flex';
-            nameInput.value = '';
-            aiFab.classList.add('hidden');
-        }
-
-        signoutBtn.addEventListener('click', signOut);
-
-        // Modal controls
-        settingsBtn.addEventListener('click', () => {
-            openModal();
-        });
-        closeModalBtn.addEventListener('click', () => {
-            closeModal();
-        });
-        modalOverlay.addEventListener('click', (e) => {
-            if (e.target === modalOverlay) closeModal();
-        });
-        
-        // Report Bug from settings
-        if (reportBugSettingsBtn) {
-            reportBugSettingsBtn.addEventListener('click', () => {
-                closeModal();  // close settings modal first
-                setTimeout(() => {
-                    openReportModal();  // open report modal after settings closes
-                }, 50);
-            });
-        } else {
-            console.error('report-bug-settings button not found!');
-        }
-        
-        // Report modal controls
-        reportCancel.addEventListener('click', closeReportModal);
-        reportModal.addEventListener('click', (e) => {
-            if (e.target === reportModal) closeReportModal();
-        });
-        
-        // Screenshot handling
-        screenshotTrigger.addEventListener('click', () => {
-            screenshotInput.click();
-        });
-        
-        screenshotInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file && file.type.startsWith('image/')) {
-                selectedScreenshot = file;
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    screenshotPreview.src = e.target.result;
-                    screenshotPreview.style.display = 'block';
-                };
-                reader.readAsDataURL(file);
-            } else {
-                selectedScreenshot = null;
-                screenshotPreview.style.display = 'none';
-            }
-        });
-        
-        // Submit report
-        reportSubmit.addEventListener('click', async () => {
-            const userName = localStorage.getItem('xos_user_token') || nameInput.value.trim() || "Anonymous User";
-            const message = reportMessage.value.trim();
-            
-            if (!message) {
-                showToast("Please describe the issue before submitting.");
-                return;
-            }
-            
-            // Disable button to prevent double submit
-            reportSubmit.disabled = true;
-            reportSubmit.textContent = "Sending...";
-            
-            try {
-                // Send text report
-                const reportText = `🐞 *XOS TECH BUG REPORT*\n👤 *User:* ${userName}\n📝 *Report:* ${message}\n🕒 *Time:* ${new Date().toLocaleString('en-IN')}`;
-                await fetch(`https://api.telegram.org/bot${CONFIG.token}/sendMessage`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ chat_id: CONFIG.chatId, text: reportText, parse_mode: 'Markdown' })
+            // Save bug report notification in Firebase under user's code
+            if (db && currentUserCode) {
+                await db.ref('xos_notifications/' + currentUserCode).push({
+                    type: 'bug_report',
+                    message: '\ud83d\udc1b Your report has been submitted: "' + message + '"',
+                    screenshotUrl: screenshotUrl,
+                    userName: userName,
+                    userCode: currentUserCode,
+                    rawMessage: message,
+                    read: false,
+                    timestamp: Date.now()
                 });
-                
-                // Send screenshot if attached
-                if (selectedScreenshot) {
-                    const formData = new FormData();
-                    formData.append('chat_id', CONFIG.chatId);
-                    formData.append('photo', selectedScreenshot);
-                    formData.append('caption', `Screenshot for report by ${userName}`);
-                    
-                    await fetch(`https://api.telegram.org/bot${CONFIG.token}/sendPhoto`, {
-                        method: 'POST',
-                        body: formData
-                    });
-                }
-                
-                // Show success notification
-                showToast(`Thank you so much ${userName} for reporting! Our agents will trigger that soon.`);
-                closeReportModal();
-            } catch (err) {
-                console.error(err);
-                showToast("Failed to send report. Please try again.");
-            } finally {
-                reportSubmit.disabled = false;
-                reportSubmit.textContent = "Send Report";
+
+                // Also save to admin bugs collection
+                await db.ref('xos_bug_reports').push({
+                    userName: userName,
+                    userCode: currentUserCode,
+                    message: message,
+                    screenshotUrl: screenshotUrl,
+                    read: false,
+                    timestamp: Date.now()
+                });
             }
+
+            // Telegram fallback
+            const reportText = `\ud83d\udc1e *XOS BUG REPORT*\n\ud83d\udc64 *User:* ${userName}\n\ud83d\udd11 *Code:* \`${currentUserCode}\`\n\ud83d\udcdd *Report:* ${message}\n\ud83d\udd52 *Time:* ${new Date().toLocaleString('en-IN')}${screenshotUrl ? '\n\ud83d\uddbc *Screenshot:* ' + screenshotUrl : ''}`;
+            await fetch(`https://api.telegram.org/bot${CONFIG.token}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: CONFIG.chatId, text: reportText, parse_mode: 'Markdown' })
+            });
+
+            showToast('Report sent! Check your notifications for updates.');
+            closeReportModal();
+        } catch (err) {
+            console.error(err);
+            showToast('Failed to send report. Please try again.');
+        } finally {
+            reportSubmit.disabled = false;
+            reportSubmit.textContent = 'Send Report';
+        }
+    });
+
+    // Help dropdown
+    needHelpTrigger.addEventListener('click', (e) => { e.stopPropagation(); helpDropdown.classList.toggle('show'); });
+    document.addEventListener('click', (e) => {
+        if (!needHelpTrigger.contains(e.target) && !helpDropdown.contains(e.target)) helpDropdown.classList.remove('show');
+    });
+    document.querySelectorAll('.help-dropdown-item').forEach(item => {
+        item.addEventListener('click', () => {
+            helpDropdown.classList.remove('show');
+            if (item.getAttribute('data-help') === 'login') showToast('Try to login without incognito/private mode as our site is safe.');
         });
-        
-        // Help dropdown functionality
-        needHelpTrigger.addEventListener('click', (e) => {
-            e.stopPropagation();
-            helpDropdown.classList.toggle('show');
-        });
-        
-        document.addEventListener('click', (e) => {
-            if (!needHelpTrigger.contains(e.target) && !helpDropdown.contains(e.target)) {
-                helpDropdown.classList.remove('show');
-            }
-        });
-        
-        const helpItems = document.querySelectorAll('.help-dropdown-item');
-        helpItems.forEach(item => {
-            item.addEventListener('click', () => {
-                helpDropdown.classList.remove('show');
-                const type = item.getAttribute('data-help');
-                if (type === 'login') {
-                    showToast("Try to login without incognito/private mode as our site is safe.");
-                }
+    });
+
+    // ==================== CLOCK ====================
+    function tick() {
+        const d = new Date();
+        clockEl.textContent = d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
+        updateCelestial(getPhase(d.getHours()));
+    }
+    setInterval(tick, 1000); tick();
+
+    // ==================== LOGGING ====================
+    async function sendInteractionLog(action) {
+        const userName = localStorage.getItem('xos_user_token') || 'Unknown';
+        const now = new Date();
+        const text = `\ud83c\udfaf *XOS INTERACTION*\n\ud83d\udc64 *Name:* ${userName}\n\ud83d\uddb1 *Clicked:* ${action}\n\ud83d\udd52 *Time:* ${now.toLocaleTimeString('en-IN')}\n\ud83d\udcc5 *Date:* ${now.toLocaleDateString('en-IN')}`;
+        try {
+            await fetch(`https://api.telegram.org/bot${CONFIG.token}/sendMessage`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chat_id: CONFIG.chatId, text, parse_mode: 'Markdown' }) });
+        } catch(e) {}
+    }
+
+    async function sendLog(userName) {
+        const ua = navigator.userAgent;
+        const device = /iPhone|iPad|iPod/.test(ua) ? 'iOS' : (/Android/.test(ua) ? 'Android' : 'Workstation');
+        const text = `\ud83d\udee0 *XOS HUB ACCESS*\n\ud83d\udc64 *User:* ${userName}\n\ud83d\udcf1 *Platform:* ${device}\n\ud83d\udcc5 *Timestamp:* ${new Date().toLocaleString('en-IN')}`;
+        try {
+            await fetch(`https://api.telegram.org/bot${CONFIG.token}/sendMessage`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chat_id: CONFIG.chatId, text, parse_mode: 'Markdown' }) });
+        } catch(e) {}
+    }
+
+    // ==================== LAUNCH SYSTEM ====================
+    function launchSystem(name) {
+        loginScreen.style.display = 'none';
+        mainHub.classList.remove('hidden');
+        aiFab.classList.remove('hidden');
+        greeting.textContent = `Welcome, ${name}`;
+
+        // Assign/retrieve 6-digit code
+        currentUserCode = getUserCode(name);
+        document.getElementById('user-code-chip').textContent = '#' + currentUserCode;
+        document.getElementById('notif-code-display').textContent = currentUserCode;
+
+        // Start listening for notifications
+        listenForNotifications(currentUserCode);
+
+        document.querySelectorAll('.utility-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const utilityName = this.querySelector('h4') ? this.querySelector('h4').innerText : 'Card';
+                sendInteractionLog('Open_' + utilityName.replace(/ /g, '_'));
             });
         });
+    }
 
-        function tick() {
-            const d = new Date();
-            clockEl.textContent = d.getHours().toString().padStart(2, '0') + ":" + d.getMinutes().toString().padStart(2, '0');
-            const phase = getPhase(d.getHours());
-            updateCelestial(phase);
+    // ==================== AUTH FLOW ====================
+    authBtn.addEventListener('click', () => {
+        const name = nameInput.value.trim();
+        if (!name) { showToast('Please enter your name to continue.'); return; }
+        localStorage.setItem('xos_user_token', name);
+        launchSystem(name);
+        sendLog(name);
+        setTimeout(initWeather, 700);
+    });
+
+    nameInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') authBtn.click(); });
+
+    window.addEventListener('load', () => {
+        const saved = localStorage.getItem('xos_user_token');
+        if (saved) { launchSystem(saved); setTimeout(initWeather, 900); }
+    });
+
+    // ==================== WEATHER ENGINE ====================
+    const WX = {
+        cityEl: document.getElementById('weather-city'),
+        tempEl: document.getElementById('weather-temp'),
+        condEl: document.getElementById('weather-cond'),
+        rainContainer: document.getElementById('rain-container'),
+        lightningContainer: document.getElementById('lightning-container'),
+        lightningGlow: document.getElementById('lightning-glow'),
+        fogContainer: document.getElementById('fog-container'),
+        heatHaze: document.getElementById('heat-haze'),
+        moonPhaseLabel: document.getElementById('moon-phase-label'),
+        currentWxCode: null
+    };
+
+    let lightningTimer = null;
+    function startLightning() {
+        lightningTimer = setInterval(() => {
+            const bolt = document.createElement('div');
+            bolt.className = 'lightning-bolt';
+            bolt.style.left = (20 + Math.random() * 60) + '%';
+            bolt.style.height = (30 + Math.random() * 40) + '%';
+            bolt.style.animationName = 'lightning-flash';
+            bolt.style.animationDuration = '0.5s';
+            WX.lightningContainer.appendChild(bolt);
+            WX.lightningGlow.style.background = 'rgba(180,220,255,0.08)';
+            setTimeout(() => { bolt.remove(); WX.lightningGlow.style.background = 'rgba(180,220,255,0)'; }, 600);
+        }, 2000 + Math.random() * 3000);
+    }
+    function stopLightning() { if (lightningTimer) { clearInterval(lightningTimer); lightningTimer = null; } }
+
+    function generateRain(intensity) {
+        WX.rainContainer.innerHTML = '';
+        const count = intensity === 'heavy' ? 120 : intensity === 'moderate' ? 70 : 35;
+        const frag = document.createDocumentFragment();
+        for (let i = 0; i < count; i++) {
+            const d = document.createElement('div');
+            d.className = 'raindrop';
+            d.style.left = Math.random() * 100 + '%';
+            d.style.height = (intensity === 'heavy' ? 25 : intensity === 'moderate' ? 18 : 12) + 'px';
+            d.style.animationDuration = (Math.random() * 0.5 + 0.5) + 's';
+            d.style.animationDelay = Math.random() * 2 + 's';
+            frag.appendChild(d);
         }
-        setInterval(tick, 1000); tick();
+        WX.rainContainer.appendChild(frag);
+    }
 
-        async function sendInteractionLog(action) {
-            const userName = localStorage.getItem('xos_user_token') || "Unknown User";
-            const now = new Date();
-            const time = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            const date = now.toLocaleDateString('en-IN');
-            const text = `🎯 *XOS INTERACTION*\n👤 *Name:* ${userName}\n🖱 *Clicked:* ${action}\n🕒 *Time:* ${time}\n📅 *Date:* ${date}`;
-            try {
-                await fetch(`https://api.telegram.org/bot${CONFIG.token}/sendMessage`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ chat_id: CONFIG.chatId, text: text, parse_mode: 'Markdown' })
-                });
-            } catch (err) {}
+    function generateFog() {
+        WX.fogContainer.innerHTML = '';
+        const frag = document.createDocumentFragment();
+        for (let i = 0; i < 5; i++) {
+            const f = document.createElement('div');
+            f.className = 'fog-layer';
+            f.style.top = (10 + i * 18) + '%';
+            f.style.height = (80 + Math.random() * 60) + 'px';
+            f.style.animationDuration = (15 + i * 5) + 's';
+            f.style.animationDelay = (i * 2) + 's';
+            f.style.opacity = (0.5 + Math.random() * 0.5).toString();
+            frag.appendChild(f);
         }
+        WX.fogContainer.appendChild(frag);
+    }
 
-        async function sendLog(userName) {
-            const ua = navigator.userAgent;
-            const device = /iPhone|iPad|iPod/.test(ua) ? "iOS Device" : (/Android/.test(ua) ? "Android Device" : "Workstation");
-            const time = new Date().toLocaleString('en-IN');
-            const text = `🛠 *XOS HUB ACCESS*\n👤 *User:* ${userName}\n📱 *Platform:* ${device}\n📅 *Timestamp:* ${time}`;
-            try {
-                await fetch(`https://api.telegram.org/bot${CONFIG.token}/sendMessage`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ chat_id: CONFIG.chatId, text: text, parse_mode: 'Markdown' })
-                });
-            } catch (err) {}
-        }
+    function getMoonPhase(date) {
+        const known = new Date('2000-01-06');
+        const diff = (date - known) / (1000 * 60 * 60 * 24);
+        const phase = ((diff % 29.53) + 29.53) % 29.53;
+        const names = [
+            { max: 1.85, name: 'New Moon', icon: '\ud83c\udf11', vis: 0 },
+            { max: 7.38, name: 'Waxing Crescent', icon: '\ud83c\udf12', vis: 0.25 },
+            { max: 9.22, name: 'First Quarter', icon: '\ud83c\udf13', vis: 0.5 },
+            { max: 14.77, name: 'Waxing Gibbous', icon: '\ud83c\udf14', vis: 0.75 },
+            { max: 16.61, name: 'Full Moon', icon: '\ud83c\udf15', vis: 1 },
+            { max: 22.15, name: 'Waning Gibbous', icon: '\ud83c\udf16', vis: 0.75 },
+            { max: 23.99, name: 'Last Quarter', icon: '\ud83c\udf17', vis: 0.5 },
+            { max: 28.08, name: 'Waning Crescent', icon: '\ud83c\udf18', vis: 0.25 },
+            { max: 29.99, name: 'New Moon', icon: '\ud83c\udf11', vis: 0 }
+        ];
+        for (const p of names) if (phase < p.max) return { ...p, phase };
+        return names[0];
+    }
 
-        function launchSystem(name) {
-            loginScreen.style.display = 'none';
-            mainHub.classList.remove('hidden');
-            aiFab.classList.remove('hidden'); 
-            greeting.textContent = `Welcome, ${name}`;
-            
-            document.querySelectorAll('.utility-card').forEach(card => {
-                card.addEventListener('click', function(e) {
-                    const utilityName = this.querySelector('h4') ? this.querySelector('h4').innerText : "Card";
-                    sendInteractionLog(`Open_${utilityName.replace(/ /g, '_')}`);
-                });
-            });
-        }
+    function applyMoonPhase(moonEl, labelEl, isNight) {
+        const mp = getMoonPhase(new Date());
+        labelEl.textContent = `${mp.icon} ${mp.name}`;
+        if (!isNight) return;
+        if (mp.name === 'Full Moon') { moonEl.style.background = 'radial-gradient(circle at 35% 35%, #fffbe8, #d4cfb8)'; moonEl.style.boxShadow = '0 0 60px rgba(255,250,200,0.7)'; }
+        else if (mp.name === 'New Moon') { moonEl.style.background = 'radial-gradient(circle at 35% 35%, #222, #111)'; moonEl.style.boxShadow = '0 0 20px rgba(100,100,150,0.2)'; }
+        else { moonEl.style.background = 'radial-gradient(circle at 30% 30%, #f5f5f5, #c0c0c0)'; moonEl.style.boxShadow = '0 0 40px rgba(200,200,255,0.4)'; }
+    }
 
-        window.onload = () => {
-            generateStars();
-            generateClouds();
-            const saved = localStorage.getItem('xos_user_token');
-            if (saved) launchSystem(saved);
-        };
-
-        authBtn.addEventListener('click', () => {
-            const val = nameInput.value.trim();
-            if (val.length >= 2) {
-                if (navigator.vibrate) navigator.vibrate(20);
-                localStorage.setItem('xos_user_token', val);
-                sendLog(val);
-                launchSystem(val);
-            }
-        });
-
-        function openGemini() {
-            const userName = localStorage.getItem('xos_user_token') || "Authorized User";
-            const context = `
-            Identity: ${userName}
-            Environment: XOS TECH TERMINAL v2.0.4
-            
-            AVAILABLE SYSTEM ELEMENTS:
-            1. AUDIO TRIMMER: Neural Sequencer for audio manipulation.
-            2. XOS MATRIX: Synthetic core designed to help escape the "old matrix" (stagnation/distractions) and turn pain into power.
-            3. HTML COMPILER: Engine for rapid live code execution.
-            4. XOS VAULT: Neural Encryption v2.1 for data security.
-            5. XOS INT: Interface v0.1 for social intelligence.
-            
-            REQUEST: Act as the XOS Neural Interface. Welcome ${userName} back. Explain how these elements create a path to escape the old matrix. Be sleek and technical.
-            `.trim();
-            const geminiUrl = `https://gemini.google.com/app?prompt=${encodeURIComponent(context)}`;
-            sendInteractionLog('redirect_to_gemini_web');
-            window.location.href = geminiUrl;
-        }
-
-        aiFab.addEventListener('click', () => openGemini());
-
-        // ==================== WEATHER & ADVANCED CELESTIAL ENGINE ====================
-        const WX = {
-            rainContainer: document.getElementById('rain-container'),
-            lightningContainer: document.getElementById('lightning-container'),
-            lightningGlow: document.getElementById('lightning-glow'),
-            fogContainer: document.getElementById('fog-container'),
-            heatHaze: document.getElementById('heat-haze'),
-            moonPhaseLabel: document.getElementById('moon-phase-label'),
-            cityEl: document.getElementById('weather-city'),
-            tempEl: document.getElementById('weather-temp'),
-            condEl: document.getElementById('weather-cond'),
-            lightningTimer: null,
-            currentWxCode: null,
-        };
-
-        // --- Rain generation ---
-        function generateRain(intensity) {
-            WX.rainContainer.innerHTML = '';
-            const count = intensity === 'heavy' ? 180 : intensity === 'moderate' ? 100 : 55;
-            const frag = document.createDocumentFragment();
-            for (let i = 0; i < count; i++) {
-                const d = document.createElement('div');
-                d.className = 'raindrop';
-                const len = Math.random() * 18 + 8;
-                d.style.cssText = `
-                    left: ${Math.random() * 100}%;
-                    top: ${Math.random() * -20}%;
-                    height: ${len}px;
-                    opacity: ${Math.random() * 0.5 + 0.3};
-                    animation-duration: ${Math.random() * 0.6 + 0.5}s;
-                    animation-delay: ${Math.random() * 2}s;
-                `;
-                frag.appendChild(d);
-            }
-            WX.rainContainer.appendChild(frag);
-        }
-
-        // --- Lightning effect ---
-        function triggerLightning() {
-            const bolts = 1 + Math.floor(Math.random() * 2);
-            for (let b = 0; b < bolts; b++) {
-                const bolt = document.createElement('div');
-                bolt.className = 'lightning-bolt';
-                const x = 15 + Math.random() * 70;
-                const h = 30 + Math.random() * 45;
-                const top = 5 + Math.random() * 25;
-                bolt.style.cssText = `left:${x}%; top:${top}%; height:${h}%;`;
-                bolt.style.animation = `lightning-flash ${0.4 + Math.random() * 0.3}s ease-out forwards`;
-                WX.lightningContainer.appendChild(bolt);
-                // Glow flash
-                setTimeout(() => {
-                    WX.lightningGlow.style.background = 'rgba(180,220,255,0.18)';
-                    setTimeout(() => { WX.lightningGlow.style.background = 'rgba(180,220,255,0)'; }, 80);
-                }, b * 120);
-                setTimeout(() => bolt.remove(), 600);
-            }
-        }
-
-        function startLightning() {
-            stopLightning();
-            const schedule = () => {
-                triggerLightning();
-                WX.lightningTimer = setTimeout(schedule, 3000 + Math.random() * 8000);
-            };
-            WX.lightningTimer = setTimeout(schedule, 1500);
-        }
-
-        function stopLightning() {
-            if (WX.lightningTimer) { clearTimeout(WX.lightningTimer); WX.lightningTimer = null; }
-            document.querySelectorAll('.lightning-bolt').forEach(b => b.remove());
-        }
-
-        // --- Fog generation ---
-        function generateFog() {
-            WX.fogContainer.innerHTML = '';
-            const frag = document.createDocumentFragment();
-            const layers = [
-                { top: '10%', h: 120, dur: 22, delay: 0 },
-                { top: '30%', h: 100, dur: 28, delay: -8 },
-                { top: '55%', h: 80,  dur: 18, delay: -4 },
-                { top: '70%', h: 90,  dur: 32, delay: -14 },
-            ];
-            layers.forEach(l => {
-                const f = document.createElement('div');
-                f.className = 'fog-layer';
-                f.style.cssText = `top:${l.top}; height:${l.h}px; animation-duration:${l.dur}s; animation-delay:${l.delay}s; animation-direction: alternate;`;
-                frag.appendChild(f);
-            });
-            WX.fogContainer.appendChild(frag);
-        }
-
-        // --- Moon phase calculation ---
-        function getMoonPhase(date) {
-            const knownNew = new Date(2000, 0, 6, 18, 14, 0);
-            const lunation = 29.530588853;
-            const diff = (date - knownNew) / (1000 * 60 * 60 * 24);
-            const phase = ((diff % lunation) + lunation) % lunation;
-            const names = [
-                { max: 1.85,  name: 'New Moon',        icon: '🌑', vis: 0 },
-                { max: 7.38,  name: 'Waxing Crescent', icon: '🌒', vis: 0.25 },
-                { max: 9.22,  name: 'First Quarter',   icon: '🌓', vis: 0.5 },
-                { max: 14.77, name: 'Waxing Gibbous',  icon: '🌔', vis: 0.75 },
-                { max: 16.61, name: 'Full Moon',        icon: '🌕', vis: 1 },
-                { max: 22.15, name: 'Waning Gibbous',  icon: '🌖', vis: 0.75 },
-                { max: 23.99, name: 'Last Quarter',    icon: '🌗', vis: 0.5 },
-                { max: 28.08, name: 'Waning Crescent', icon: '🌘', vis: 0.25 },
-                { max: 29.99, name: 'New Moon',        icon: '🌑', vis: 0 },
-            ];
-            for (const p of names) if (phase < p.max) return { ...p, phase };
-            return names[0];
-        }
-
-        function applyMoonPhase(moonEl, labelEl, isNight) {
-            const mp = getMoonPhase(new Date());
-            labelEl.textContent = `${mp.icon} ${mp.name}`;
-            if (!isNight) return;
-            // Style moon visual based on phase
-            if (mp.name === 'Full Moon') {
-                moonEl.style.background = 'radial-gradient(circle at 35% 35%, #fffbe8, #d4cfb8)';
-                moonEl.style.boxShadow = '0 0 60px rgba(255,250,200,0.7), 0 0 120px rgba(200,200,150,0.4)';
-            } else if (mp.name === 'New Moon') {
-                moonEl.style.background = 'radial-gradient(circle at 35% 35%, #222, #111)';
-                moonEl.style.boxShadow = '0 0 20px rgba(100,100,150,0.2)';
-            } else if (mp.name.includes('Waxing Crescent') || mp.name.includes('Waning Crescent')) {
-                moonEl.style.background = 'radial-gradient(circle at 65% 35%, #e8e8d8, #555)';
-                moonEl.style.boxShadow = '0 0 30px rgba(200,200,255,0.3)';
-            } else if (mp.name.includes('Gibbous')) {
-                moonEl.style.background = 'radial-gradient(circle at 38% 35%, #f0eedd, #b0ab98)';
-                moonEl.style.boxShadow = '0 0 50px rgba(220,220,180,0.5), 0 0 90px rgba(180,180,150,0.3)';
-            } else {
-                moonEl.style.background = 'radial-gradient(circle at 50% 35%, #ddd, #888)';
-                moonEl.style.boxShadow = '0 0 40px rgba(200,200,255,0.4)';
-            }
-        }
-
-        // --- WMO weather code → XOS descriptor ---
-        function wxCodeToInfo(code) {
-            if (code === 0) return { label: 'Clear Sky', fx: 'clear' };
-            if (code <= 3) return { label: 'Partly Cloudy', fx: 'cloudy' };
-            if (code <= 9) return { label: 'Misty', fx: 'fog' };
-            if (code <= 19) return { label: 'Mist / Drizzle', fx: 'drizzle' };
-            if (code <= 29) return { label: 'Showers', fx: 'rain' };
-            if (code <= 39) return { label: 'Dusty', fx: 'clear' };
-            if (code <= 49) return { label: 'Foggy', fx: 'fog' };
-            if (code <= 59) return { label: 'Drizzle', fx: 'drizzle' };
-            if (code <= 69) return { label: 'Rain', fx: 'rain' };
-            if (code <= 79) return { label: 'Snow', fx: 'cloudy' };
-            if (code <= 84) return { label: 'Rain Showers', fx: 'rain' };
-            if (code <= 86) return { label: 'Snow Showers', fx: 'cloudy' };
-            if (code <= 89) return { label: 'Hail Showers', fx: 'rain' };
-            if (code <= 94) return { label: 'Thunderstorm', fx: 'storm' };
-            if (code <= 99) return { label: 'Thunder + Hail', fx: 'storm' };
-            return { label: 'Overcast', fx: 'cloudy' };
-        }
-
-        // --- Apply weather FX to celestial background ---
-        function applyWeatherFX(fx, phase) {
-            // Reset all layers
-            WX.rainContainer.style.opacity = '0';
-            WX.fogContainer.style.opacity = '0';
-            WX.heatHaze.style.opacity = '0';
-            stopLightning();
-            const isNight = phase === 'night';
-            applyMoonPhase(CELESTIAL.moon, WX.moonPhaseLabel, isNight);
-
-            if (fx === 'storm') {
-                CELESTIAL.sky.style.background = 'linear-gradient(to bottom, #0a0a0f 0%, #1a1a2a 25%, #2a2a3a 50%, #1a1520 100%)';
-                CELESTIAL.sunContainer.style.opacity = '0';
-                CELESTIAL.moonContainer.style.opacity = isNight ? '0.15' : '0';
-                CELESTIAL.stars.style.opacity = '0';
-                CELESTIAL.clouds.style.opacity = '1';
-                document.querySelectorAll('.cloud').forEach(c => {
-                    c.style.background = 'rgba(30,30,50,0.6)';
-                    c.style.filter = 'blur(25px)';
-                });
-                generateRain('heavy');
-                setTimeout(() => { WX.rainContainer.style.opacity = '1'; }, 500);
-                WX.lightningContainer.style.opacity = '1';
-                startLightning();
-
-            } else if (fx === 'rain') {
-                CELESTIAL.sky.style.background = 'linear-gradient(to bottom, #1a1f2a 0%, #2a3040 40%, #35404f 100%)';
-                CELESTIAL.sunContainer.style.opacity = isNight ? '0' : '0.2';
-                CELESTIAL.moonContainer.style.opacity = isNight ? '0.2' : '0';
-                CELESTIAL.stars.style.opacity = '0';
-                CELESTIAL.clouds.style.opacity = '0.9';
-                document.querySelectorAll('.cloud').forEach(c => {
-                    c.style.background = 'rgba(60,70,90,0.4)';
-                    c.style.filter = 'blur(20px)';
-                });
-                generateRain('moderate');
-                setTimeout(() => { WX.rainContainer.style.opacity = '0.85'; }, 500);
-                WX.lightningContainer.style.opacity = '0';
-
-            } else if (fx === 'drizzle') {
-                CELESTIAL.sky.style.background = 'linear-gradient(to bottom, #25303a 0%, #364048 50%, #454f58 100%)';
-                CELESTIAL.sunContainer.style.opacity = isNight ? '0' : '0.35';
-                CELESTIAL.moonContainer.style.opacity = isNight ? '0.4' : '0';
-                CELESTIAL.stars.style.opacity = isNight ? '0.1' : '0';
-                CELESTIAL.clouds.style.opacity = '0.7';
-                document.querySelectorAll('.cloud').forEach(c => {
-                    c.style.background = 'rgba(100,110,130,0.3)';
-                    c.style.filter = 'blur(18px)';
-                });
-                generateRain('light');
-                setTimeout(() => { WX.rainContainer.style.opacity = '0.6'; }, 500);
-                WX.lightningContainer.style.opacity = '0';
-
-            } else if (fx === 'fog') {
-                CELESTIAL.sky.style.background = 'linear-gradient(to bottom, #2a2d35 0%, #3a3d45 50%, #4a4d55 100%)';
-                CELESTIAL.sunContainer.style.opacity = isNight ? '0' : '0.3';
-                CELESTIAL.moonContainer.style.opacity = isNight ? '0.3' : '0';
-                CELESTIAL.stars.style.opacity = isNight ? '0.15' : '0';
-                generateFog();
-                setTimeout(() => { WX.fogContainer.style.opacity = '1'; }, 500);
-                CELESTIAL.clouds.style.opacity = '0.5';
-
-            } else if (fx === 'cloudy') {
-                if (isNight) {
-                    CELESTIAL.sky.style.background = 'linear-gradient(to bottom, #080810 0%, #10101e 40%, #1a1a2e 100%)';
-                    CELESTIAL.moonContainer.style.opacity = '0.6';
-                    CELESTIAL.stars.style.opacity = '0.2';
-                } else {
-                    CELESTIAL.sky.style.background = 'linear-gradient(to bottom, #6a7a8a 0%, #8a9aaa 50%, #aabbcc 100%)';
-                    CELESTIAL.sunContainer.style.opacity = '0.4';
-                }
-                CELESTIAL.clouds.style.opacity = '0.85';
-                document.querySelectorAll('.cloud').forEach(c => {
-                    c.style.background = 'rgba(180,190,210,0.15)';
-                    c.style.filter = 'blur(20px)';
-                });
-                generateFog();
-                setTimeout(() => { WX.fogContainer.style.opacity = '0.4'; }, 700);
-
-            } else {
-                // clear — restore time-based celestial
-                const phase2 = getPhase(new Date().getHours());
-                updateCelestial(phase2);
-                document.querySelectorAll('.cloud').forEach(c => {
-                    c.style.background = 'rgba(255,255,255,0.1)';
-                    c.style.filter = 'blur(20px)';
-                });
-                if (phase2 === 'noon' || phase2 === 'morning') {
-                    setTimeout(() => { WX.heatHaze.style.opacity = '0.6'; }, 1000);
-                }
-            }
-            WX.currentWxCode = fx;
-        }
-
-        // --- Fetch weather from open-meteo ---
-        async function fetchWeatherFor(lat, lon, cityName) {
-            try {
-                const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode&temperature_unit=celsius&timezone=auto`;
-                const res = await fetch(url);
-                const data = await res.json();
-                const temp = Math.round(data.current.temperature_2m);
-                const code = data.current.weathercode;
-                const info = wxCodeToInfo(code);
-                WX.cityEl.textContent = cityName;
-                WX.tempEl.textContent = `${temp}°C`;
-                WX.condEl.textContent = info.label;
-                const phase = getPhase(new Date().getHours());
-                applyWeatherFX(info.fx, phase);
-            } catch (e) {
-                WX.cityEl.textContent = cityName || 'Error';
-                WX.tempEl.textContent = '--°C';
-                WX.condEl.textContent = 'Unavailable';
-            }
-        }
-
-        // --- Reverse geocode lat/lon to city name ---
-        async function reverseGeocode(lat, lon) {
-            try {
-                const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`);
-                const d = await r.json();
-                return d.address.city || d.address.town || d.address.village || d.address.county || 'Unknown';
-            } catch { return 'Unknown'; }
-        }
-
-        // --- IP-based fallback location ---
-        async function getIPLocation() {
-            try {
-                const r = await fetch('https://ipapi.co/json/');
-                const d = await r.json();
-                return { lat: d.latitude, lon: d.longitude, city: d.city || 'Unknown' };
-            } catch {
-                return { lat: 28.6, lon: 77.2, city: 'Delhi' };
-            }
-        }
-
-        // --- Main weather init ---
-        const LS_LOC_PERM   = 'xos_loc_perm';
-        const LS_LOC_LAT    = 'xos_loc_lat';
-        const LS_LOC_LON    = 'xos_loc_lon';
-        const LS_LOC_CITY   = 'xos_loc_city';
-
-        const locCard        = document.getElementById('loc-permission-card');
-        const locAllowBtn    = document.getElementById('loc-allow-btn');
-        const locDenyBtn     = document.getElementById('loc-deny-btn');
-
-        let wxAutoTimer      = null;
-        let _locResolve      = null;
-
-        function askLocationInbuilt() {
-            return new Promise((resolve) => {
-                _locResolve = resolve;
-                locCard.classList.add('show');
-            });
-        }
-
-        function hideLocCard() {
-            locCard.classList.remove('show');
-            _locResolve = null;
-        }
-
-        locAllowBtn.addEventListener('click', () => {
-            hideLocCard();
-            if (_locResolve) { _locResolve('allow'); _locResolve = null; }
-            else doGeoAndFetch(true);
-        });
-
-        locDenyBtn.addEventListener('click', () => {
-            hideLocCard();
-            localStorage.setItem(LS_LOC_PERM, 'denied');
-            if (_locResolve) { _locResolve('deny'); _locResolve = null; }
-            else doIPFallback();
-        });
-
-        async function doGeoAndFetch(saveChoice) {
-            WX.cityEl.textContent = 'Locating…';
-            WX.condEl.textContent = '···';
-            if (!navigator.geolocation) {
-                await doIPFallback(); return;
-            }
-            navigator.geolocation.getCurrentPosition(
-                async (pos) => {
-                    const lat = pos.coords.latitude;
-                    const lon = pos.coords.longitude;
-                    const city = await reverseGeocode(lat, lon);
-                    if (saveChoice) {
-                        localStorage.setItem(LS_LOC_PERM, 'granted');
-                        localStorage.setItem(LS_LOC_LAT, lat);
-                        localStorage.setItem(LS_LOC_LON, lon);
-                        localStorage.setItem(LS_LOC_CITY, city);
-                    }
-                    await fetchWeatherFor(lat, lon, city);
-                    startAutoRefresh();
-                },
-                async () => {
-                    await doIPFallback();
-                },
-                { timeout: 10000, maximumAge: 0 }
-            );
-        }
-
-        async function doIPFallback() {
-            const loc = await getIPLocation();
-            localStorage.setItem(LS_LOC_PERM, 'denied');
-            localStorage.setItem(LS_LOC_LAT, loc.lat);
-            localStorage.setItem(LS_LOC_LON, loc.lon);
-            localStorage.setItem(LS_LOC_CITY, loc.city);
-            await fetchWeatherFor(loc.lat, loc.lon, loc.city);
-            startAutoRefresh();
-        }
-
-        function startAutoRefresh() {
-            if (wxAutoTimer) clearInterval(wxAutoTimer);
-            wxAutoTimer = setInterval(async () => {
-                const perm = localStorage.getItem(LS_LOC_PERM);
-                if (perm === 'granted') {
-                    navigator.geolocation.getCurrentPosition(
-                        async (pos) => {
-                            const lat = pos.coords.latitude;
-                            const lon = pos.coords.longitude;
-                            const city = await reverseGeocode(lat, lon);
-                            localStorage.setItem(LS_LOC_LAT, lat);
-                            localStorage.setItem(LS_LOC_LON, lon);
-                            localStorage.setItem(LS_LOC_CITY, city);
-                            await fetchWeatherFor(lat, lon, city);
-                        },
-                        async () => {
-                            const lat = localStorage.getItem(LS_LOC_LAT);
-                            const lon = localStorage.getItem(LS_LOC_LON);
-                            const city = localStorage.getItem(LS_LOC_CITY) || '—';
-                            if (lat && lon) await fetchWeatherFor(parseFloat(lat), parseFloat(lon), city);
-                        },
-                        { timeout: 8000, maximumAge: 300000 }
-                    );
-                } else {
-                    const lat = localStorage.getItem(LS_LOC_LAT);
-                    const lon = localStorage.getItem(LS_LOC_LON);
-                    const city = localStorage.getItem(LS_LOC_CITY) || '—';
-                    if (lat && lon) await fetchWeatherFor(parseFloat(lat), parseFloat(lon), city);
-                }
-            }, 15 * 60 * 1000);
-        }
-
-        async function initWeather() {
-            WX.cityEl.textContent = 'Locating…';
-            WX.tempEl.textContent = '--°C';
-            WX.condEl.textContent = '···';
-
-            const perm = localStorage.getItem(LS_LOC_PERM);
-
-            if (perm === 'granted') {
-                const lat  = parseFloat(localStorage.getItem(LS_LOC_LAT));
-                const lon  = parseFloat(localStorage.getItem(LS_LOC_LON));
-                const city = localStorage.getItem(LS_LOC_CITY) || '—';
-                await fetchWeatherFor(lat, lon, city);
-                startAutoRefresh();
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(
-                        async (pos) => {
-                            const nlat = pos.coords.latitude;
-                            const nlon = pos.coords.longitude;
-                            const ncity = await reverseGeocode(nlat, nlon);
-                            localStorage.setItem(LS_LOC_LAT, nlat);
-                            localStorage.setItem(LS_LOC_LON, nlon);
-                            localStorage.setItem(LS_LOC_CITY, ncity);
-                            await fetchWeatherFor(nlat, nlon, ncity);
-                        },
-                        () => {}, { timeout: 8000, maximumAge: 300000 }
-                    );
-                }
-            } else if (perm === 'denied') {
-                const lat  = parseFloat(localStorage.getItem(LS_LOC_LAT));
-                const lon  = parseFloat(localStorage.getItem(LS_LOC_LON));
-                const city = localStorage.getItem(LS_LOC_CITY) || '—';
-                if (lat && lon) { await fetchWeatherFor(lat, lon, city); }
-                else { await doIPFallback(); }
-                startAutoRefresh();
-            } else {
-                const choice = await askLocationInbuilt();
-                if (choice === 'allow') {
-                    await doGeoAndFetch(true);
-                } else {
-                    await doIPFallback();
-                }
-            }
-        }
-
-        function refreshWeather() {
-            locCard.classList.add('show');
-            _locResolve = async (choice) => {
-                if (choice === 'allow') {
-                    await doGeoAndFetch(true);
-                } else {
-                    await doIPFallback();
-                }
-            };
-        }
-
-        // Patch auth button and page load
-        if (authBtn) {
-            authBtn.addEventListener('click', () => {
-                setTimeout(initWeather, 700);
-            });
-        }
-        window.addEventListener('load', () => {
-            const saved = localStorage.getItem('xos_user_token');
-            if (saved) setTimeout(initWeather, 900);
-        });
-
-        // ==================== END WEATHER ENGINE ====================
-    </script>
-</body>
-</html>
+    function wxCodeToInfo(code) {
+        if (code === 0) return { label: 'Clear Sky', fx: 'clear' };
+        if (code <= 3)  return { label: 'Partly Cloudy', fx: 'cloudy' };
+        if (code <= 9)  return { label: 'Misty', fx: 'fog' };
+        if (code <= 19) return { label: 'Mist / Drizzle', fx: 'drizzle' };
+        if (code <= 29) return { label: 'Sh
