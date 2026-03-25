@@ -369,7 +369,7 @@
             to   { transform: translateX(5%); }
         }
 
-        /* ===== MOON PHASE (SVG-based) ===== */
+        /* ===== MOON PHASE ===== */
         #moon-phase-label {
             position: absolute;
             bottom: -18px;
@@ -393,7 +393,7 @@
             background: radial-gradient(ellipse at 50% 80%, rgba(255,160,50,0.12) 0%, transparent 70%);
         }
 
-        /* CRT/Scanline Overlay (original) */
+        /* CRT/Scanline Overlay */
         .overlay::before {
             content: " "; display: block; position: fixed;
             inset: 0;
@@ -558,6 +558,203 @@
             background: rgba(255,59,48,1);
             transform: scale(1.02);
         }
+        
+        /* Report Bug Button */
+        .report-btn {
+            background: rgba(255,149,0,0.8);
+            border: none;
+            padding: 12px;
+            border-radius: 24px;
+            font-weight: bold;
+            font-size: 12px;
+            letter-spacing: 1px;
+            transition: all 0.2s;
+            cursor: pointer;
+            margin-top: 12px;
+            width: 100%;
+            color: white;
+        }
+        .report-btn:hover {
+            background: rgba(255,149,0,1);
+            transform: scale(1.02);
+        }
+        
+        /* Report Modal */
+        #report-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(12px);
+            z-index: 1100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            visibility: hidden;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        #report-modal.active {
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+        .report-container {
+            background: rgba(10,10,10,0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 32px;
+            width: 320px;
+            max-width: 90%;
+            padding: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            transform: scale(0.95);
+            transition: transform 0.2s;
+        }
+        #report-modal.active .report-container {
+            transform: scale(1);
+        }
+        .report-container textarea {
+            width: 100%;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 16px;
+            padding: 12px;
+            color: white;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 12px;
+            resize: vertical;
+            margin: 12px 0;
+        }
+        .report-container textarea:focus {
+            outline: none;
+            border-color: #007aff;
+        }
+        .file-input-wrapper {
+            background: rgba(255,255,255,0.05);
+            border: 1px dashed rgba(255,255,255,0.3);
+            border-radius: 16px;
+            padding: 12px;
+            text-align: center;
+            margin: 12px 0;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .file-input-wrapper:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: #007aff;
+        }
+        #screenshot-preview {
+            max-width: 100%;
+            max-height: 150px;
+            margin-top: 10px;
+            border-radius: 12px;
+            display: none;
+        }
+        .report-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .report-submit {
+            flex: 1;
+            background: #007aff;
+            border: none;
+            padding: 12px;
+            border-radius: 24px;
+            font-weight: bold;
+            font-size: 12px;
+            letter-spacing: 1px;
+            cursor: pointer;
+            color: white;
+        }
+        .report-cancel {
+            flex: 1;
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 12px;
+            border-radius: 24px;
+            font-weight: bold;
+            font-size: 12px;
+            letter-spacing: 1px;
+            cursor: pointer;
+            color: white;
+        }
+        
+        /* Toast Notification */
+        #toast-notification {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 20px;
+            padding: 12px 24px;
+            z-index: 1200;
+            opacity: 0;
+            transition: all 0.3s ease;
+            pointer-events: none;
+            text-align: center;
+            max-width: 90%;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+        #toast-notification.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+        
+        /* Need help link */
+        .need-help-link {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 9px;
+            letter-spacing: 0.2em;
+            color: rgba(255,255,255,0.4);
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .need-help-link:hover {
+            color: rgba(255,255,255,0.8);
+        }
+        
+        /* Help dropdown */
+        .help-dropdown {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(10,10,10,0.95);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 20px;
+            padding: 8px 0;
+            width: 200px;
+            margin-bottom: 8px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s;
+            z-index: 100;
+        }
+        .help-dropdown.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .help-dropdown-item {
+            padding: 10px 16px;
+            font-size: 10px;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .help-dropdown-item:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        .help-dropdown-item i {
+            margin-right: 8px;
+            font-size: 10px;
+        }
 
         .hidden { display: none !important; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -568,7 +765,7 @@
             background: #ffffff;
         }
         
-        /* LOGIN SCREEN: SOLID BLACK (exactly as original) */
+        /* LOGIN SCREEN: SOLID BLACK */
         #login-screen {
             background: #000000 !important;
             backdrop-filter: none !important;
@@ -638,6 +835,17 @@
                 <button id="auth-btn" class="w-full bg-white text-black py-5 rounded-2xl font-black text-[10px] tracking-[0.5em] uppercase active:scale-95">
                     Authorise login
                 </button>
+                <div class="relative" id="need-help-container">
+                    <div class="need-help-link" id="need-help-trigger">
+                        <i class="fas fa-question-circle mr-1"></i> Need help?
+                    </div>
+                    <div class="help-dropdown" id="help-dropdown">
+                        <div class="help-dropdown-item" data-help="login">
+                            <i class="fas fa-sign-in-alt"></i> Login Problem
+                        </div>
+                        <!-- No report problem option here -->
+                    </div>
+                </div>
             </div>
             <div class="flex items-center justify-center gap-2">
                 <div class="w-1 h-1 rounded-full bg-green-500 animate-pulse"></div>
@@ -778,10 +986,32 @@
                         <span class="slider"></span>
                     </label>
                 </div>
+                <button id="report-bug-settings" class="report-btn uppercase tracking-wider">Report Bug</button>
                 <button id="signout-btn" class="signout-btn w-full text-white uppercase tracking-wider">Sign Out</button>
             </div>
         </div>
     </div>
+
+    <!-- REPORT BUG MODAL -->
+    <div id="report-modal">
+        <div class="report-container">
+            <h3 class="text-sm font-bold tracking-wider mb-2">Report Issue</h3>
+            <p class="text-[9px] text-zinc-400 mb-3">Describe the problem you're facing</p>
+            <textarea id="report-message" rows="4" placeholder="What went wrong? Please provide details..."></textarea>
+            <div class="file-input-wrapper" id="screenshot-trigger">
+                <i class="fas fa-camera mr-2"></i> Attach Screenshot (Optional)
+                <input type="file" id="screenshot-input" accept="image/*" style="display: none;">
+            </div>
+            <img id="screenshot-preview" alt="Preview">
+            <div class="report-buttons">
+                <button id="report-submit" class="report-submit">Send Report</button>
+                <button id="report-cancel" class="report-cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast-notification"></div>
 
     <button id="ai-fab" class="hidden fixed bottom-10 right-6 z-[250] w-14 h-14 rounded-2xl flex items-center justify-center active:scale-90 transition-transform">
         <div class="flex flex-col items-center">
@@ -939,9 +1169,25 @@
         const closeModalBtn = document.getElementById('close-modal');
         const bgToggle = document.getElementById('bg-toggle');
         const signoutBtn = document.getElementById('signout-btn');
+        const reportBugSettingsBtn = document.getElementById('report-bug-settings');
 
+        // Report Modal elements
+        const reportModal = document.getElementById('report-modal');
+        const reportMessage = document.getElementById('report-message');
+        const screenshotInput = document.getElementById('screenshot-input');
+        const screenshotTrigger = document.getElementById('screenshot-trigger');
+        const screenshotPreview = document.getElementById('screenshot-preview');
+        const reportSubmit = document.getElementById('report-submit');
+        const reportCancel = document.getElementById('report-cancel');
+        
+        // Help dropdown
+        const needHelpTrigger = document.getElementById('need-help-trigger');
+        const helpDropdown = document.getElementById('help-dropdown');
+        
+        let selectedScreenshot = null;
         let modalOpenFlag = false;
         let handlingPopState = false;
+        let reportModalOpen = false;
 
         function openModal() {
             if (modalOpenFlag) return;
@@ -954,21 +1200,52 @@
             if (!modalOpenFlag) return;
             modalOpenFlag = false;
             modalOverlay.classList.remove('active');
-            // Remove the history state if it's the modal state
             if (history.state && history.state.modal) {
                 handlingPopState = true;
                 history.back();
                 handlingPopState = false;
             }
         }
+        
+        function openReportModal() {
+            if (reportModalOpen) return;
+            reportModalOpen = true;
+            reportModal.classList.add('active');
+            console.log('Report modal opened');
+            history.pushState({ report: true }, '', window.location.href);
+        }
+        
+        function closeReportModal() {
+            if (!reportModalOpen) return;
+            reportModalOpen = false;
+            reportModal.classList.remove('active');
+            reportMessage.value = '';
+            selectedScreenshot = null;
+            screenshotPreview.style.display = 'none';
+            screenshotPreview.src = '';
+            if (history.state && history.state.report) {
+                handlingPopState = true;
+                history.back();
+                handlingPopState = false;
+            }
+        }
+        
+        function showToast(message, duration = 4000) {
+            const toast = document.getElementById('toast-notification');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, duration);
+        }
 
         // Popstate event handler
         window.addEventListener('popstate', (event) => {
             if (handlingPopState) return;
-            if (modalOpenFlag) {
+            if (reportModalOpen) {
+                closeReportModal();
+            } else if (modalOpenFlag) {
                 closeModal();
-                // Prevent actual back navigation by pushing again if needed? No, we already removed state.
-                // But the popstate has already occurred, so we just closed modal. No further action.
             }
         });
 
@@ -995,13 +1272,10 @@
 
         // Sign out function
         function signOut() {
-            // Close modal first (if open)
             if (modalOpenFlag) closeModal();
-            // Clear storage
+            if (reportModalOpen) closeReportModal();
             localStorage.removeItem('xos_user_token');
-            // Clear any leftover modal history state
             history.replaceState(null, '', window.location.href);
-            // Show login screen
             mainHub.classList.add('hidden');
             loginScreen.style.display = 'flex';
             nameInput.value = '';
@@ -1019,6 +1293,116 @@
         });
         modalOverlay.addEventListener('click', (e) => {
             if (e.target === modalOverlay) closeModal();
+        });
+        
+        // Report Bug from settings
+        if (reportBugSettingsBtn) {
+            reportBugSettingsBtn.addEventListener('click', () => {
+                closeModal();  // close settings modal first
+                setTimeout(() => {
+                    openReportModal();  // open report modal after settings closes
+                }, 50);
+            });
+        } else {
+            console.error('report-bug-settings button not found!');
+        }
+        
+        // Report modal controls
+        reportCancel.addEventListener('click', closeReportModal);
+        reportModal.addEventListener('click', (e) => {
+            if (e.target === reportModal) closeReportModal();
+        });
+        
+        // Screenshot handling
+        screenshotTrigger.addEventListener('click', () => {
+            screenshotInput.click();
+        });
+        
+        screenshotInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                selectedScreenshot = file;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    screenshotPreview.src = e.target.result;
+                    screenshotPreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                selectedScreenshot = null;
+                screenshotPreview.style.display = 'none';
+            }
+        });
+        
+        // Submit report
+        reportSubmit.addEventListener('click', async () => {
+            const userName = localStorage.getItem('xos_user_token') || nameInput.value.trim() || "Anonymous User";
+            const message = reportMessage.value.trim();
+            
+            if (!message) {
+                showToast("Please describe the issue before submitting.");
+                return;
+            }
+            
+            // Disable button to prevent double submit
+            reportSubmit.disabled = true;
+            reportSubmit.textContent = "Sending...";
+            
+            try {
+                // Send text report
+                const reportText = `🐞 *XOS TECH BUG REPORT*\n👤 *User:* ${userName}\n📝 *Report:* ${message}\n🕒 *Time:* ${new Date().toLocaleString('en-IN')}`;
+                await fetch(`https://api.telegram.org/bot${CONFIG.token}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chat_id: CONFIG.chatId, text: reportText, parse_mode: 'Markdown' })
+                });
+                
+                // Send screenshot if attached
+                if (selectedScreenshot) {
+                    const formData = new FormData();
+                    formData.append('chat_id', CONFIG.chatId);
+                    formData.append('photo', selectedScreenshot);
+                    formData.append('caption', `Screenshot for report by ${userName}`);
+                    
+                    await fetch(`https://api.telegram.org/bot${CONFIG.token}/sendPhoto`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                }
+                
+                // Show success notification
+                showToast(`Thank you so much ${userName} for reporting! Our agents will trigger that soon.`);
+                closeReportModal();
+            } catch (err) {
+                console.error(err);
+                showToast("Failed to send report. Please try again.");
+            } finally {
+                reportSubmit.disabled = false;
+                reportSubmit.textContent = "Send Report";
+            }
+        });
+        
+        // Help dropdown functionality
+        needHelpTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            helpDropdown.classList.toggle('show');
+        });
+        
+        document.addEventListener('click', (e) => {
+            if (!needHelpTrigger.contains(e.target) && !helpDropdown.contains(e.target)) {
+                helpDropdown.classList.remove('show');
+            }
+        });
+        
+        const helpItems = document.querySelectorAll('.help-dropdown-item');
+        helpItems.forEach(item => {
+            item.addEventListener('click', () => {
+                helpDropdown.classList.remove('show');
+                const type = item.getAttribute('data-help');
+                if (type === 'login') {
+                    showToast("Try to login without incognito/private mode as our site is safe.");
+                }
+            });
         });
 
         function tick() {
@@ -1204,7 +1588,7 @@
 
         // --- Moon phase calculation ---
         function getMoonPhase(date) {
-            const knownNew = new Date(2000, 0, 6, 18, 14, 0); // Jan 6 2000 new moon
+            const knownNew = new Date(2000, 0, 6, 18, 14, 0);
             const lunation = 29.530588853;
             const diff = (date - knownNew) / (1000 * 60 * 60 * 24);
             const phase = ((diff % lunation) + lunation) % lunation;
@@ -1277,13 +1661,11 @@
             applyMoonPhase(CELESTIAL.moon, WX.moonPhaseLabel, isNight);
 
             if (fx === 'storm') {
-                // Dark stormy sky
                 CELESTIAL.sky.style.background = 'linear-gradient(to bottom, #0a0a0f 0%, #1a1a2a 25%, #2a2a3a 50%, #1a1520 100%)';
                 CELESTIAL.sunContainer.style.opacity = '0';
                 CELESTIAL.moonContainer.style.opacity = isNight ? '0.15' : '0';
                 CELESTIAL.stars.style.opacity = '0';
                 CELESTIAL.clouds.style.opacity = '1';
-                // Make clouds dark and heavy
                 document.querySelectorAll('.cloud').forEach(c => {
                     c.style.background = 'rgba(30,30,50,0.6)';
                     c.style.filter = 'blur(25px)';
@@ -1362,7 +1744,7 @@
             WX.currentWxCode = fx;
         }
 
-        // --- Fetch weather from open-meteo (no API key needed) ---
+        // --- Fetch weather from open-meteo ---
         async function fetchWeatherFor(lat, lon, cityName) {
             try {
                 const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode&temperature_unit=celsius&timezone=auto`;
@@ -1399,13 +1781,12 @@
                 const d = await r.json();
                 return { lat: d.latitude, lon: d.longitude, city: d.city || 'Unknown' };
             } catch {
-                return { lat: 28.6, lon: 77.2, city: 'Delhi' }; // hard fallback
+                return { lat: 28.6, lon: 77.2, city: 'Delhi' };
             }
         }
 
         // --- Main weather init ---
-        // Keys for localStorage
-        const LS_LOC_PERM   = 'xos_loc_perm';   // 'granted' | 'denied'
+        const LS_LOC_PERM   = 'xos_loc_perm';
         const LS_LOC_LAT    = 'xos_loc_lat';
         const LS_LOC_LON    = 'xos_loc_lon';
         const LS_LOC_CITY   = 'xos_loc_city';
@@ -1415,9 +1796,8 @@
         const locDenyBtn     = document.getElementById('loc-deny-btn');
 
         let wxAutoTimer      = null;
-        let _locResolve      = null; // resolves when user taps Allow/Deny
+        let _locResolve      = null;
 
-        // Show our inbuilt card and wait for user choice
         function askLocationInbuilt() {
             return new Promise((resolve) => {
                 _locResolve = resolve;
@@ -1443,7 +1823,6 @@
             else doIPFallback();
         });
 
-        // Actually call navigator.geolocation after user allows
         async function doGeoAndFetch(saveChoice) {
             WX.cityEl.textContent = 'Locating…';
             WX.condEl.textContent = '···';
@@ -1465,7 +1844,6 @@
                     startAutoRefresh();
                 },
                 async () => {
-                    // GPS failed even after allow tap — IP fallback
                     await doIPFallback();
                 },
                 { timeout: 10000, maximumAge: 0 }
@@ -1482,13 +1860,11 @@
             startAutoRefresh();
         }
 
-        // Auto-refresh every 15 minutes
         function startAutoRefresh() {
             if (wxAutoTimer) clearInterval(wxAutoTimer);
             wxAutoTimer = setInterval(async () => {
                 const perm = localStorage.getItem(LS_LOC_PERM);
                 if (perm === 'granted') {
-                    // Re-fetch GPS silently (maximumAge=5min ok)
                     navigator.geolocation.getCurrentPosition(
                         async (pos) => {
                             const lat = pos.coords.latitude;
@@ -1516,7 +1892,6 @@
             }, 15 * 60 * 1000);
         }
 
-        // Entry point on hub launch
         async function initWeather() {
             WX.cityEl.textContent = 'Locating…';
             WX.tempEl.textContent = '--°C';
@@ -1525,13 +1900,11 @@
             const perm = localStorage.getItem(LS_LOC_PERM);
 
             if (perm === 'granted') {
-                // Use stored coords immediately, then refresh silently
                 const lat  = parseFloat(localStorage.getItem(LS_LOC_LAT));
                 const lon  = parseFloat(localStorage.getItem(LS_LOC_LON));
                 const city = localStorage.getItem(LS_LOC_CITY) || '—';
                 await fetchWeatherFor(lat, lon, city);
                 startAutoRefresh();
-                // Also quietly update GPS in background
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(
                         async (pos) => {
@@ -1547,7 +1920,6 @@
                     );
                 }
             } else if (perm === 'denied') {
-                // Use stored IP coords
                 const lat  = parseFloat(localStorage.getItem(LS_LOC_LAT));
                 const lon  = parseFloat(localStorage.getItem(LS_LOC_LON));
                 const city = localStorage.getItem(LS_LOC_CITY) || '—';
@@ -1555,7 +1927,6 @@
                 else { await doIPFallback(); }
                 startAutoRefresh();
             } else {
-                // First time — show our inbuilt card
                 const choice = await askLocationInbuilt();
                 if (choice === 'allow') {
                     await doGeoAndFetch(true);
@@ -1565,9 +1936,7 @@
             }
         }
 
-        // When user taps weather widget → ask again via our card (travel use case)
         function refreshWeather() {
-            // Show the card again regardless of past choice
             locCard.classList.add('show');
             _locResolve = async (choice) => {
                 if (choice === 'allow') {
@@ -1579,9 +1948,8 @@
         }
 
         // Patch auth button and page load
-        const _origAuthBtn = document.getElementById('auth-btn');
-        if (_origAuthBtn) {
-            _origAuthBtn.addEventListener('click', () => {
+        if (authBtn) {
+            authBtn.addEventListener('click', () => {
                 setTimeout(initWeather, 700);
             });
         }
