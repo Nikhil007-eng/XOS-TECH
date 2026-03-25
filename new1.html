@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>XOS · Notifications</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+        :root { --accent: #007aff; --green: #34c759; --orange: #ff9f0a; --red: #ff3b30; --bg: #000; --card: rgba(12,12,18,0.95); --border: rgba(255,255,255,0.08); }
+        html, body { height: 100%; background: var(--bg); color: #fff; font-family: 'Space Grotesk', sans-serif; overflow: hidden; }
+
+        /* BACKGROUND */
+        .bg-grid {
+            position: fixed; inset: 0; z-index: 0;
+            background-image: linear-gradient(rgba(0,122,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,122,255,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        .bg-glow { position: fixed; top: -200px; left: 50%; transform: translateX(-50%); width: 600px; height: 600px; background: radial-gradient(circle, rgba(0,122,255,0.08) 0%, transparent 70%); z-index: 0; pointer-events: none; }
+
+        /* LAYOUT */
+        .app { position: fixed; inset: 0; display: flex; flex-direction: column; z-index: 1; }
+
+        /* HEADER */
+        .header {
+            padding: 20px 20px 16px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(20px);
+            display: flex; align-items: center; gap: 14px;
+            flex-shrink: 0;
+        }
+        .back-btn { width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.06); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.6); font-size: 13px; cursor: pointer; text-decoration: none; flex-shrink: 0; transition: all 0.2s; }
+        .back-btn:active { background: rgba(255,255,255,0.12); }
+        .header-center { flex: 1; }
+        .header-title { font-size: 13px; font-weight: 800; letter-spacing: 0.3em; text-transform: uppercase; color: #fff; }
+        .header-sub { font-size: 8px; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-top: 2px; }
+        .mark-read-btn { font-size: 8px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); background: rgba(0,122,255,0.1); border: 1px solid rgba(0,122,255,0.2); border-radius: 20px; padding: 6px 14px; cursor: pointer; font-family: 'Space Grotesk', sans-serif; }
+
+        /* ID BAR */
+        .id-bar {
+            padding: 12px 20px;
+            background: rgba(0,122,255,0.06);
+            border-bottom: 1px solid rgba(0,122,255,0.12);
+            display: flex; align-items: center; justify-content: space-between;
+            flex-shrink: 0;
+        }
+        .id-bar-left { display: flex; flex-direction: column; }
+        .id-label { font-size: 7px; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(255,255,255,0.3); }
+        .id-value { font-size: 22px; font-weight: 800; letter-spacing: 0.25em; color: var(--accent); font-family: monospace; line-height: 1.2; }
+        .id-copy-btn { width: 36px; height: 36px; border-radius: 10px; background: rgba(0,122,255,0.12); border: 1px solid rgba(0,122,255,0.25); display: flex; align-items: center; justify-content: center; color: var(--accent); font-size: 13px; cursor: pointer; }
+        .id-copy-btn:active { background: rgba(0,122,255,0.25); }
+
+        /* LOGIN STATE */
+        .login-required { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 30px; text-align: center; gap: 16px; }
+        .login-icon { width: 64px; height: 64px; border-radius: 20px; background: rgba(0,122,255,0.1); border: 1px solid rgba(0,122,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 28px; }
+        .login-title { font-size: 16px; font-weight: 800; letter-spacing: -0.02em; }
+        .login-sub { font-size: 11px; color: rgba(255,255,255,0.35); line-height: 1.6; letter-spacing: 0.05em; }
+        .login-btn { background: #fff; color: #000; border: none; border-radius: 16px; padding: 14px 32px; font-size: 11px; font-weight: 800; letter-spacing: 0.25em; text-transform: uppercase; cursor: pointer; font-family: 'Space Grotesk', sans-serif; }
+
+        /* FILTER TABS */
+        .filter-bar { display: flex; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0; overflow-x: auto; }
+        .filter-bar::-webkit-scrollbar { display: none; }
+        .filter-tab { flex-shrink: 0; padding: 6px 16px; border-radius: 20px; font-size: 9px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer; border: 1px solid transparent; transition: all 0.2s; color: rgba(255,255,255,0.3); background: transparent; font-family: 'Space Grotesk', sans-serif; }
+        .filter-tab.active { color: var(--accent); background: rgba(0,122,255,0.1); border-color: rgba(0,122,255,0.3); }
+        .filter-tab.green.active { color: var(--green); background: rgba(52,199,89,0.1); border-color: rgba(52,199,89,0.3); }
+        .filter-tab.orange.active { color: var(--orange); background: rgba(255,159,10,0.1); border-color: rgba(255,159,10,0.3); }
+
+        /* NOTIFICATION LIST */
+        .notif-scroll { flex: 1; overflow-y: auto; padding: 14px 16px 40px; }
+        .notif-scroll::-webkit-scrollbar { width: 0; }
+
+        /* EMPTY STATE */
+        .empty-state { text-align: center; padding: 70px 20px; }
+        .empty-icon { font-size: 40px; color: rgba(255,255,255,0.08); margin-bottom: 16px; }
+        .empty-title { font-size: 12px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(255,255,255,0.15); margin-bottom: 6px; }
+        .empty-sub { font-size: 10px; color: rgba(255,255,255,0.1); letter-spacing: 0.1em; }
+
+        /* NOTIFICATION CARD */
+        .notif-card {
+            background: rgba(18,18,26,0.9);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 16px;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .notif-card.unread { border-color: rgba(0,122,255,0.25); background: rgba(0,122,255,0.05); }
+        .notif-card.unread-reply { border-color: rgba(52,199,89,0.25); background: rgba(52,199,89,0.04); }
+        .notif-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; border-radius: 3px 0 0 3px; }
+        .notif-card.reply::before { background: var(--green); }
+        .notif-card.bug_report::before { background: var(--orange); }
+
+        .notif-card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .notif-type-icon { width: 32px; height: 32px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+        .notif-type-icon.reply { background: rgba(52,199,89,0.12); color: var(--green); border: 1px solid rgba(52,199,89,0.2); }
+        .notif-type-icon.bug_report { background: rgba(255,159,10,0.12); color: var(--orange); border: 1px solid rgba(255,159,10,0.2); }
+        .notif-type-label { font-size: 8px; font-weight: 700; letter-spacing: 0.25em; text-transform: uppercase; }
+        .notif-type-label.reply { color: var(--green); }
+        .notif-type-label.bug_report { color: var(--orange); }
+        .notif-time { font-size: 8px; color: rgba(255,255,255,0.2); letter-spacing: 0.05em; margin-left: auto; }
+        .unread-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+
+        .notif-message { font-size: 13px; color: rgba(255,255,255,0.88); line-height: 1.55; margin-bottom: 8px; }
+        .notif-screenshot { width: 100%; border-radius: 12px; max-height: 180px; object-fit: cover; margin-top: 4px; opacity: 0.85; }
+
+        /* LOADING */
+        .loading-spinner { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; gap: 16px; }
+        .spinner { width: 28px; height: 28px; border: 2px solid rgba(255,255,255,0.08); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner-label { font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(255,255,255,0.2); }
+
+        /* TOAST */
+        #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px); background: rgba(20,20,28,0.97); border: 1px solid rgba(255,255,255,0.12); border-radius: 20px; padding: 12px 22px; font-size: 11px; color: #fff; z-index: 9999; opacity: 0; transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1); pointer-events: none; text-align: center; max-width: 300px; white-space: nowrap; }
+        #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+        /* PULSE ANIM for new notif */
+        @keyframes pulse-border { 0%, 100% { border-color: rgba(52,199,89,0.25); } 50% { border-color: rgba(52,199,89,0.6); } }
+        .notif-card.new-reply { animation: pulse-border 1.5s ease-in-out 3; }
+    </style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="bg-glow"></div>
+
+<div class="app" id="app">
+
+    <!-- HEADER -->
+    <div class="header">
+        <a href="index.html" class="back-btn"><i class="fas fa-chevron-left"></i></a>
+        <div class="header-center">
+            <div class="header-title"><i class="fas fa-bell" style="color:var(--accent);margin-right:8px;"></i>Notifications</div>
+            <div class="header-sub">XOS Tech · Activity Feed</div>
+        </div>
+        <button class="mark-read-btn" onclick="markAllRead()">Mark All Read</button>
+    </div>
+
+    <!-- ID BAR -->
+    <div class="id-bar" id="id-bar" style="display:none;">
+        <div class="id-bar-left">
+            <span class="id-label">Your XOS ID</span>
+            <span class="id-value" id="id-display">------</span>
+        </div>
+        <button class="id-copy-btn" onclick="copyId()" title="Copy ID">
+            <i class="fas fa-copy"></i>
+        </button>
+    </div>
+
+    <!-- LOGIN REQUIRED STATE -->
+    <div class="login-required" id="login-required">
+        <div class="login-icon">🔔</div>
+        <div class="login-title">Login Required</div>
+        <div class="login-sub">You need to log into XOS first.<br>Your notifications are tied to your session.</div>
+        <button class="login-btn" onclick="window.location.href='index.html'">
+            <i class="fas fa-arrow-right" style="margin-right:8px;"></i>Go to XOS
+        </button>
+    </div>
+
+    <!-- LOGGED IN STATE -->
+    <div id="logged-in-state" style="display:none;flex:1;flex-direction:column;overflow:hidden;display:none;">
+
+        <!-- FILTER TABS -->
+        <div class="filter-bar">
+            <button class="filter-tab active" data-filter="all" onclick="setFilter('all', this)">All</button>
+            <button class="filter-tab green" data-filter="reply" onclick="setFilter('reply', this)">
+                <i class="fas fa-reply" style="margin-right:4px;"></i>Replies
+            </button>
+            <button class="filter-tab orange" data-filter="bug_report" onclick="setFilter('bug_report', this)">
+                <i class="fas fa-bug" style="margin-right:4px;"></i>Reports
+            </button>
+        </div>
+
+        <!-- NOTIF LIST -->
+        <div class="notif-scroll" id="notif-scroll">
+            <div class="loading-spinner">
+                <div class="spinner"></div>
+                <span class="spinner-label">Loading notifications…</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div id="toast"></div>
+
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script>
+    // ==================== FIREBASE ====================
+    let db = null;
+    try {
+        firebase.initializeApp({
+            apiKey: "AIzaSyAUk6bBCFPoq-Tu-AiX1nD3LFvhc6g7B7g",
+            authDomain: "steel-melody-464711-d6.firebaseapp.com",
+            databaseURL: "https://steel-melody-464711-d6-default-rtdb.firebaseio.com",
+            projectId: "steel-melody-464711-d6",
+            storageBucket: "steel-melody-464711-d6.firebasestorage.app",
+            messagingSenderId: "288849938458",
+            appId: "1:288849938458:web:d615242bb9f1e1ee0fe9a3"
+        });
+        db = firebase.database();
+    } catch(e) {}
+
+    let currentUserCode = null;
+    let allNotifications = [];
+    let currentFilter = 'all';
+    let notifListener = null;
+
+    // ==================== INIT ====================
+    function init() {
+        const userName = localStorage.getItem('xos_user_token');
+        if (!userName) {
+            document.getElementById('login-required').style.display = 'flex';
+            return;
+        }
+
+        // Get user code
+        const key  = 'xos_code_' + userName.toLowerCase().replace(/\s+/g, '_');
+        currentUserCode = localStorage.getItem(key);
+
+        if (!currentUserCode) {
+            document.getElementById('login-required').style.display = 'flex';
+            document.querySelector('.login-sub').textContent = 'No XOS ID found. Please log into XOS first to generate your ID.';
+            return;
+        }
+
+        // Show logged-in state
+        document.getElementById('login-required').style.display = 'none';
+        const loggedIn = document.getElementById('logged-in-state');
+        loggedIn.style.display = 'flex';
+        loggedIn.style.flexDirection = 'column';
+
+        document.getElementById('id-bar').style.display = 'flex';
+        document.getElementById('id-display').textContent = currentUserCode;
+
+        listenForNotifications();
+    }
+
+    // ==================== REALTIME LISTENER ====================
+    function listenForNotifications() {
+        if (!db || !currentUserCode) return;
+        const ref = db.ref('xos_notifications/' + currentUserCode);
+        
+        let isFirst = true;
+        ref.on('value', snap => {
+            const data = snap.val();
+            allNotifications = [];
+
+            if (data) {
+                Object.entries(data).forEach(([key, val]) => {
+                    allNotifications.push({ key, ...val });
+                });
+                allNotifications.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+            }
+
+            if (!isFirst) {
+                // New notification arrived
+                const newReplies = allNotifications.filter(n => n.type === 'reply' && !n.read);
+                if (newReplies.length > 0) showToast('📬 New reply from XOS Team!');
+            }
+            isFirst = false;
+            renderNotifications();
+        });
+    }
+
+    // ==================== RENDER ====================
+    function renderNotifications() {
+        const scroll = document.getElementById('notif-scroll');
+        const filtered = currentFilter === 'all' ? allNotifications : allNotifications.filter(n => n.type === currentFilter);
+
+        if (filtered.length === 0) {
+            const labels = { all: 'No notifications yet', reply: 'No replies yet', bug_report: 'No reports yet' };
+            const subs   = { all: 'Reports and admin replies will appear here', reply: 'Admin replies to your reports will show here', bug_report: 'Your submitted bug reports appear here' };
+            scroll.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon"><i class="fas fa-bell-slash"></i></div>
+                    <div class="empty-title">${labels[currentFilter]}</div>
+                    <div class="empty-sub">${subs[currentFilter]}</div>
+                </div>`;
+            return;
+        }
+
+        scroll.innerHTML = filtered.map(n => {
+            const isReply  = n.type === 'reply';
+            const typeLabel = isReply ? 'Admin Reply' : 'Bug Report';
+            const icon      = isReply ? 'fa-reply' : 'fa-bug';
+            const isUnread  = !n.read;
+            const unreadClass = isUnread ? (isReply ? 'unread-reply' : 'unread') : '';
+            const newClass    = isUnread && isReply ? 'new-reply' : '';
+            const timeStr = n.timestamp ? new Date(n.timestamp).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '';
+
+            return `
+            <div class="notif-card ${n.type} ${unreadClass} ${newClass}">
+                <div class="notif-card-header">
+                    <div class="notif-type-icon ${n.type}">
+                        <i class="fas ${icon}"></i>
+                    </div>
+                    <div>
+                        <div class="notif-type-label ${n.type}">${typeLabel}</div>
+                    </div>
+                    ${isUnread ? '<div class="unread-dot"></div>' : ''}
+                    <div class="notif-time">${timeStr}</div>
+                </div>
+                <div class="notif-message">${escHtml(n.message || '')}</div>
+                ${n.screenshotUrl ? `<img src="${n.screenshotUrl}" class="notif-screenshot" alt="Screenshot" loading="lazy">` : ''}
+            </div>`;
+        }).join('');
+    }
+
+    // ==================== FILTER ====================
+    function setFilter(filter, btn) {
+        currentFilter = filter;
+        document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+        renderNotifications();
+    }
+
+    // ==================== MARK READ ====================
+    function markAllRead() {
+        if (!db || !currentUserCode) return;
+        const unread = allNotifications.filter(n => !n.read);
+        if (unread.length === 0) { showToast('All caught up! ✓'); return; }
+        unread.forEach(n => {
+            db.ref('xos_notifications/' + currentUserCode + '/' + n.key + '/read').set(true);
+        });
+        showToast('Marked all as read ✓');
+    }
+
+    // ==================== COPY ID ====================
+    function copyId() {
+        if (!currentUserCode) return;
+        navigator.clipboard.writeText(currentUserCode).then(() => {
+            showToast('ID ' + currentUserCode + ' copied!');
+        }).catch(() => {
+            showToast('Your ID: ' + currentUserCode);
+        });
+    }
+
+    // ==================== TOAST ====================
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 3500);
+    }
+
+    // ==================== UTIL ====================
+    function escHtml(str) {
+        return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    init();
+</script>
+</body>
+</html>
