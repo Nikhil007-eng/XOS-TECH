@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
     <style>
-        /* All existing styles remain unchanged */
+        /* All existing styles remain unchanged (same as final previous version) */
         :root { --bg: #000000; --accent: #007aff; --card: rgba(10, 10, 10, 0.55); --border: rgba(255, 255, 255, 0.12); }
         body { background-color: #000; color: #ffffff; font-family: 'Space Grotesk', sans-serif; margin: 0; overflow: hidden; height: 100vh; width: 100vw; }
         
@@ -151,13 +151,70 @@
 
         .user-code-chip { font-size: 7px; letter-spacing: 0.2em; color: rgba(0,122,255,0.7); background: rgba(0,122,255,0.08); border: 1px solid rgba(0,122,255,0.2); border-radius: 8px; padding: 2px 7px; font-family: monospace; font-weight: 700; display: inline-block; margin-top: 2px; cursor: pointer; }
         
-        /* Auth toggle styles */
         .auth-toggle { display: flex; gap: 12px; justify-content: center; margin-bottom: 20px; }
         .auth-toggle-btn { background: transparent; border: none; color: rgba(255,255,255,0.5); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer; padding: 6px 0; transition: all 0.2s; }
         .auth-toggle-btn.active { color: #007aff; border-bottom: 1px solid #007aff; }
         .auth-panel { transition: all 0.3s; }
         .password-field { margin-top: 12px; }
         .confirm-field { margin-top: 12px; }
+
+        /* Ban Overlay */
+        #ban-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(20px);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+            padding: 20px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s ease;
+        }
+        #ban-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .ban-card {
+            background: rgba(20, 20, 30, 0.9);
+            border: 1px solid rgba(255, 59, 48, 0.5);
+            border-radius: 32px;
+            padding: 40px 32px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 0 60px rgba(255, 59, 48, 0.2);
+        }
+        .ban-icon {
+            font-size: 64px;
+            color: #ff3b30;
+            margin-bottom: 20px;
+        }
+        .ban-title {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 12px;
+        }
+        .ban-reason {
+            font-size: 13px;
+            color: #ff9f0a;
+            background: rgba(255, 159, 10, 0.1);
+            padding: 8px 16px;
+            border-radius: 40px;
+            display: inline-block;
+            margin: 16px 0;
+            font-family: monospace;
+        }
+        .ban-message {
+            font-size: 13px;
+            color: rgba(255,255,255,0.6);
+            line-height: 1.6;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body class="select-none">
@@ -177,7 +234,21 @@
     </div>
     <div class="overlay"></div>
 
-    <!-- LOGIN SCREEN with Sign Up / Sign In -->
+    <!-- BAN OVERLAY -->
+    <div id="ban-overlay">
+        <div class="ban-card">
+            <div class="ban-icon"><i class="fas fa-ban"></i></div>
+            <div class="ban-title">ACCOUNT SUSPENDED</div>
+            <div id="ban-reason" class="ban-reason">Security Violation</div>
+            <div class="ban-message">
+                Your access to XOS Tech has been permanently restricted due to violation of our security policies.<br><br>
+                If you believe this is a mistake, please contact support with your XOS ID.
+            </div>
+            <button id="ban-logout-btn" class="mt-6 bg-red-500/20 border border-red-500/50 text-white px-6 py-3 rounded-xl text-sm font-bold uppercase tracking-wider hover:bg-red-500/30 transition">Sign Out</button>
+        </div>
+    </div>
+
+    <!-- LOGIN SCREEN -->
     <section id="login-screen" class="fixed inset-0 z-[600] bg-black flex flex-col p-8 justify-between">
         <header class="animate-slide">
             <p class="text-[9px] tracking-[0.5em] text-zinc-600 font-bold uppercase mb-1">System.Auth // v3.0</p>
@@ -185,246 +256,83 @@
         </header>
 
         <div class="w-full max-w-sm mx-auto space-y-6 animate-slide">
-            <!-- Toggle between Sign Up and Sign In -->
             <div class="auth-toggle">
                 <button id="toggle-signup" class="auth-toggle-btn active">Sign Up</button>
                 <button id="toggle-signin" class="auth-toggle-btn">Sign In</button>
             </div>
 
-            <!-- Sign Up Panel (default) -->
             <div id="signup-panel" class="auth-panel">
                 <div class="space-y-1">
                     <label class="text-[8px] tracking-[0.4em] text-zinc-500 uppercase ml-1">Username</label>
-                    <input type="text" id="signup-username" autocomplete="off" placeholder="ENTER USERNAME" 
-                        class="glass-input w-full p-5 rounded-2xl text-xs tracking-[0.3em] uppercase font-bold text-center focus:outline-none">
+                    <input type="text" id="signup-username" autocomplete="off" placeholder="ENTER USERNAME" class="glass-input w-full p-5 rounded-2xl text-xs tracking-[0.3em] uppercase font-bold text-center focus:outline-none">
                 </div>
                 <div class="password-field">
                     <label class="text-[8px] tracking-[0.4em] text-zinc-500 uppercase ml-1">Password</label>
-                    <input type="password" id="signup-password" autocomplete="off" placeholder="CREATE PASSWORD" 
-                        class="glass-input w-full p-5 rounded-2xl text-xs tracking-[0.3em] uppercase font-bold text-center focus:outline-none">
+                    <input type="password" id="signup-password" autocomplete="off" placeholder="CREATE PASSWORD" class="glass-input w-full p-5 rounded-2xl text-xs tracking-[0.3em] uppercase font-bold text-center focus:outline-none">
                 </div>
                 <div class="confirm-field">
                     <label class="text-[8px] tracking-[0.4em] text-zinc-500 uppercase ml-1">Confirm Password</label>
-                    <input type="password" id="signup-confirm" autocomplete="off" placeholder="CONFIRM PASSWORD" 
-                        class="glass-input w-full p-5 rounded-2xl text-xs tracking-[0.3em] uppercase font-bold text-center focus:outline-none">
+                    <input type="password" id="signup-confirm" autocomplete="off" placeholder="CONFIRM PASSWORD" class="glass-input w-full p-5 rounded-2xl text-xs tracking-[0.3em] uppercase font-bold text-center focus:outline-none">
                 </div>
-                <button id="signup-btn" class="w-full bg-white text-black py-5 mt-6 rounded-2xl font-black text-[10px] tracking-[0.5em] uppercase active:scale-95">
-                    Create Account
-                </button>
+                <button id="signup-btn" class="w-full bg-white text-black py-5 mt-6 rounded-2xl font-black text-[10px] tracking-[0.5em] uppercase active:scale-95">Create Account</button>
             </div>
 
-            <!-- Sign In Panel (hidden initially) -->
             <div id="signin-panel" class="auth-panel hidden">
                 <div class="space-y-1">
                     <label class="text-[8px] tracking-[0.4em] text-zinc-500 uppercase ml-1">Username</label>
-                    <input type="text" id="signin-username" autocomplete="off" placeholder="ENTER USERNAME" 
-                        class="glass-input w-full p-5 rounded-2xl text-xs tracking-[0.3em] uppercase font-bold text-center focus:outline-none">
+                    <input type="text" id="signin-username" autocomplete="off" placeholder="ENTER USERNAME" class="glass-input w-full p-5 rounded-2xl text-xs tracking-[0.3em] uppercase font-bold text-center focus:outline-none">
                 </div>
                 <div class="password-field">
                     <label class="text-[8px] tracking-[0.4em] text-zinc-500 uppercase ml-1">Password</label>
-                    <input type="password" id="signin-password" autocomplete="off" placeholder="ENTER PASSWORD" 
-                        class="glass-input w-full p-5 rounded-2xl text-xs tracking-[0.3em] uppercase font-bold text-center focus:outline-none">
+                    <input type="password" id="signin-password" autocomplete="off" placeholder="ENTER PASSWORD" class="glass-input w-full p-5 rounded-2xl text-xs tracking-[0.3em] uppercase font-bold text-center focus:outline-none">
                 </div>
-                <button id="signin-btn" class="w-full bg-white text-black py-5 mt-6 rounded-2xl font-black text-[10px] tracking-[0.5em] uppercase active:scale-95">
-                    Sign In
-                </button>
+                <button id="signin-btn" class="w-full bg-white text-black py-5 mt-6 rounded-2xl font-black text-[10px] tracking-[0.5em] uppercase active:scale-95">Sign In</button>
             </div>
 
             <div class="relative" id="need-help-container">
-                <div class="need-help-link" id="need-help-trigger">
-                    <i class="fas fa-question-circle mr-1"></i> Need help?
-                </div>
-                <div class="help-dropdown" id="help-dropdown">
-                    <div class="help-dropdown-item" data-help="login">
-                        <i class="fas fa-sign-in-alt"></i> Login Problem
-                    </div>
-                </div>
+                <div class="need-help-link" id="need-help-trigger"><i class="fas fa-question-circle mr-1"></i> Need help?</div>
+                <div class="help-dropdown" id="help-dropdown"><div class="help-dropdown-item" data-help="login"><i class="fas fa-sign-in-alt"></i> Login Problem</div></div>
             </div>
         </div>
-
-        <footer class="flex justify-between items-end text-[7px] tracking-[0.4em] text-zinc-800 uppercase">
-            <span>XOS INDIA</span>
-            <span>© 2026 XOS Tech</span>
-        </footer>
+        <footer class="flex justify-between items-end text-[7px] tracking-[0.4em] text-zinc-800 uppercase"><span>XOS INDIA</span><span>© 2026 XOS Tech</span></footer>
     </section>
 
-    <!-- MAIN HUB (CLEANED NAVBAR) -->
+    <!-- MAIN HUB -->
     <div id="main-hub" class="hidden flex flex-col h-screen">
         <nav class="w-full flex justify-between items-center px-6 py-5 backdrop-blur-xl border-b border-white/5 z-50">
             <div class="flex items-center gap-4">
-                <div class="flex flex-col">
-                    <span id="nav-clock" class="text-[10px] font-bold tabular-nums tracking-widest text-white">00:00</span>
-                    <span class="text-[7px] text-zinc-500 tracking-[0.3em] uppercase">Core System</span>
-                </div>
+                <div class="flex flex-col"><span id="nav-clock" class="text-[10px] font-bold tabular-nums tracking-widest text-white">00:00</span><span class="text-[7px] text-zinc-500 tracking-[0.3em] uppercase">Core System</span></div>
                 <a href="posts.html" onclick="sendInteractionLog('posts')" class="posts-btn uppercase font-black">Posts</a>
             </div>
             <div class="flex items-center gap-3">
-                <div class="notif-bell-wrap">
-                    <div id="notif-bell-btn" onclick="openNotifPanel()">
-                        <i class="fas fa-bell"></i>
-                        <span id="notif-badge">0</span>
-                    </div>
-                </div>
-                <div class="settings-btn" id="settings-btn">
-                    <i class="fas fa-cog"></i>
-                </div>
-                <div class="text-right pl-6 border-l border-white/10">
-                    <span id="user-greeting" class="text-[10px] font-bold text-blue-500 tracking-widest uppercase"></span>
-                    <span id="user-code-chip" class="user-code-chip" title="Your unique XOS ID" onclick="copyUserCode()"></span>
-                </div>
+                <div class="notif-bell-wrap"><div id="notif-bell-btn" onclick="openNotifPanel()"><i class="fas fa-bell"></i><span id="notif-badge">0</span></div></div>
+                <div class="settings-btn" id="settings-btn"><i class="fas fa-cog"></i></div>
+                <div class="text-right pl-6 border-l border-white/10"><span id="user-greeting" class="text-[10px] font-bold text-blue-500 tracking-widest uppercase"></span><span id="user-code-chip" class="user-code-chip" title="Your unique XOS ID" onclick="copyUserCode()"></span></div>
             </div>
         </nav>
-
         <main class="flex-1 overflow-y-auto px-6 py-8 space-y-10">
             <header class="flex justify-between items-start">
-                <div>
-                    <h1 class="text-4xl font-bold tracking-tighter uppercase mb-1">XOS <span class="text-zinc-700">Tech</span></h1>
-                    <div class="flex items-center gap-2">
-                        <div class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div>
-                        <p class="text-[10px] tracking-[0.3em] text-zinc-500 uppercase font-medium">System Utilities</p>
-                    </div>
-                </div>
-                <div class="flex flex-col items-end gap-1">
-                    <a href="https://nikhil007-eng.github.io/xos-social-Id/" onclick="sendInteractionLog('developer')" class="dev-badge mt-2 uppercase font-bold">Developer</a>
-                    <div id="weather-widget" onclick="refreshWeather()" title="Tap to refresh">
-                        <span id="weather-city">Locating…</span>
-                        <span id="weather-temp">--°C</span>
-                        <span id="weather-cond">···</span>
-                    </div>
-                </div>
+                <div><h1 class="text-4xl font-bold tracking-tighter uppercase mb-1">XOS <span class="text-zinc-700">Tech</span></h1><div class="flex items-center gap-2"><div class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></div><p class="text-[10px] tracking-[0.3em] text-zinc-500 uppercase font-medium">System Utilities</p></div></div>
+                <div class="flex flex-col items-end gap-1"><a href="https://nikhil007-eng.github.io/xos-social-Id/" onclick="sendInteractionLog('developer')" class="dev-badge mt-2 uppercase font-bold">Developer</a><div id="weather-widget" onclick="refreshWeather()" title="Tap to refresh"><span id="weather-city">Locating…</span><span id="weather-temp">--°C</span><span id="weather-cond">···</span></div></div>
             </header>
-
             <div class="grid gap-4">
-                <div id="trimmer-trigger" class="utility-card p-6 rounded-[2rem] flex items-center gap-5 cursor-pointer">
-                    <div class="w-12 h-12 rounded-2xl bg-zinc-800/80 flex items-center justify-center text-blue-500 border border-white/10 backdrop-blur-sm">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg>
-                    </div>
-                    <div>
-                        <h4 class="font-bold tracking-tight text-white">Audio Trimmer</h4>
-                        <p class="text-[9px] text-zinc-400 uppercase tracking-widest">Neural Sequencer</p>
-                    </div>
-                </div>
-
-                <a href="Matrix.html" class="utility-card p-6 rounded-[2rem] flex items-center gap-5">
-                    <div class="w-12 h-12 rounded-2xl bg-zinc-800/80 flex items-center justify-center text-cyan-500 border border-white/10 backdrop-blur-sm">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
-                    </div>
-                    <div>
-                        <h4 class="font-bold tracking-tight text-white">XOS MATRIX</h4>
-                        <p class="text-[9px] text-zinc-400 uppercase tracking-widest">Synthetic Core</p>
-                    </div>
-                </a>
-
-                <a href="https://nikhil007-eng.github.io/XOS-HTML-COMPILER/" class="utility-card p-6 rounded-[2rem] flex items-center gap-5">
-                    <div class="w-12 h-12 rounded-2xl bg-zinc-800/80 flex items-center justify-center text-blue-400 border border-white/10 backdrop-blur-sm">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
-                    </div>
-                    <div>
-                        <h4 class="font-bold tracking-tight text-white">HTML Compiler</h4>
-                        <p class="text-[9px] text-zinc-400 uppercase tracking-widest">Live Execution</p>
-                    </div>
-                </a>
-
-                <a href="shadow_vault.html" class="utility-card p-6 rounded-[2rem] flex items-center gap-5">
-                    <div class="w-12 h-12 rounded-2xl bg-zinc-800/80 flex items-center justify-center text-blue-500 border border-white/10 backdrop-blur-sm relative overflow-hidden">
-                        <div class="absolute inset-0 bg-blue-500/10 animate-pulse"></div>
-                        <svg class="w-6 h-6 z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                    </div>
-                    <div>
-                        <h4 class="font-bold tracking-tight text-white">XOS Vault</h4>
-                        <p class="text-[8px] text-zinc-400 uppercase tracking-widest mt-0.5">Neural Encryption v2.1</p>
-                    </div>
-                </a>
-                
-                <a href="https://nikhil007-eng.github.io/XOS-SOCIAL-INT/" class="utility-card p-6 rounded-[2rem] flex items-center gap-5">
-                    <div class="w-12 h-12 rounded-2xl bg-zinc-800/80 flex items-center justify-center text-green-400 border border-white/10 backdrop-blur-sm">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                    </div>
-                    <div>
-                        <h4 class="font-bold tracking-tight text-white">XOS INT</h4>
-                        <p class="text-[9px] text-zinc-400 uppercase tracking-widest">Interface v.0.1</p>
-                    </div>
-                </a>
+                <div id="trimmer-trigger" class="utility-card p-6 rounded-[2rem] flex items-center gap-5 cursor-pointer"><div class="w-12 h-12 rounded-2xl bg-zinc-800/80 flex items-center justify-center text-blue-500 border border-white/10 backdrop-blur-sm"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path></svg></div><div><h4 class="font-bold tracking-tight text-white">Audio Trimmer</h4><p class="text-[9px] text-zinc-400 uppercase tracking-widest">Neural Sequencer</p></div></div>
+                <a href="Matrix.html" class="utility-card p-6 rounded-[2rem] flex items-center gap-5"><div class="w-12 h-12 rounded-2xl bg-zinc-800/80 flex items-center justify-center text-cyan-500 border border-white/10 backdrop-blur-sm"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg></div><div><h4 class="font-bold tracking-tight text-white">XOS MATRIX</h4><p class="text-[9px] text-zinc-400 uppercase tracking-widest">Synthetic Core</p></div></a>
+                <a href="https://nikhil007-eng.github.io/XOS-HTML-COMPILER/" class="utility-card p-6 rounded-[2rem] flex items-center gap-5"><div class="w-12 h-12 rounded-2xl bg-zinc-800/80 flex items-center justify-center text-blue-400 border border-white/10 backdrop-blur-sm"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg></div><div><h4 class="font-bold tracking-tight text-white">HTML Compiler</h4><p class="text-[9px] text-zinc-400 uppercase tracking-widest">Live Execution</p></div></a>
+                <a href="shadow_vault.html" class="utility-card p-6 rounded-[2rem] flex items-center gap-5"><div class="w-12 h-12 rounded-2xl bg-zinc-800/80 flex items-center justify-center text-blue-500 border border-white/10 backdrop-blur-sm relative overflow-hidden"><div class="absolute inset-0 bg-blue-500/10 animate-pulse"></div><svg class="w-6 h-6 z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg></div><div><h4 class="font-bold tracking-tight text-white">XOS Vault</h4><p class="text-[8px] text-zinc-400 uppercase tracking-widest mt-0.5">Neural Encryption v2.1</p></div></a>
+                <a href="https://nikhil007-eng.github.io/XOS-SOCIAL-INT/" class="utility-card p-6 rounded-[2rem] flex items-center gap-5"><div class="w-12 h-12 rounded-2xl bg-zinc-800/80 flex items-center justify-center text-green-400 border border-white/10 backdrop-blur-sm"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg></div><div><h4 class="font-bold tracking-tight text-white">XOS INT</h4><p class="text-[9px] text-zinc-400 uppercase tracking-widest">Interface v.0.1</p></div></a>
             </div>
         </main>
     </div>
 
-    <!-- NOTIFICATION PANEL, MODALS, ETC. -->
-    <div id="notif-panel">
-        <div class="notif-panel-header">
-            <span class="notif-panel-title"><i class="fas fa-bell mr-2" style="color:#007aff;"></i>Notifications</span>
-            <button class="notif-close-btn" onclick="closeNotifPanel()">×</button>
-        </div>
-        <div class="notif-user-code-bar">
-            <div>
-                <div class="notif-code-label">Your XOS ID</div>
-                <div class="notif-code-value" id="notif-code-display">------</div>
-            </div>
-            <div style="margin-left:auto;font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:0.1em;">Use this ID to<br>report issues</div>
-        </div>
-        <div class="notif-list" id="notif-list">
-            <div class="notif-empty"><i class="fas fa-bell-slash" style="display:block;font-size:24px;margin-bottom:10px;"></i>No notifications yet</div>
-        </div>
-    </div>
+    <!-- NOTIFICATION PANEL ETC. (existing) -->
+    <div id="notif-panel"><div class="notif-panel-header"><span class="notif-panel-title"><i class="fas fa-bell mr-2" style="color:#007aff;"></i>Notifications</span><button class="notif-close-btn" onclick="closeNotifPanel()">×</button></div><div class="notif-user-code-bar"><div><div class="notif-code-label">Your XOS ID</div><div class="notif-code-value" id="notif-code-display">------</div></div><div style="margin-left:auto;font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:0.1em;">Use this ID to<br>report issues</div></div><div class="notif-list" id="notif-list"><div class="notif-empty"><i class="fas fa-bell-slash" style="display:block;font-size:24px;margin-bottom:10px;"></i>No notifications yet</div></div></div>
     <div id="notif-backdrop" onclick="closeNotifPanel()" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:799;display:none;backdrop-filter:blur(4px);"></div>
-
-    <div id="loc-permission-card">
-        <div class="loc-icon">📍</div>
-        <div class="loc-brand">XOS Tech · Weather System</div>
-        <div class="loc-title">Allow Location Access</div>
-        <div class="loc-sub">To update weather &amp; celestial background<br>based on your current location</div>
-        <div class="loc-btns">
-            <button id="loc-allow-btn">Allow</button>
-            <button id="loc-deny-btn">Deny</button>
-        </div>
-    </div>
-
-    <div id="settings-modal" class="modal-overlay">
-        <div class="modal-container">
-            <div class="flex justify-between items-center mb-5">
-                <h3 class="text-sm font-bold tracking-wider">System Settings</h3>
-                <button id="close-modal" class="text-white/60 hover:text-white text-xl">&times;</button>
-            </div>
-            <div class="space-y-5">
-                <div class="flex justify-between items-center">
-                    <span class="text-xs uppercase tracking-wider">Atmosphere Background</span>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="bg-toggle" checked>
-                        <span class="slider"></span>
-                    </label>
-                </div>
-                <button id="report-bug-settings" class="report-btn uppercase tracking-wider">
-                    <i class="fas fa-bug mr-2"></i>Report Bug
-                </button>
-                <button id="signout-btn" class="signout-btn w-full text-white uppercase tracking-wider">Sign Out</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="report-modal">
-        <div class="report-container">
-            <h3 class="text-sm font-bold tracking-wider mb-1">Report Issue</h3>
-            <p class="text-[9px] text-zinc-400 mb-3 tracking-wider">YOUR ID: <span id="report-user-id-label" style="color:#007aff;font-family:monospace;font-weight:700;"></span></p>
-            <textarea id="report-message" rows="4" placeholder="What went wrong? Please provide details..."></textarea>
-            <div class="file-input-wrapper" id="screenshot-trigger">
-                <i class="fas fa-camera mr-2"></i> Attach Screenshot (Optional)
-                <input type="file" id="screenshot-input" accept="image/*" style="display:none;">
-            </div>
-            <img id="screenshot-preview" alt="Preview">
-            <div class="report-buttons">
-                <button id="report-submit" class="report-submit">Send Report</button>
-                <button id="report-cancel" class="report-cancel">Cancel</button>
-            </div>
-        </div>
-    </div>
-
+    <div id="loc-permission-card"><div class="loc-icon">📍</div><div class="loc-brand">XOS Tech · Weather System</div><div class="loc-title">Allow Location Access</div><div class="loc-sub">To update weather &amp; celestial background<br>based on your current location</div><div class="loc-btns"><button id="loc-allow-btn">Allow</button><button id="loc-deny-btn">Deny</button></div></div>
+    <div id="settings-modal" class="modal-overlay"><div class="modal-container"><div class="flex justify-between items-center mb-5"><h3 class="text-sm font-bold tracking-wider">System Settings</h3><button id="close-modal" class="text-white/60 hover:text-white text-xl">&times;</button></div><div class="space-y-5"><div class="flex justify-between items-center"><span class="text-xs uppercase tracking-wider">Atmosphere Background</span><label class="toggle-switch"><input type="checkbox" id="bg-toggle" checked><span class="slider"></span></label></div><button id="report-bug-settings" class="report-btn uppercase tracking-wider"><i class="fas fa-bug mr-2"></i>Report Bug</button><button id="signout-btn" class="signout-btn w-full text-white uppercase tracking-wider">Sign Out</button></div></div></div>
+    <div id="report-modal"><div class="report-container"><h3 class="text-sm font-bold tracking-wider mb-1">Report Issue</h3><p class="text-[9px] text-zinc-400 mb-3 tracking-wider">YOUR ID: <span id="report-user-id-label" style="color:#007aff;font-family:monospace;font-weight:700;"></span></p><textarea id="report-message" rows="4" placeholder="What went wrong? Please provide details..."></textarea><div class="file-input-wrapper" id="screenshot-trigger"><i class="fas fa-camera mr-2"></i> Attach Screenshot (Optional)<input type="file" id="screenshot-input" accept="image/*" style="display:none;"></div><img id="screenshot-preview" alt="Preview"><div class="report-buttons"><button id="report-submit" class="report-submit">Send Report</button><button id="report-cancel" class="report-cancel">Cancel</button></div></div></div>
     <div id="toast-notification"></div>
-    <button id="ai-fab" class="hidden fixed bottom-10 right-6 z-[250] w-14 h-14 rounded-2xl flex items-center justify-center active:scale-90 transition-transform">
-        <div class="flex flex-col items-center">
-            <span class="text-[7px] font-black text-black leading-none mb-0.5">XOS</span>
-            <span class="text-[9px] font-black text-blue-600 leading-none">AI</span>
-        </div>
-    </button>
+    <button id="ai-fab" class="hidden fixed bottom-10 right-6 z-[250] w-14 h-14 rounded-2xl flex items-center justify-center active:scale-90 transition-transform"><div class="flex flex-col items-center"><span class="text-[7px] font-black text-black leading-none mb-0.5">XOS</span><span class="text-[9px] font-black text-blue-600 leading-none">AI</span></div></button>
 
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
@@ -445,12 +353,38 @@
         db = firebase.database();
     } catch(e) { console.warn('Firebase init error:', e); }
 
-    // ==================== CLOUDINARY ====================
     const CLOUD  = "dptphdatf";
     const PRESET = "vagprxhr";
-
-    // ==================== TELEGRAM CONFIG ====================
     const CONFIG = { token: '8668013778:AAEnWA0uY3tDUOQP1uHQEVJdcAGaWgfy4eA', chatId: '7217028526' };
+
+    // ==================== BAN CHECK ====================
+    async function isUserBanned(userCode) {
+        if (!db) return false;
+        try {
+            const snapshot = await db.ref('banned_users/' + userCode).once('value');
+            return snapshot.exists();
+        } catch(e) { return false; }
+    }
+    async function getBanDetails(userCode) {
+        if (!db) return null;
+        try {
+            const snapshot = await db.ref('banned_users/' + userCode).once('value');
+            return snapshot.val();
+        } catch(e) { return null; }
+    }
+    function showBanScreen(reason = 'Security Violation') {
+        const banOverlay = document.getElementById('ban-overlay');
+        const banReasonEl = document.getElementById('ban-reason');
+        banReasonEl.textContent = reason || 'Security Violation';
+        banOverlay.classList.add('show');
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('main-hub').classList.add('hidden');
+        localStorage.removeItem('xos_session');
+        if (currentUserCode) {
+            if (activeNotifQuery) activeNotifQuery.off();
+            currentUserCode = null;
+        }
+    }
 
     // ==================== AUTH HELPERS ====================
     async function hashPassword(password) {
@@ -460,482 +394,236 @@
         const hashArray = Array.from(new Uint8Array(hashBuffer));
         return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
     }
-
-    async function userExists(username) {
-        if (!db) return false;
-        const snapshot = await db.ref('xos_users_auth').child(username.toLowerCase()).once('value');
-        return snapshot.exists();
-    }
-
+    async function userExists(username) { if (!db) return false; const snapshot = await db.ref('xos_users_auth').child(username.toLowerCase()).once('value'); return snapshot.exists(); }
     async function createUser(username, passwordHash, displayName) {
         if (!db) return false;
-        const userCode = generateUserCode();
-        const userData = {
-            username: username.toLowerCase(),
-            displayName: displayName,
-            passwordHash: passwordHash,
-            userCode: userCode,
-            createdAt: Date.now()
-        };
-        await db.ref('xos_users_auth/' + username.toLowerCase()).set(userData);
-        await db.ref('xos_users/' + userCode).set({
-            name: displayName,
-            code: userCode,
-            createdAt: Date.now()
-        });
+        const userCode = Math.floor(100000 + Math.random() * 900000).toString();
+        await db.ref('xos_users_auth/' + username.toLowerCase()).set({ username: username.toLowerCase(), displayName, passwordHash, userCode, createdAt: Date.now() });
+        await db.ref('xos_users/' + userCode).set({ name: displayName, code: userCode, createdAt: Date.now() });
         return userCode;
     }
-
     async function verifyUser(username, passwordHash) {
         if (!db) return null;
         const snapshot = await db.ref('xos_users_auth/' + username.toLowerCase()).once('value');
         const user = snapshot.val();
-        if (user && user.passwordHash === passwordHash) {
-            return { userCode: user.userCode, displayName: user.displayName };
-        }
+        if (user && user.passwordHash === passwordHash) return { userCode: user.userCode, displayName: user.displayName };
         return null;
     }
 
-    function generateUserCode() {
-        return Math.floor(100000 + Math.random() * 900000).toString();
+    // ==================== NOTIFICATION CACHE SYSTEM ====================
+    let activeNotifQuery = null;
+
+    function getNotifCacheKey(userCode) { return `xos_notif_cache_${userCode}`; }
+
+    function loadNotifCache(userCode) {
+        const raw = localStorage.getItem(getNotifCacheKey(userCode));
+        if (!raw) return { notifications: {}, lastSync: 0 };
+        try { return JSON.parse(raw); } catch(e) { return { notifications: {}, lastSync: 0 }; }
     }
 
-    // ==================== CELESTIAL ENGINE ====================
-    const CELESTIAL = {
-        container: document.getElementById('celestial-container'),
-        sky: document.getElementById('sky'),
-        sunContainer: document.getElementById('sun-container'),
-        sun: document.getElementById('sun'),
-        moonContainer: document.getElementById('moon-container'),
-        moon: document.getElementById('moon'),
-        stars: document.getElementById('stars'),
-        clouds: document.getElementById('clouds')
-    };
-    const PHASES = {
-        dawn: { sky: 'linear-gradient(to bottom, #1a1a2e, #16213e, #533483, #e94560)', sunColor: '#ff6b35', sunPos: { top: '60%', opacity: 0.8 }, moonOpacity: 0.3, starsOpacity: 0.4, cloudsOpacity: 0.2 },
-        morning: { sky: 'linear-gradient(to bottom, #87CEEB, #98D8E8, #B0E0E6, #F0F8FF)', sunColor: '#FFD700', sunPos: { top: '20%', opacity: 1 }, moonOpacity: 0, starsOpacity: 0, cloudsOpacity: 0.4 },
-        noon: { sky: 'linear-gradient(to bottom, #1a6bb5, #2d8fd4, #52b3f5, #87ceeb)', sunColor: '#fffbe6', sunPos: { top: '5%', opacity: 1 }, moonOpacity: 0, starsOpacity: 0, cloudsOpacity: 0.3 },
-        afternoon: { sky: 'linear-gradient(to bottom, #1565c0, #1976d2, #42a5f5, #90caf9)', sunColor: '#FFD700', sunPos: { top: '30%', opacity: 0.95 }, moonOpacity: 0, starsOpacity: 0, cloudsOpacity: 0.4 },
-        dusk: { sky: 'linear-gradient(to bottom, #0d1b2a, #1b2838, #b5451b, #f77f00, #fcbf49)', sunColor: '#ff7700', sunPos: { top: '65%', opacity: 0.85 }, moonOpacity: 0.2, starsOpacity: 0.2, cloudsOpacity: 0.3 },
-        night: { sky: 'linear-gradient(to bottom, #000000, #020408, #050d1a, #0a1628)', sunColor: 'transparent', sunPos: { top: '110%', opacity: 0 }, moonOpacity: 1, starsOpacity: 1, cloudsOpacity: 0.1 }
-    };
-    function getPhase(h) {
-        if (h >= 5 && h < 7) return 'dawn';
-        if (h >= 7 && h < 11) return 'morning';
-        if (h >= 11 && h < 14) return 'noon';
-        if (h >= 14 && h < 18) return 'afternoon';
-        if (h >= 18 && h < 21) return 'dusk';
-        return 'night';
-    }
-    function updateCelestial(phase) {
-        const p = PHASES[phase];
-        if (!p) return;
-        CELESTIAL.sky.style.background = p.sky;
-        CELESTIAL.sun.style.background = `radial-gradient(circle at 40% 40%, ${p.sunColor}, ${p.sunColor === 'transparent' ? 'transparent' : p.sunColor + 'aa'})`;
-        CELESTIAL.sunContainer.style.top = p.sunPos.top;
-        CELESTIAL.sunContainer.style.opacity = p.sunPos.opacity;
-        CELESTIAL.moonContainer.style.opacity = p.moonOpacity;
-        CELESTIAL.stars.style.opacity = p.starsOpacity;
-        CELESTIAL.clouds.style.opacity = p.cloudsOpacity;
-    }
-    // Generate stars and clouds
-    (function() {
-        const frag = document.createDocumentFragment();
-        for (let i = 0; i < 150; i++) {
-            const s = document.createElement('div');
-            s.className = 'star';
-            const size = Math.random() * 2.5 + 0.5;
-            s.style.cssText = `width:${size}px;height:${size}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--duration:${Math.random()*3+2}s;animation-delay:${Math.random()*3}s;`;
-            frag.appendChild(s);
-        }
-        CELESTIAL.stars.appendChild(frag);
-    })();
-    (function() {
-        const frag = document.createDocumentFragment();
-        for (let i = 0; i < 8; i++) {
-            const c = document.createElement('div');
-            c.className = 'cloud';
-            c.style.cssText = `width:${Math.random()*200+100}px;height:${Math.random()*60+40}px;top:${Math.random()*40+10}%;left:${Math.random()*80}%;animation-delay:${i*3}s;animation-duration:${Math.random()*10+20}s;`;
-            frag.appendChild(c);
-        }
-        CELESTIAL.clouds.appendChild(frag);
-    })();
-
-    // ==================== CORE ELEMENTS ====================
-    const loginScreen = document.getElementById('login-screen');
-    const mainHub = document.getElementById('main-hub');
-    const greeting = document.getElementById('user-greeting');
-    const clockEl = document.getElementById('nav-clock');
-    const aiFab = document.getElementById('ai-fab');
-
-    // Auth DOM elements
-    const toggleSignupBtn = document.getElementById('toggle-signup');
-    const toggleSigninBtn = document.getElementById('toggle-signin');
-    const signupPanel = document.getElementById('signup-panel');
-    const signinPanel = document.getElementById('signin-panel');
-    const signupUsername = document.getElementById('signup-username');
-    const signupPassword = document.getElementById('signup-password');
-    const signupConfirm = document.getElementById('signup-confirm');
-    const signupBtn = document.getElementById('signup-btn');
-    const signinUsername = document.getElementById('signin-username');
-    const signinPassword = document.getElementById('signin-password');
-    const signinBtn = document.getElementById('signin-btn');
-
-    let currentUserCode = null;
-    let notifListenerRef = null;
-
-    // Helper functions
-    function showToast(message, duration = 4000) {
-        const toast = document.getElementById('toast-notification');
-        toast.textContent = message;
-        toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), duration);
+    function saveNotifCache(userCode, cache) {
+        localStorage.setItem(getNotifCacheKey(userCode), JSON.stringify(cache));
     }
 
-    function copyUserCode() {
-        if (!currentUserCode) return;
-        navigator.clipboard.writeText(currentUserCode).then(() => showToast('XOS ID ' + currentUserCode + ' copied!')).catch(() => showToast('Your XOS ID: ' + currentUserCode));
-    }
-    window.copyUserCode = copyUserCode;
-
-    // Notification system
-    function openNotifPanel() {
-        document.getElementById('notif-panel').classList.add('open');
-        document.getElementById('notif-backdrop').style.display = 'block';
-        markAllRead();
-    }
-    function closeNotifPanel() {
-        document.getElementById('notif-panel').classList.remove('open');
-        document.getElementById('notif-backdrop').style.display = 'none';
-    }
-    window.openNotifPanel = openNotifPanel;
-    window.closeNotifPanel = closeNotifPanel;
-
-    function markAllRead() {
-        if (!db || !currentUserCode) return;
-        db.ref('xos_notifications/' + currentUserCode).once('value', snap => {
-            const d = snap.val();
-            if (!d) return;
-            Object.keys(d).forEach(k => {
-                if (!d[k].read) {
-                    db.ref('xos_notifications/' + currentUserCode + '/' + k + '/read').set(true);
-                }
-            });
-        });
-        document.getElementById('notif-badge').style.display = 'none';
-    }
-
-    function renderNotifications(data) {
+    function renderNotificationsFromCache(userCode) {
+        const cache = loadNotifCache(userCode);
+        const notifs = cache.notifications;
         const list = document.getElementById('notif-list');
-        if (!data) {
+        const items = Object.entries(notifs).sort((a,b) => (b[1].timestamp||0) - (a[1].timestamp||0));
+        const unreadCount = items.filter(([,v]) => !v.read).length;
+        const badge = document.getElementById('notif-badge');
+        if (unreadCount > 0) { badge.textContent = unreadCount > 9 ? '9+' : unreadCount; badge.style.display = 'flex'; }
+        else badge.style.display = 'none';
+        if (items.length === 0) {
             list.innerHTML = '<div class="notif-empty"><i class="fas fa-bell-slash" style="display:block;font-size:24px;margin-bottom:10px;"></i>No notifications yet</div>';
-            document.getElementById('notif-badge').style.display = 'none';
             return;
-        }
-        const items = Object.entries(data).sort((a, b) => (b[1].timestamp || 0) - (a[1].timestamp || 0));
-        const unreadCount = items.filter(([, v]) => !v.read).length;
-        if (unreadCount > 0) {
-            const badge = document.getElementById('notif-badge');
-            badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
-            badge.style.display = 'flex';
-        } else {
-            document.getElementById('notif-badge').style.display = 'none';
         }
         list.innerHTML = items.map(([key, n]) => {
             const isReply = n.type === 'reply';
-            const typeLabel = isReply ? '← Admin Reply' : '↑ Bug Report Sent';
+            const typeLabel = isReply ? '← Admin Reply' : (n.type === 'bug_report' ? '↑ Bug Report Sent' : 'System Notice');
             const typeClass = isReply ? 'reply-type' : 'bug-type';
             const icon = isReply ? 'fa-reply' : 'fa-bug';
             const time = n.timestamp ? new Date(n.timestamp).toLocaleString('en-IN', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }) : '';
-            return `
-            <div class="notif-item ${!n.read ? 'unread' : ''}">
-                <div class="notif-item-type ${typeClass}">
-                    <span class="notif-dot"></span>
-                    <i class="fas ${icon}"></i> ${typeLabel}
-                </div>
-                <div class="notif-item-msg">${n.message || ''}</div>
-                ${n.screenshotUrl ? `<img src="${n.screenshotUrl}" class="notif-screenshot" alt="Screenshot">` : ''}
-                <div class="notif-item-time">${time}</div>
-            </div>`;
+            return `<div class="notif-item ${!n.read ? 'unread' : ''}"><div class="notif-item-type ${typeClass}"><span class="notif-dot"></span><i class="fas ${icon}"></i> ${typeLabel}</div><div class="notif-item-msg">${escapeHtml(n.message || '')}</div>${n.screenshotUrl ? `<img src="${n.screenshotUrl}" class="notif-screenshot" alt="Screenshot">` : ''}<div class="notif-item-time">${time}</div></div>`;
         }).join('');
     }
 
-    function listenForNotifications(code) {
-        if (notifListenerRef) {
-            notifListenerRef.off();
-            notifListenerRef = null;
+    function escapeHtml(str) {
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    async function syncNewNotifications(userCode) {
+        if (!db) return;
+        const cache = loadNotifCache(userCode);
+        const since = cache.lastSync || 0;
+        const ref = db.ref('xos_notifications/' + userCode).orderByChild('timestamp').startAt(since+1);
+        const snap = await ref.once('value');
+        const newData = snap.val();
+        if (newData) {
+            let maxTs = cache.lastSync;
+            Object.entries(newData).forEach(([id, val]) => {
+                if (!cache.notifications[id]) cache.notifications[id] = val;
+                if (val.timestamp && val.timestamp > maxTs) maxTs = val.timestamp;
+            });
+            cache.lastSync = maxTs;
+            saveNotifCache(userCode, cache);
+            renderNotificationsFromCache(userCode);
         }
-        if (!db || !code) return;
-        const ref = db.ref('xos_notifications/' + code);
-        notifListenerRef = ref;
-        ref.on('value', snap => renderNotifications(snap.val()));
     }
 
-    // Logging
-    async function sendInteractionLog(action) {
-        const userName = localStorage.getItem('xos_session') ? JSON.parse(localStorage.getItem('xos_session')).username : 'Unknown';
-        const text = `🎯 *XOS INTERACTION*\n👤 *Name:* ${userName}\n🖱 *Clicked:* ${action}\n🕒 *Time:* ${new Date().toLocaleString('en-IN')}`;
-        try {
-            await fetch(`https://api.telegram.org/bot${CONFIG.token}/sendMessage`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chat_id: CONFIG.chatId, text, parse_mode: 'Markdown' }) });
-        } catch(e) {}
-    }
-    async function sendLog(userName) {
-        const ua = navigator.userAgent;
-        const device = /iPhone|iPad|iPod/.test(ua) ? 'iOS' : (/Android/.test(ua) ? 'Android' : 'Workstation');
-        const text = `🛠 *XOS HUB ACCESS*\n👤 *User:* ${userName}\n📱 *Platform:* ${device}\n📅 *Timestamp:* ${new Date().toLocaleString('en-IN')}`;
-        try {
-            await fetch(`https://api.telegram.org/bot${CONFIG.token}/sendMessage`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chat_id: CONFIG.chatId, text, parse_mode: 'Markdown' }) });
-        } catch(e) {}
+    function listenForNewNotifications(userCode) {
+        if (activeNotifQuery) activeNotifQuery.off();
+        if (!db || !userCode) return;
+        const cache = loadNotifCache(userCode);
+        const since = cache.lastSync || 0;
+        const queryRef = db.ref('xos_notifications/' + userCode).orderByChild('timestamp').startAt(since+1);
+        activeNotifQuery = queryRef;
+        queryRef.on('child_added', (snap) => {
+            const notifData = snap.val();
+            if (!notifData) return;
+            const cacheNow = loadNotifCache(userCode);
+            if (!cacheNow.notifications[snap.key]) {
+                cacheNow.notifications[snap.key] = notifData;
+                if (notifData.timestamp && notifData.timestamp > cacheNow.lastSync) cacheNow.lastSync = notifData.timestamp;
+                saveNotifCache(userCode, cacheNow);
+                renderNotificationsFromCache(userCode);
+                showToast('🔔 New notification received');
+            }
+        });
     }
 
-    // Launch system and store session
-    function launchSystem(displayName, userCode) {
-        // Store session in localStorage
+    async function markAllReadFirebase(userCode) {
+        if (!db || !userCode) return;
+        const cache = loadNotifCache(userCode);
+        const updates = {};
+        Object.keys(cache.notifications).forEach(id => {
+            if (!cache.notifications[id].read) {
+                updates[`xos_notifications/${userCode}/${id}/read`] = true;
+                cache.notifications[id].read = true;
+            }
+        });
+        if (Object.keys(updates).length) {
+            await db.ref().update(updates);
+            saveNotifCache(userCode, cache);
+            renderNotificationsFromCache(userCode);
+        }
+    }
+
+    // ==================== UI HELPERS ====================
+    function showToast(message, duration = 4000) { const toast = document.getElementById('toast-notification'); toast.textContent = message; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), duration); }
+    function copyUserCode() { if (!currentUserCode) return; navigator.clipboard.writeText(currentUserCode).then(() => showToast('XOS ID ' + currentUserCode + ' copied!')).catch(() => showToast('Your XOS ID: ' + currentUserCode)); }
+    window.copyUserCode = copyUserCode;
+    function openNotifPanel() { document.getElementById('notif-panel').classList.add('open'); document.getElementById('notif-backdrop').style.display = 'block'; if (currentUserCode) markAllReadFirebase(currentUserCode); }
+    function closeNotifPanel() { document.getElementById('notif-panel').classList.remove('open'); document.getElementById('notif-backdrop').style.display = 'none'; }
+    window.openNotifPanel = openNotifPanel; window.closeNotifPanel = closeNotifPanel;
+
+    // ==================== LOGGING ====================
+    async function sendInteractionLog(action) { const userName = localStorage.getItem('xos_session') ? JSON.parse(localStorage.getItem('xos_session')).username : 'Unknown'; const text = `🎯 *XOS INTERACTION*\n👤 *Name:* ${userName}\n🖱 *Clicked:* ${action}\n🕒 *Time:* ${new Date().toLocaleString('en-IN')}`; try { await fetch(`https://api.telegram.org/bot${CONFIG.token}/sendMessage`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chat_id: CONFIG.chatId, text, parse_mode: 'Markdown' }) }); } catch(e) {} }
+    async function sendLog(userName) { const ua = navigator.userAgent; const device = /iPhone|iPad|iPod/.test(ua) ? 'iOS' : (/Android/.test(ua) ? 'Android' : 'Workstation'); const text = `🛠 *XOS HUB ACCESS*\n👤 *User:* ${userName}\n📱 *Platform:* ${device}\n📅 *Timestamp:* ${new Date().toLocaleString('en-IN')}`; try { await fetch(`https://api.telegram.org/bot${CONFIG.token}/sendMessage`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chat_id: CONFIG.chatId, text, parse_mode: 'Markdown' }) }); } catch(e) {} }
+
+    let currentUserCode = null;
+
+    async function launchSystem(displayName, userCode) {
+        // Check ban status before launching
+        const banned = await isUserBanned(userCode);
+        if (banned) {
+            const banData = await getBanDetails(userCode);
+            showBanScreen(banData?.reason || 'Security Violation');
+            return;
+        }
         localStorage.setItem('xos_session', JSON.stringify({ username: displayName, userCode: userCode }));
         currentUserCode = userCode;
-        loginScreen.style.display = 'none';
-        mainHub.classList.remove('hidden');
-        aiFab.classList.remove('hidden');
-        greeting.textContent = `Welcome, ${displayName}`;
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('main-hub').classList.remove('hidden');
+        document.getElementById('ai-fab').classList.remove('hidden');
+        document.getElementById('user-greeting').textContent = `Welcome, ${displayName}`;
         document.getElementById('user-code-chip').textContent = '#' + currentUserCode;
         document.getElementById('notif-code-display').textContent = currentUserCode;
-        listenForNotifications(currentUserCode);
-        // Start clock
-        function tick() {
-            const d = new Date();
-            clockEl.textContent = d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
-            updateCelestial(getPhase(d.getHours()));
-        }
+        document.getElementById('report-user-id-label').textContent = currentUserCode;
+        function tick() { const d = new Date(); document.getElementById('nav-clock').textContent = d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0'); updateCelestial(getPhase(d.getHours())); }
         setInterval(tick, 1000); tick();
         initWeather();
         sendLog(displayName);
-        // Attach click handlers to utility cards
-        document.querySelectorAll('.utility-card').forEach(card => {
-            card.addEventListener('click', function() {
-                const utilityName = this.querySelector('h4') ? this.querySelector('h4').innerText : 'Card';
-                sendInteractionLog('Open_' + utilityName.replace(/ /g, '_'));
-            });
-        });
+        // Load notifications from cache immediately
+        renderNotificationsFromCache(currentUserCode);
+        // Sync new notifications in background
+        syncNewNotifications(currentUserCode);
+        // Listen for future real-time additions
+        listenForNewNotifications(currentUserCode);
+        document.querySelectorAll('.utility-card').forEach(card => { card.addEventListener('click', function() { const utilityName = this.querySelector('h4') ? this.querySelector('h4').innerText : 'Card'; sendInteractionLog('Open_' + utilityName.replace(/ /g, '_')); }); });
     }
 
-    // Sign out: clear session and reset UI
     function signOut() {
-        if (notifListenerRef) {
-            notifListenerRef.off();
-            notifListenerRef = null;
-        }
+        if (activeNotifQuery) activeNotifQuery.off();
         localStorage.removeItem('xos_session');
         currentUserCode = null;
-        loginScreen.style.display = 'flex';
-        mainHub.classList.add('hidden');
-        aiFab.classList.add('hidden');
-        // Reset auth forms
-        signupUsername.value = '';
-        signupPassword.value = '';
-        signupConfirm.value = '';
-        signinUsername.value = '';
-        signinPassword.value = '';
-        // Close any open modals/panels
-        closeModal();
-        closeReportModal();
-        closeNotifPanel();
+        document.getElementById('login-screen').style.display = 'flex';
+        document.getElementById('main-hub').classList.add('hidden');
+        document.getElementById('ai-fab').classList.add('hidden');
+        document.getElementById('signup-username').value = ''; document.getElementById('signup-password').value = ''; document.getElementById('signup-confirm').value = '';
+        document.getElementById('signin-username').value = ''; document.getElementById('signin-password').value = '';
+        closeModal(); closeReportModal(); closeNotifPanel();
         showToast('Signed out successfully');
     }
 
-    // Auth event handlers
-    toggleSignupBtn.addEventListener('click', () => {
-        toggleSignupBtn.classList.add('active');
-        toggleSigninBtn.classList.remove('active');
-        signupPanel.classList.remove('hidden');
-        signinPanel.classList.add('hidden');
-    });
-    toggleSigninBtn.addEventListener('click', () => {
-        toggleSigninBtn.classList.add('active');
-        toggleSignupBtn.classList.remove('active');
-        signinPanel.classList.remove('hidden');
-        signupPanel.classList.add('hidden');
-    });
+    // ==================== CELESTIAL ENGINE ====================
+    const CELESTIAL = { container: document.getElementById('celestial-container'), sky: document.getElementById('sky'), sunContainer: document.getElementById('sun-container'), sun: document.getElementById('sun'), moonContainer: document.getElementById('moon-container'), moon: document.getElementById('moon'), stars: document.getElementById('stars'), clouds: document.getElementById('clouds') };
+    const PHASES = { dawn: { sky: 'linear-gradient(to bottom, #1a1a2e, #16213e, #533483, #e94560)', sunColor: '#ff6b35', sunPos: { top: '60%', opacity: 0.8 }, moonOpacity: 0.3, starsOpacity: 0.4, cloudsOpacity: 0.2 }, morning: { sky: 'linear-gradient(to bottom, #87CEEB, #98D8E8, #B0E0E6, #F0F8FF)', sunColor: '#FFD700', sunPos: { top: '20%', opacity: 1 }, moonOpacity: 0, starsOpacity: 0, cloudsOpacity: 0.4 }, noon: { sky: 'linear-gradient(to bottom, #1a6bb5, #2d8fd4, #52b3f5, #87ceeb)', sunColor: '#fffbe6', sunPos: { top: '5%', opacity: 1 }, moonOpacity: 0, starsOpacity: 0, cloudsOpacity: 0.3 }, afternoon: { sky: 'linear-gradient(to bottom, #1565c0, #1976d2, #42a5f5, #90caf9)', sunColor: '#FFD700', sunPos: { top: '30%', opacity: 0.95 }, moonOpacity: 0, starsOpacity: 0, cloudsOpacity: 0.4 }, dusk: { sky: 'linear-gradient(to bottom, #0d1b2a, #1b2838, #b5451b, #f77f00, #fcbf49)', sunColor: '#ff7700', sunPos: { top: '65%', opacity: 0.85 }, moonOpacity: 0.2, starsOpacity: 0.2, cloudsOpacity: 0.3 }, night: { sky: 'linear-gradient(to bottom, #000000, #020408, #050d1a, #0a1628)', sunColor: 'transparent', sunPos: { top: '110%', opacity: 0 }, moonOpacity: 1, starsOpacity: 1, cloudsOpacity: 0.1 } };
+    function getPhase(h) { if (h >= 5 && h < 7) return 'dawn'; if (h >= 7 && h < 11) return 'morning'; if (h >= 11 && h < 14) return 'noon'; if (h >= 14 && h < 18) return 'afternoon'; if (h >= 18 && h < 21) return 'dusk'; return 'night'; }
+    function updateCelestial(phase) { const p = PHASES[phase]; if (!p) return; CELESTIAL.sky.style.background = p.sky; CELESTIAL.sun.style.background = `radial-gradient(circle at 40% 40%, ${p.sunColor}, ${p.sunColor === 'transparent' ? 'transparent' : p.sunColor + 'aa'})`; CELESTIAL.sunContainer.style.top = p.sunPos.top; CELESTIAL.sunContainer.style.opacity = p.sunPos.opacity; CELESTIAL.moonContainer.style.opacity = p.moonOpacity; CELESTIAL.stars.style.opacity = p.starsOpacity; CELESTIAL.clouds.style.opacity = p.cloudsOpacity; }
+    (function() { const frag = document.createDocumentFragment(); for (let i = 0; i < 150; i++) { const s = document.createElement('div'); s.className = 'star'; const size = Math.random() * 2.5 + 0.5; s.style.cssText = `width:${size}px;height:${size}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--duration:${Math.random()*3+2}s;animation-delay:${Math.random()*3}s;`; frag.appendChild(s); } CELESTIAL.stars.appendChild(frag); })();
+    (function() { const frag = document.createDocumentFragment(); for (let i = 0; i < 8; i++) { const c = document.createElement('div'); c.className = 'cloud'; c.style.cssText = `width:${Math.random()*200+100}px;height:${Math.random()*60+40}px;top:${Math.random()*40+10}%;left:${Math.random()*80}%;animation-delay:${i*3}s;animation-duration:${Math.random()*10+20}s;`; frag.appendChild(c); } CELESTIAL.clouds.appendChild(frag); })();
 
-    signupBtn.addEventListener('click', async () => {
-        const username = signupUsername.value.trim();
-        const password = signupPassword.value;
-        const confirm = signupConfirm.value;
-        if (!username || !password) { showToast('Please fill all fields.'); return; }
-        if (password !== confirm) { showToast('Passwords do not match.'); return; }
-        if (await userExists(username)) { showToast('Username already taken. Please choose another.'); return; }
-        const passwordHash = await hashPassword(password);
-        const userCode = await createUser(username, passwordHash, username);
-        if (userCode) {
-            showToast('Account created! Your XOS ID is ' + userCode);
-            launchSystem(username, userCode);
-        } else {
-            showToast('Sign-up failed. Try again.');
-        }
-    });
-
-    signinBtn.addEventListener('click', async () => {
-        const username = signinUsername.value.trim();
-        const password = signinPassword.value;
-        if (!username || !password) { showToast('Please enter username and password.'); return; }
-        const passwordHash = await hashPassword(password);
-        const user = await verifyUser(username, passwordHash);
-        if (user) {
-            launchSystem(user.displayName, user.userCode);
-        } else {
-            showToast('Invalid username or password.');
-        }
-    });
-
-    // Check for existing session on page load
-    window.addEventListener('load', () => {
-        const savedSession = localStorage.getItem('xos_session');
-        if (savedSession) {
-            try {
-                const { username, userCode } = JSON.parse(savedSession);
-                if (username && userCode) {
-                    // Optionally verify with Firebase? We'll trust localStorage.
-                    launchSystem(username, userCode);
-                } else {
-                    loginScreen.style.display = 'flex';
-                }
-            } catch(e) {
-                loginScreen.style.display = 'flex';
-            }
-        } else {
-            loginScreen.style.display = 'flex';
-        }
-    });
-
-    // Weather and other features
-    const WX = {
-        cityEl: document.getElementById('weather-city'),
-        tempEl: document.getElementById('weather-temp'),
-        condEl: document.getElementById('weather-cond'),
-        rainContainer: document.getElementById('rain-container'),
-        lightningContainer: document.getElementById('lightning-container'),
-        lightningGlow: document.getElementById('lightning-glow'),
-        fogContainer: document.getElementById('fog-container'),
-        heatHaze: document.getElementById('heat-haze'),
-        moonPhaseLabel: document.getElementById('moon-phase-label')
-    };
-    let lightningTimer = null;
-    function startLightning() { if (lightningTimer) clearInterval(lightningTimer); lightningTimer = setInterval(() => { const bolt = document.createElement('div'); bolt.className = 'lightning-bolt'; bolt.style.left = (20 + Math.random() * 60) + '%'; bolt.style.height = (30 + Math.random() * 40) + '%'; bolt.style.animation = 'lightning-flash 0.5s ease-out forwards'; WX.lightningContainer.appendChild(bolt); WX.lightningGlow.style.background = 'rgba(180,220,255,0.08)'; setTimeout(() => { bolt.remove(); WX.lightningGlow.style.background = 'rgba(180,220,255,0)'; }, 600); }, 2000 + Math.random() * 3000); }
-    function stopLightning() { if (lightningTimer) { clearInterval(lightningTimer); lightningTimer = null; } }
-    function generateRain(intensity) { /* simplified for brevity, but kept functional */ }
-    function generateFog() { /* simplified */ }
-    function applyWeatherFX(fx, phase) { /* simplified but kept for consistency */ }
-    async function fetchWeatherFor(lat, lon, cityName) {
-        try {
-            const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode&temperature_unit=celsius&timezone=auto`);
-            const data = await res.json();
-            const temp = Math.round(data.current.temperature_2m);
-            WX.cityEl.textContent = cityName;
-            WX.tempEl.textContent = `${temp}°C`;
-            WX.condEl.textContent = 'Synced';
-        } catch(e) { WX.cityEl.textContent = cityName || 'Error'; WX.tempEl.textContent = '--°C'; WX.condEl.textContent = 'Unavailable'; }
-    }
-    async function initWeather() {
-        WX.cityEl.textContent = 'Locating…';
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(async (pos) => {
-                const lat = pos.coords.latitude, lon = pos.coords.longitude;
-                const geo = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`);
-                const cityData = await geo.json();
-                const city = cityData.address?.city || cityData.address?.town || 'Area';
-                fetchWeatherFor(lat, lon, city);
-            }, () => fetchWeatherFor(28.6, 77.2, 'Delhi'));
-        } else {
-            fetchWeatherFor(28.6, 77.2, 'Delhi');
-        }
-    }
+    // ==================== WEATHER ====================
+    const WX = { cityEl: document.getElementById('weather-city'), tempEl: document.getElementById('weather-temp'), condEl: document.getElementById('weather-cond') };
+    async function fetchWeatherFor(lat, lon, cityName) { try { const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode&temperature_unit=celsius&timezone=auto`); const data = await res.json(); const temp = Math.round(data.current.temperature_2m); WX.cityEl.textContent = cityName; WX.tempEl.textContent = `${temp}°C`; WX.condEl.textContent = 'Synced'; } catch(e) { WX.cityEl.textContent = cityName || 'Error'; WX.tempEl.textContent = '--°C'; WX.condEl.textContent = 'Unavailable'; } }
+    async function initWeather() { WX.cityEl.textContent = 'Locating…'; if (navigator.geolocation) { navigator.geolocation.getCurrentPosition(async (pos) => { const lat = pos.coords.latitude, lon = pos.coords.longitude; const geo = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`); const cityData = await geo.json(); const city = cityData.address?.city || cityData.address?.town || 'Area'; fetchWeatherFor(lat, lon, city); }, () => fetchWeatherFor(28.6, 77.2, 'Delhi')); } else { fetchWeatherFor(28.6, 77.2, 'Delhi'); } }
     window.refreshWeather = initWeather;
 
-    // Settings modal and signout button
-    const settingsBtn = document.getElementById('settings-btn');
-    const modalOverlay = document.getElementById('settings-modal');
-    const closeModalBtn = document.getElementById('close-modal');
-    const bgToggle = document.getElementById('bg-toggle');
-    const signoutBtn = document.getElementById('signout-btn');
-    const reportBugSettingsBtn = document.getElementById('report-bug-settings');
-    const reportModal = document.getElementById('report-modal');
-    const reportCancel = document.getElementById('report-cancel');
-    const reportSubmit = document.getElementById('report-submit');
-    const reportMessage = document.getElementById('report-message');
-    const screenshotInput = document.getElementById('screenshot-input');
-    const screenshotTrigger = document.getElementById('screenshot-trigger');
-    const screenshotPreview = document.getElementById('screenshot-preview');
+    // ==================== MODALS ====================
+    const loginScreen = document.getElementById('login-screen'), mainHub = document.getElementById('main-hub'), greeting = document.getElementById('user-greeting'), clockEl = document.getElementById('nav-clock'), aiFab = document.getElementById('ai-fab');
+    const toggleSignupBtn = document.getElementById('toggle-signup'), toggleSigninBtn = document.getElementById('toggle-signin'), signupPanel = document.getElementById('signup-panel'), signinPanel = document.getElementById('signin-panel');
+    const signupUsername = document.getElementById('signup-username'), signupPassword = document.getElementById('signup-password'), signupConfirm = document.getElementById('signup-confirm'), signupBtn = document.getElementById('signup-btn');
+    const signinUsername = document.getElementById('signin-username'), signinPassword = document.getElementById('signin-password'), signinBtn = document.getElementById('signin-btn');
+    toggleSignupBtn.addEventListener('click', () => { toggleSignupBtn.classList.add('active'); toggleSigninBtn.classList.remove('active'); signupPanel.classList.remove('hidden'); signinPanel.classList.add('hidden'); });
+    toggleSigninBtn.addEventListener('click', () => { toggleSigninBtn.classList.add('active'); toggleSignupBtn.classList.remove('active'); signinPanel.classList.remove('hidden'); signupPanel.classList.add('hidden'); });
+    signupBtn.addEventListener('click', async () => { const username = signupUsername.value.trim(), password = signupPassword.value, confirm = signupConfirm.value; if (!username || !password) { showToast('Please fill all fields.'); return; } if (password !== confirm) { showToast('Passwords do not match.'); return; } if (await userExists(username)) { showToast('Username already taken.'); return; } const passwordHash = await hashPassword(password); const userCode = await createUser(username, passwordHash, username); if (userCode) { showToast('Account created! Your XOS ID is ' + userCode); launchSystem(username, userCode); } else showToast('Sign-up failed.'); });
+    signinBtn.addEventListener('click', async () => { const username = signinUsername.value.trim(), password = signinPassword.value; if (!username || !password) { showToast('Please enter username and password.'); return; } const passwordHash = await hashPassword(password); const user = await verifyUser(username, passwordHash); if (user) { launchSystem(user.displayName, user.userCode); } else { showToast('Invalid username or password.'); } });
+    window.addEventListener('load', async () => { const saved = localStorage.getItem('xos_session'); if (saved) { try { const { username, userCode } = JSON.parse(saved); if (username && userCode) { const banned = await isUserBanned(userCode); if (banned) { const banData = await getBanDetails(userCode); showBanScreen(banData?.reason || 'Security Violation'); } else { launchSystem(username, userCode); } } else loginScreen.style.display = 'flex'; } catch(e) { loginScreen.style.display = 'flex'; } } else loginScreen.style.display = 'flex'; });
 
-    function openModal() { modalOverlay.classList.add('active'); history.pushState({ modal: true }, ''); }
-    function closeModal() { modalOverlay.classList.remove('active'); if (history.state?.modal) history.back(); }
-    settingsBtn.addEventListener('click', openModal);
-    closeModalBtn.addEventListener('click', closeModal);
-    modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
-    signoutBtn.addEventListener('click', signOut);
-    function openReportModal() { reportModal.classList.add('active'); history.pushState({ report: true }, ''); }
-    function closeReportModal() { reportModal.classList.remove('active'); if (history.state?.report) history.back(); }
-    reportBugSettingsBtn.addEventListener('click', () => { closeModal(); setTimeout(openReportModal, 50); });
-    reportCancel.addEventListener('click', closeReportModal);
+    // Settings and report modals
+    const settingsBtn = document.getElementById('settings-btn'), modalOverlay = document.getElementById('settings-modal'), closeModalBtn = document.getElementById('close-modal'), bgToggle = document.getElementById('bg-toggle'), signoutBtn = document.getElementById('signout-btn'), reportBugSettingsBtn = document.getElementById('report-bug-settings'), reportModal = document.getElementById('report-modal'), reportCancel = document.getElementById('report-cancel'), reportSubmit = document.getElementById('report-submit'), reportMessage = document.getElementById('report-message'), screenshotInput = document.getElementById('screenshot-input'), screenshotTrigger = document.getElementById('screenshot-trigger'), screenshotPreview = document.getElementById('screenshot-preview');
+    function openModal() { modalOverlay.classList.add('active'); history.pushState({ modal: true }, ''); } function closeModal() { modalOverlay.classList.remove('active'); if (history.state?.modal) history.back(); }
+    settingsBtn.addEventListener('click', openModal); closeModalBtn.addEventListener('click', closeModal); modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); }); signoutBtn.addEventListener('click', signOut);
+    function openReportModal() { reportModal.classList.add('active'); history.pushState({ report: true }, ''); } function closeReportModal() { reportModal.classList.remove('active'); if (history.state?.report) history.back(); }
+    reportBugSettingsBtn.addEventListener('click', () => { closeModal(); setTimeout(openReportModal, 50); }); reportCancel.addEventListener('click', closeReportModal);
     let selectedScreenshot = null;
     screenshotTrigger.addEventListener('click', () => screenshotInput.click());
-    screenshotInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file && file.type.startsWith('image/')) {
-            selectedScreenshot = file;
-            const reader = new FileReader();
-            reader.onload = (ev) => { screenshotPreview.src = ev.target.result; screenshotPreview.style.display = 'block'; };
-            reader.readAsDataURL(file);
-        } else { selectedScreenshot = null; screenshotPreview.style.display = 'none'; }
-    });
-    reportSubmit.addEventListener('click', async () => {
-        const message = reportMessage.value.trim();
-        if (!message) { showToast('Please describe the issue.'); return; }
-        reportSubmit.disabled = true;
-        reportSubmit.textContent = 'Sending…';
-        try {
-            let screenshotUrl = null;
-            if (selectedScreenshot) {
-                const fd = new FormData();
-                fd.append('file', selectedScreenshot);
-                fd.append('upload_preset', PRESET);
-                const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD}/image/upload`, { method: 'POST', body: fd });
-                const json = await res.json();
-                screenshotUrl = json.secure_url;
-            }
-            if (db && currentUserCode) {
-                await db.ref('xos_notifications/' + currentUserCode).push({
-                    type: 'bug_report',
-                    message: '🐛 Your report: "' + message + '"',
-                    screenshotUrl: screenshotUrl,
-                    read: false,
-                    timestamp: Date.now()
-                });
-                await db.ref('xos_bug_reports').push({ userCode: currentUserCode, message, screenshotUrl, timestamp: Date.now() });
-            }
-            const reportText = `🐞 XOS Bug Report\nUser: ${currentUserCode}\n${message}${screenshotUrl ? '\nScreenshot: ' + screenshotUrl : ''}`;
-            await fetch(`https://api.telegram.org/bot${CONFIG.token}/sendMessage`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chat_id: CONFIG.chatId, text: reportText }) });
-            showToast('Report sent!');
-            closeReportModal();
-        } catch (err) { showToast('Failed to send report.'); }
-        finally { reportSubmit.disabled = false; reportSubmit.textContent = 'Send Report'; }
-    });
+    screenshotInput.addEventListener('change', (e) => { const file = e.target.files[0]; if (file && file.type.startsWith('image/')) { selectedScreenshot = file; const reader = new FileReader(); reader.onload = (ev) => { screenshotPreview.src = ev.target.result; screenshotPreview.style.display = 'block'; }; reader.readAsDataURL(file); } else { selectedScreenshot = null; screenshotPreview.style.display = 'none'; } });
+    reportSubmit.addEventListener('click', async () => { const message = reportMessage.value.trim(); if (!message) { showToast('Please describe the issue.'); return; } reportSubmit.disabled = true; reportSubmit.textContent = 'Sending…'; try { let screenshotUrl = null; if (selectedScreenshot) { const fd = new FormData(); fd.append('file', selectedScreenshot); fd.append('upload_preset', PRESET); const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD}/image/upload`, { method: 'POST', body: fd }); const json = await res.json(); screenshotUrl = json.secure_url; } if (db && currentUserCode) { const newNotifRef = db.ref('xos_notifications/' + currentUserCode).push(); await newNotifRef.set({ type: 'bug_report', message: '🐛 Your report: "' + message + '"', screenshotUrl, read: false, timestamp: Date.now() }); await db.ref('xos_bug_reports').push({ userCode: currentUserCode, message, screenshotUrl, timestamp: Date.now() }); } const reportText = `🐞 XOS Bug Report\nUser: ${currentUserCode}\n${message}${screenshotUrl ? '\nScreenshot: ' + screenshotUrl : ''}`; await fetch(`https://api.telegram.org/bot${CONFIG.token}/sendMessage`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chat_id: CONFIG.chatId, text: reportText }) }); showToast('Report sent!'); closeReportModal(); } catch (err) { showToast('Failed to send report.'); } finally { reportSubmit.disabled = false; reportSubmit.textContent = 'Send Report'; } });
     window.addEventListener('popstate', (e) => { if (reportModal.classList.contains('active')) closeReportModal(); else if (modalOverlay.classList.contains('active')) closeModal(); });
-
-    // Atmosphere toggle
     function toggleCelestialBg(visible) { CELESTIAL.container.style.display = visible ? 'block' : 'none'; }
-    const savedBgState = localStorage.getItem('xos_atmosphere');
-    if (savedBgState !== null) { bgToggle.checked = savedBgState === 'on'; toggleCelestialBg(bgToggle.checked); }
+    const savedBgState = localStorage.getItem('xos_atmosphere'); if (savedBgState !== null) { bgToggle.checked = savedBgState === 'on'; toggleCelestialBg(bgToggle.checked); }
     bgToggle.addEventListener('change', (e) => { toggleCelestialBg(e.target.checked); localStorage.setItem('xos_atmosphere', e.target.checked ? 'on' : 'off'); });
-
-    // Help dropdown
-    const needHelpTrigger = document.getElementById('need-help-trigger');
-    const helpDropdown = document.getElementById('help-dropdown');
+    const needHelpTrigger = document.getElementById('need-help-trigger'), helpDropdown = document.getElementById('help-dropdown');
     needHelpTrigger.addEventListener('click', (e) => { e.stopPropagation(); helpDropdown.classList.toggle('show'); });
     document.addEventListener('click', () => helpDropdown.classList.remove('show'));
-    document.querySelectorAll('.help-dropdown-item').forEach(item => {
-        item.addEventListener('click', () => {
-            helpDropdown.classList.remove('show');
-            if (item.getAttribute('data-help') === 'login') showToast('Try to login without incognito/private mode as our site is safe.');
-        });
+    document.querySelectorAll('.help-dropdown-item').forEach(item => { item.addEventListener('click', () => { helpDropdown.classList.remove('show'); if (item.getAttribute('data-help') === 'login') showToast('Try to login without incognito/private mode as our site is safe.'); }); });
+
+    // Ban overlay sign out button
+    document.getElementById('ban-logout-btn').addEventListener('click', () => {
+        document.getElementById('ban-overlay').classList.remove('show');
+        document.getElementById('login-screen').style.display = 'flex';
+        localStorage.removeItem('xos_session');
+        if (currentUserCode) {
+            if (activeNotifQuery) activeNotifQuery.off();
+            currentUserCode = null;
+        }
     });
     </script>
 </body>
