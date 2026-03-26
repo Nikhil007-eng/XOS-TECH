@@ -1,0 +1,1656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LOOP — Find the Loop. Quit the Loop.</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0a0a08;
+    --paper: #f5f0e8;
+    --red: #c8321a;
+    --gold: #d4a843;
+    --blue: #1a2c5e;
+    --mint: #7eb5a0;
+    --cream: #fdf8ef;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Crimson Pro', Georgia, serif;
+    overflow-x: hidden;
+    cursor: crosshair;
+  }
+
+  /* ─── NOISE OVERLAY ─── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.4;
+  }
+
+  /* ─── COVER ─── */
+  .cover {
+    min-height: 100vh;
+    background: var(--ink);
+    color: var(--paper);
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cover-bg {
+    position: absolute;
+    inset: 0;
+    background: 
+      radial-gradient(ellipse 60% 80% at 70% 50%, #1a2c5e22 0%, transparent 70%),
+      radial-gradient(ellipse 40% 40% at 20% 80%, #c8321a18 0%, transparent 60%);
+  }
+
+  .cover-grid {
+    position: absolute;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(245,240,232,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(245,240,232,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  .masthead {
+    padding: 2rem 3rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(245,240,232,0.15);
+    position: relative;
+    z-index: 2;
+  }
+
+  .issue-info {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    opacity: 0.6;
+    line-height: 1.8;
+  }
+
+  .mag-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(5rem, 18vw, 18rem);
+    letter-spacing: -0.02em;
+    line-height: 0.85;
+    color: var(--paper);
+    position: relative;
+    z-index: 2;
+    padding: 2rem 3rem;
+    animation: titleIn 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes titleIn {
+    from { opacity: 0; transform: translateY(40px) skewY(2deg); }
+    to { opacity: 1; transform: translateY(0) skewY(0); }
+  }
+
+  .mag-title span.red { color: var(--red); }
+  .mag-title sup {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.2rem;
+    color: var(--gold);
+    vertical-align: super;
+  }
+
+  .cover-tagline {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: clamp(1rem, 2.5vw, 1.6rem);
+    color: var(--gold);
+    padding: 0 3rem 2.5rem;
+    position: relative;
+    z-index: 2;
+    letter-spacing: 0.05em;
+    animation: fadeUp 1.4s 0.3s both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .cover-footer {
+    padding: 1.5rem 3rem;
+    border-top: 1px solid rgba(245,240,232,0.15);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+  }
+
+  .cover-deck {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    opacity: 0.5;
+    max-width: 400px;
+    line-height: 2;
+    text-transform: uppercase;
+  }
+
+  .scroll-hint {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    opacity: 0.5;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .scroll-hint::before {
+    content: '';
+    display: block;
+    width: 1px;
+    height: 40px;
+    background: rgba(245,240,232,0.3);
+    animation: scrollLine 2s ease-in-out infinite;
+  }
+
+  @keyframes scrollLine {
+    0%, 100% { transform: scaleY(1); opacity: 0.3; }
+    50% { transform: scaleY(0.4); opacity: 0.8; }
+  }
+
+  .cover-circle {
+    position: absolute;
+    right: 8%;
+    top: 50%;
+    transform: translateY(-50%);
+    width: clamp(200px, 25vw, 380px);
+    height: clamp(200px, 25vw, 380px);
+    border: 1px solid rgba(245,240,232,0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    animation: rotateSlow 30s linear infinite;
+  }
+
+  @keyframes rotateSlow {
+    from { transform: translateY(-50%) rotate(0deg); }
+    to { transform: translateY(-50%) rotate(360deg); }
+  }
+
+  .cover-circle::after {
+    content: '○ FIND THE LOOP ○ QUIT THE LOOP ○ FIND THE LOOP ○ QUIT THE LOOP ○';
+    position: absolute;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.18em;
+    color: rgba(245,240,232,0.3);
+    width: 100%;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  .inner-circle {
+    width: 55%;
+    height: 55%;
+    border: 1px solid rgba(212,168,67,0.3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: rotateReverse 20s linear infinite;
+    position: absolute;
+  }
+
+  @keyframes rotateReverse {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(-360deg); }
+  }
+
+  .inner-circle span {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.5rem;
+    color: var(--gold);
+    opacity: 0.6;
+  }
+
+  /* ─── SECTIONS ─── */
+  section {
+    position: relative;
+  }
+
+  .section-intro {
+    padding: 6rem 3rem;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--red);
+    opacity: 0.4;
+  }
+
+  .pull-quote {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.8rem, 4vw, 3.2rem);
+    font-weight: 700;
+    line-height: 1.2;
+    margin: 2rem 0;
+    color: var(--ink);
+  }
+
+  .pull-quote em {
+    color: var(--red);
+    font-style: italic;
+  }
+
+  .body-text {
+    font-size: 1.2rem;
+    line-height: 1.9;
+    color: #2a2a24;
+    max-width: 680px;
+    font-weight: 300;
+  }
+
+  .body-text + .body-text { margin-top: 1.5rem; }
+
+  /* ─── BRAIN SECTION ─── */
+  .brain-section {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 6rem 3rem;
+    overflow: hidden;
+  }
+
+  .brain-section .body-text { color: rgba(245,240,232,0.7); }
+  .brain-section .pull-quote { color: var(--paper); }
+
+  .brain-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    align-items: center;
+  }
+
+  @media (max-width: 768px) {
+    .brain-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ─── BRAIN DIAGRAM SVG ─── */
+  .brain-diagram {
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+    display: block;
+  }
+
+  /* ─── STATS BAR ─── */
+  .stats-strip {
+    background: var(--red);
+    padding: 2rem 3rem;
+    display: flex;
+    gap: 3rem;
+    overflow-x: auto;
+    align-items: center;
+  }
+
+  .stat-item {
+    flex-shrink: 0;
+    text-align: center;
+  }
+
+  .stat-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3.5rem;
+    color: var(--paper);
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.2em;
+    color: rgba(245,240,232,0.7);
+    text-transform: uppercase;
+    margin-top: 0.3rem;
+  }
+
+  .stat-divider {
+    width: 1px;
+    height: 50px;
+    background: rgba(245,240,232,0.3);
+    flex-shrink: 0;
+  }
+
+  /* ─── IDENTITY LOOP CHART ─── */
+  .chart-section {
+    padding: 6rem 3rem;
+    background: var(--cream);
+  }
+
+  .chart-section h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 5vw, 4rem);
+    font-weight: 900;
+    text-align: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .chart-subtitle {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    text-align: center;
+    letter-spacing: 0.2em;
+    color: var(--red);
+    margin-bottom: 4rem;
+    text-transform: uppercase;
+  }
+
+  .chart-container {
+    max-width: 800px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  canvas {
+    width: 100% !important;
+    border-radius: 4px;
+  }
+
+  /* ─── LOOP DIAGRAM ─── */
+  .loop-visual {
+    max-width: 700px;
+    margin: 4rem auto;
+    position: relative;
+  }
+
+  .loop-svg-wrapper {
+    position: relative;
+  }
+
+  /* ─── INTERNET MANIPULATION ─── */
+  .internet-section {
+    background: #0d1117;
+    color: #e6edf3;
+    padding: 6rem 3rem;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .internet-section h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.5rem, 6vw, 5rem);
+    color: var(--red);
+    margin-bottom: 0.5rem;
+    line-height: 1;
+  }
+
+  .internet-section h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(1.2rem, 3vw, 2rem);
+    color: var(--gold);
+    margin: 2.5rem 0 1rem;
+    letter-spacing: 0.05em;
+  }
+
+  .terminal-text {
+    font-size: 0.75rem;
+    line-height: 2;
+    color: #7ee787;
+    margin-bottom: 3rem;
+    letter-spacing: 0.05em;
+  }
+
+  .terminal-text .prompt { color: #58a6ff; }
+  .terminal-text .comment { color: #8b949e; }
+
+  .manipulation-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin: 3rem 0;
+  }
+
+  .manip-card {
+    border: 1px solid #30363d;
+    padding: 1.5rem;
+    border-radius: 6px;
+    background: #161b22;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s, transform 0.3s;
+  }
+
+  .manip-card:hover {
+    border-color: var(--red);
+    transform: translateY(-3px);
+  }
+
+  .manip-card::before {
+    content: attr(data-num);
+    position: absolute;
+    top: -0.5rem;
+    right: 1rem;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 4rem;
+    color: rgba(200,50,26,0.08);
+    line-height: 1;
+    pointer-events: none;
+  }
+
+  .manip-card h4 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    color: var(--gold);
+    letter-spacing: 0.08em;
+    margin-bottom: 0.8rem;
+  }
+
+  .manip-card p {
+    font-size: 0.72rem;
+    line-height: 1.9;
+    color: #8b949e;
+  }
+
+  .manip-card .tag {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    background: rgba(200,50,26,0.15);
+    border: 1px solid rgba(200,50,26,0.3);
+    color: var(--red);
+    font-size: 0.55rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 0.8rem;
+    border-radius: 2px;
+  }
+
+  .dopamine-chart-wrap {
+    margin: 3rem 0;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 2rem;
+  }
+
+  .dopamine-chart-wrap h4 {
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    color: #8b949e;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+  }
+
+  /* ─── ADAPTIVE FLUIDITY SECTION ─── */
+  .fluidity-section {
+    padding: 6rem 3rem;
+    background: var(--paper);
+  }
+
+  .fluidity-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 5rem;
+    max-width: 1100px;
+    margin: 3rem auto 0;
+    align-items: start;
+  }
+
+  @media (max-width: 768px) {
+    .fluidity-grid { grid-template-columns: 1fr; gap: 3rem; }
+  }
+
+  .steps-list {
+    list-style: none;
+    counter-reset: steps;
+  }
+
+  .steps-list li {
+    counter-increment: steps;
+    padding: 1.5rem 0 1.5rem 5rem;
+    border-bottom: 1px solid rgba(10,10,8,0.1);
+    position: relative;
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: #2a2a24;
+  }
+
+  .steps-list li::before {
+    content: counter(steps, decimal-leading-zero);
+    position: absolute;
+    left: 0;
+    top: 1.5rem;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.5rem;
+    color: var(--red);
+    line-height: 1;
+    opacity: 0.3;
+  }
+
+  .steps-list li strong {
+    display: block;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 0.5rem;
+  }
+
+  /* ─── RADAR CHART SECTION ─── */
+  .radar-section {
+    background: var(--blue);
+    color: var(--paper);
+    padding: 6rem 3rem;
+  }
+
+  .radar-section h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    font-weight: 900;
+    margin-bottom: 0.5rem;
+  }
+
+  .radar-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    max-width: 1000px;
+    margin: 3rem auto 0;
+    align-items: center;
+  }
+
+  @media (max-width: 768px) {
+    .radar-grid { grid-template-columns: 1fr; }
+  }
+
+  .intelligence-types {
+    list-style: none;
+  }
+
+  .intelligence-types li {
+    padding: 0.8rem 0;
+    border-bottom: 1px solid rgba(245,240,232,0.1);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 1rem;
+    color: rgba(245,240,232,0.8);
+  }
+
+  .int-bar {
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold), transparent);
+    border-radius: 2px;
+    flex: 1;
+  }
+
+  .int-score {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.3rem;
+    color: var(--gold);
+    width: 2.5rem;
+    text-align: right;
+  }
+
+  /* ─── BREAKOUT QUOTE ─── */
+  .breakout {
+    background: var(--red);
+    color: var(--paper);
+    padding: 5rem 3rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .breakout::before {
+    content: '""';
+    font-family: 'Playfair Display', serif;
+    font-size: 20rem;
+    position: absolute;
+    top: -4rem;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0.06;
+    line-height: 1;
+    pointer-events: none;
+  }
+
+  .breakout blockquote {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.5rem, 3.5vw, 2.8rem);
+    font-style: italic;
+    font-weight: 400;
+    line-height: 1.4;
+    max-width: 800px;
+    margin: 0 auto 1.5rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .breakout cite {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    opacity: 0.7;
+    text-transform: uppercase;
+  }
+
+  /* ─── FINAL ─── */
+  .final-section {
+    padding: 6rem 3rem 4rem;
+    background: var(--ink);
+    color: var(--paper);
+    text-align: center;
+  }
+
+  .final-section h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(3rem, 8vw, 8rem);
+    line-height: 0.9;
+    color: var(--paper);
+    margin-bottom: 1rem;
+  }
+
+  .final-section h2 span { color: var(--gold); }
+
+  .final-tagline {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.4rem;
+    color: rgba(245,240,232,0.6);
+    margin-bottom: 3rem;
+  }
+
+  .final-cta-group {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 4rem;
+  }
+
+  .cta-pill {
+    padding: 1rem 2.5rem;
+    border: 1px solid rgba(245,240,232,0.3);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--paper);
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.3s;
+    border-radius: 2px;
+  }
+
+  .cta-pill:hover {
+    background: var(--red);
+    border-color: var(--red);
+  }
+
+  .cta-pill.primary {
+    background: var(--red);
+    border-color: var(--red);
+  }
+
+  .footer-line {
+    border-top: 1px solid rgba(245,240,232,0.1);
+    padding-top: 2rem;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    color: rgba(245,240,232,0.3);
+    text-transform: uppercase;
+  }
+
+  /* ─── PROGRESS BAR ─── */
+  .progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background: var(--red);
+    z-index: 10000;
+    transition: width 0.1s linear;
+    width: 0%;
+  }
+
+  /* ─── ANIMATED ELEMENTS ─── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ─── DOPAMINE BARS ─── */
+  .dopa-bar-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .dopa-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .dopa-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    color: #8b949e;
+    width: 160px;
+    flex-shrink: 0;
+  }
+
+  .dopa-track {
+    flex: 1;
+    height: 8px;
+    background: #21262d;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .dopa-fill {
+    height: 100%;
+    border-radius: 4px;
+    width: 0%;
+    transition: width 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .dopa-val {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    color: var(--gold);
+    width: 2rem;
+    text-align: right;
+  }
+
+  /* Big companies logos area */
+  .companies-row {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    margin: 2rem 0;
+  }
+
+  .company-tag {
+    padding: 0.4rem 1rem;
+    border: 1px solid #30363d;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    color: #8b949e;
+    border-radius: 3px;
+    text-transform: uppercase;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .company-tag::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--red);
+    transform: translateX(-100%);
+    transition: transform 0.3s;
+    z-index: -1;
+  }
+
+  .company-tag:hover { color: var(--paper); border-color: var(--red); }
+  .company-tag:hover::after { transform: translateX(0); }
+
+  /* max-width constraint */
+  .max-w {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* ─── LOOP CYCLE VISUAL ─── */
+  .cycle-visual {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    margin: 3rem auto;
+    max-width: 400px;
+  }
+
+  .cycle-node {
+    padding: 1rem 2rem;
+    background: rgba(200,50,26,0.1);
+    border: 1px solid rgba(200,50,26,0.4);
+    border-radius: 4px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--paper);
+    text-align: center;
+    width: 100%;
+    max-width: 260px;
+    position: relative;
+  }
+
+  .cycle-node.highlight {
+    background: rgba(200,50,26,0.25);
+    border-color: var(--red);
+    color: var(--red);
+  }
+
+  .cycle-arrow {
+    font-size: 1.5rem;
+    color: rgba(245,240,232,0.2);
+    line-height: 1.2;
+  }
+
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progress"></div>
+
+<!-- ═══════════════════════════════
+     COVER
+════════════════════════════════ -->
+<section class="cover">
+  <div class="cover-bg"></div>
+  <div class="cover-grid"></div>
+
+  <div class="cover-circle">
+    <div class="inner-circle"><span>∞</span></div>
+  </div>
+
+  <header class="masthead">
+    <div class="issue-info">
+      VOLUME I — ISSUE 01<br>
+      INTELLIGENCE & IDENTITY<br>
+      SPRING 2026
+    </div>
+    <div class="issue-info" style="text-align:right;">
+      THE MIND MAGAZINE<br>
+      SPECIAL EDITION<br>
+      FREE YOURSELF
+    </div>
+  </header>
+
+  <div class="mag-title">
+    L<span class="red">OO</span>P<sup>×</sup>
+  </div>
+
+  <div class="cover-tagline">
+    "Find the Loop. Quit the Loop." — The Intelligence Issue
+  </div>
+
+  <footer class="cover-footer">
+    <p class="cover-deck">
+      YOUR BRAIN IS RUNNING OLD CODE · THE INTERNET KNOWS YOUR TRIGGERS · 
+      IDENTITY IS NOT FIXED · THE HIGHEST INTELLIGENCE BREAKS THE SYSTEM
+    </p>
+    <div class="scroll-hint">SCROLL</div>
+  </footer>
+</section>
+
+
+<!-- ═══════════════════════════════
+     OPENER
+════════════════════════════════ -->
+<section style="padding: 6rem 3rem; background: var(--paper);">
+  <div class="max-w">
+    <div class="section-intro reveal">
+      <div class="section-label">Opening Argument</div>
+      <h2 class="pull-quote">
+        You are not broken.<br>
+        You are <em>looping.</em>
+      </h2>
+      <p class="body-text">
+        The most unsettling truth modern neuroscience has given us is this: your brain 
+        does not see reality. It simulates it. Every morning you wake up, your mind runs 
+        a predictive model built from years of habit, fear, and repetition — and calls it 
+        "you." This is the Loop.
+      </p>
+      <p class="body-text" style="margin-top: 1.5rem;">
+        The highest form of intelligence is not the ability to accumulate knowledge. 
+        It is the ability to see the invisible systems governing your behavior — 
+        and when necessary, to <strong>dismantle them entirely.</strong>
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════
+     STATS STRIP
+════════════════════════════════ -->
+<div class="stats-strip">
+  <div class="stat-item">
+    <div class="stat-num">95%</div>
+    <div class="stat-label">of daily decisions<br>are unconscious</div>
+  </div>
+  <div class="stat-divider"></div>
+  <div class="stat-item">
+    <div class="stat-num">7sec</div>
+    <div class="stat-label">average attention<br>span (digital era)</div>
+  </div>
+  <div class="stat-divider"></div>
+  <div class="stat-item">
+    <div class="stat-num">2.5h</div>
+    <div class="stat-label">avg daily social<br>media time</div>
+  </div>
+  <div class="stat-divider"></div>
+  <div class="stat-item">
+    <div class="stat-num">10K</div>
+    <div class="stat-label">ads seen per<br>person per day</div>
+  </div>
+  <div class="stat-divider"></div>
+  <div class="stat-item">
+    <div class="stat-num">66</div>
+    <div class="stat-label">days to form<br>a new habit</div>
+  </div>
+  <div class="stat-divider"></div>
+  <div class="stat-item">
+    <div class="stat-num">∞</div>
+    <div class="stat-label">loops most<br>people never exit</div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════
+     BRAIN SCIENCE
+════════════════════════════════ -->
+<section class="brain-section">
+  <div class="max-w">
+    <div class="brain-grid">
+      <div class="reveal">
+        <div class="section-label" style="color: var(--gold);">Neuroscience</div>
+        <h2 class="pull-quote" style="color: var(--paper);">
+          Your Brain Is a<br>
+          <em style="color: var(--gold);">Prediction Machine,</em><br>
+          Not a Camera.
+        </h2>
+        <p class="body-text">
+          The predictive processing model of the brain tells us something radical: 
+          you don't experience the world and then react. You predict what's coming next 
+          and use your senses only to confirm or correct that prediction.
+        </p>
+        <p class="body-text" style="margin-top: 1.5rem;">
+          This means your identity — your personality, your fears, your habits — 
+          is just a cached prediction. A <strong style="color: var(--gold);">very old simulation</strong> 
+          running on a very new day. The brain optimizes for energy, and updating 
+          your identity costs energy it would rather save.
+        </p>
+
+        <div class="cycle-visual" style="margin-top: 3rem;">
+          <div class="cycle-node">Old Belief Fires</div>
+          <div class="cycle-arrow">↓</div>
+          <div class="cycle-node">Brain Predicts Same Outcome</div>
+          <div class="cycle-arrow">↓</div>
+          <div class="cycle-node">You Act the Same Way</div>
+          <div class="cycle-arrow">↓</div>
+          <div class="cycle-node">Same Result Confirms Belief</div>
+          <div class="cycle-arrow">↓</div>
+          <div class="cycle-node highlight">THE LOOP TIGHTENS</div>
+          <div class="cycle-arrow">↓</div>
+          <div class="cycle-node" style="opacity: 0.5;">Repeat Until Interrupted</div>
+        </div>
+      </div>
+
+      <!-- SVG Brain Diagram -->
+      <div class="reveal" style="display: flex; flex-direction: column; align-items: center;">
+        <svg class="brain-diagram" viewBox="0 0 400 380" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Brain outline -->
+          <path d="M200 340 C120 340 60 300 50 240 C40 180 60 150 80 130 C70 110 75 85 100 75 C110 50 140 40 170 50 C185 30 215 30 230 50 C260 40 290 50 300 75 C325 85 330 110 320 130 C340 150 360 180 350 240 C340 300 280 340 200 340Z" 
+                stroke="rgba(245,240,232,0.15)" stroke-width="1" fill="rgba(26,44,94,0.3)"/>
+          <!-- Lobes separation -->
+          <line x1="200" y1="60" x2="200" y2="330" stroke="rgba(245,240,232,0.08)" stroke-width="1" stroke-dasharray="4,4"/>
+          <!-- Folds -->
+          <path d="M120 180 Q140 160 160 180 Q180 200 200 180" stroke="rgba(245,240,232,0.12)" stroke-width="1.5" fill="none"/>
+          <path d="M200 180 Q220 160 240 180 Q260 200 280 180" stroke="rgba(245,240,232,0.12)" stroke-width="1.5" fill="none"/>
+          <path d="M100 220 Q120 200 140 220 Q160 240 180 220" stroke="rgba(245,240,232,0.12)" stroke-width="1.5" fill="none"/>
+          <path d="M220 220 Q240 200 260 220 Q280 240 300 220" stroke="rgba(245,240,232,0.12)" stroke-width="1.5" fill="none"/>
+          <path d="M130 270 Q150 255 170 265 Q185 275 200 265" stroke="rgba(245,240,232,0.1)" stroke-width="1.5" fill="none"/>
+          <path d="M200 265 Q215 255 230 265 Q248 275 270 265" stroke="rgba(245,240,232,0.1)" stroke-width="1.5" fill="none"/>
+
+          <!-- Highlighted areas -->
+          <ellipse cx="140" cy="140" rx="40" ry="30" fill="rgba(200,50,26,0.12)" stroke="rgba(200,50,26,0.3)" stroke-width="1"/>
+          <text x="140" y="137" text-anchor="middle" font-family="Space Mono" font-size="7" fill="rgba(200,50,26,0.8)" letter-spacing="0.5">FEAR</text>
+          <text x="140" y="148" text-anchor="middle" font-family="Space Mono" font-size="7" fill="rgba(200,50,26,0.8)" letter-spacing="0.5">CENTER</text>
+
+          <ellipse cx="260" cy="140" rx="40" ry="30" fill="rgba(212,168,67,0.1)" stroke="rgba(212,168,67,0.3)" stroke-width="1"/>
+          <text x="260" y="137" text-anchor="middle" font-family="Space Mono" font-size="7" fill="rgba(212,168,67,0.8)" letter-spacing="0.5">HABIT</text>
+          <text x="260" y="148" text-anchor="middle" font-family="Space Mono" font-size="7" fill="rgba(212,168,67,0.8)" letter-spacing="0.5">LOOP</text>
+
+          <ellipse cx="200" cy="230" rx="45" ry="28" fill="rgba(126,181,160,0.1)" stroke="rgba(126,181,160,0.3)" stroke-width="1"/>
+          <text x="200" y="227" text-anchor="middle" font-family="Space Mono" font-size="7" fill="rgba(126,181,160,0.8)" letter-spacing="0.5">IDENTITY</text>
+          <text x="200" y="238" text-anchor="middle" font-family="Space Mono" font-size="7" fill="rgba(126,181,160,0.8)" letter-spacing="0.5">CACHE</text>
+
+          <ellipse cx="200" cy="90" rx="35" ry="20" fill="rgba(245,240,232,0.05)" stroke="rgba(245,240,232,0.2)" stroke-width="1"/>
+          <text x="200" y="87" text-anchor="middle" font-family="Space Mono" font-size="7" fill="rgba(245,240,232,0.6)" letter-spacing="0.5">PREFRONTAL</text>
+          <text x="200" y="98" text-anchor="middle" font-family="Space Mono" font-size="7" fill="rgba(245,240,232,0.6)" letter-spacing="0.5">(EVOLUTION)</text>
+
+          <!-- Signal lines -->
+          <line x1="155" y1="145" x2="170" y2="205" stroke="rgba(200,50,26,0.2)" stroke-width="1" stroke-dasharray="3,3"/>
+          <line x1="245" y1="145" x2="235" y2="205" stroke="rgba(212,168,67,0.2)" stroke-width="1" stroke-dasharray="3,3"/>
+          <circle cx="200" cy="170" r="3" fill="var(--red)" opacity="0.5"/>
+          <circle cx="200" cy="170" r="8" fill="none" stroke="var(--red)" stroke-width="0.5" opacity="0.3">
+            <animate attributeName="r" values="8;16;8" dur="3s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0.3;0;0.3" dur="3s" repeatCount="indefinite"/>
+          </circle>
+
+          <!-- Labels outside -->
+          <text x="200" y="365" text-anchor="middle" font-family="Space Mono" font-size="8" fill="rgba(245,240,232,0.3)" letter-spacing="1">THE SIMULATING BRAIN</text>
+        </svg>
+
+        <div style="margin-top: 2rem; padding: 1.5rem; border: 1px solid rgba(245,240,232,0.1); border-radius: 4px; background: rgba(245,240,232,0.03);">
+          <div style="font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.15em; color: var(--gold); margin-bottom: 0.8rem; text-transform: uppercase;">Key Insight</div>
+          <p style="font-family: 'Crimson Pro', serif; font-size: 1.05rem; line-height: 1.7; color: rgba(245,240,232,0.7);">
+            High-IQ experts often perform <em>worse</em> on simple logic tests because their 
+            intelligence is deployed in <strong style="color: var(--paper);">defending who they think they are</strong>, 
+            not in seeing what is actually there.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════
+     IDENTITY LOOP CHART
+════════════════════════════════ -->
+<section class="chart-section">
+  <div class="max-w">
+    <div class="section-label reveal">The Data</div>
+    <h2 class="reveal">Identity Rigidity vs. Life Outcomes</h2>
+    <p class="chart-subtitle reveal">Composite index across 5 major longitudinal studies (2010–2025)</p>
+
+    <div class="chart-container reveal">
+      <canvas id="identityChart" height="350"></canvas>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 2rem; margin-top: 4rem;">
+      <div class="reveal" style="padding: 2rem; background: var(--paper); border: 1px solid rgba(10,10,8,0.1); border-top: 3px solid var(--red);">
+        <div style="font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; color: var(--red);">73%</div>
+        <div style="font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.1em; color: #666; text-transform: uppercase; margin-bottom: 0.5rem;">Of People</div>
+        <p style="font-size: 1rem; line-height: 1.6; color: #444;">never consciously question the identity formed before age 25</p>
+      </div>
+      <div class="reveal" style="padding: 2rem; background: var(--paper); border: 1px solid rgba(10,10,8,0.1); border-top: 3px solid var(--blue);">
+        <div style="font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; color: var(--blue);">3×</div>
+        <div style="font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.1em; color: #666; text-transform: uppercase; margin-bottom: 0.5rem;">More Likely</div>
+        <p style="font-size: 1rem; line-height: 1.6; color: #444;">adaptive thinkers achieve major life transitions successfully</p>
+      </div>
+      <div class="reveal" style="padding: 2rem; background: var(--paper); border: 1px solid rgba(10,10,8,0.1); border-top: 3px solid var(--gold);">
+        <div style="font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; color: var(--gold);">18mo</div>
+        <div style="font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.1em; color: #666; text-transform: uppercase; margin-bottom: 0.5rem;">Average Time</div>
+        <p style="font-size: 1rem; line-height: 1.6; color: #444;">to fundamentally rewire a deeply ingrained identity loop</p>
+      </div>
+      <div class="reveal" style="padding: 2rem; background: var(--paper); border: 1px solid rgba(10,10,8,0.1); border-top: 3px solid var(--mint);">
+        <div style="font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; color: var(--mint);">↑89%</div>
+        <div style="font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.1em; color: #666; text-transform: uppercase; margin-bottom: 0.5rem;">Satisfaction</div>
+        <p style="font-size: 1rem; line-height: 1.6; color: #444;">increase reported after deliberate identity update process</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════
+     BREAKOUT QUOTE
+════════════════════════════════ -->
+<div class="breakout">
+  <blockquote>
+    "The most powerful person is not the one who knows everything — 
+    it is the one who can let go of everything they thought they were 
+    to become what the future requires."
+  </blockquote>
+  <cite>— The Intelligence Principle, LOOP Magazine</cite>
+</div>
+
+
+<!-- ═══════════════════════════════
+     INTERNET MANIPULATION
+════════════════════════════════ -->
+<section class="internet-section">
+  <div class="max-w">
+    <div class="reveal">
+      <div style="font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.3em; color: var(--red); margin-bottom: 1rem; text-transform: uppercase;">System Exposed</div>
+      <h2>THE ARCHITECTS<br>OF YOUR LOOP</h2>
+      <p style="font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.3rem; color: rgba(230,237,243,0.6); margin: 1rem 0 2rem;">
+        How Big Tech engineers your psychology — and profits from keeping you stuck.
+      </p>
+
+      <div class="terminal-text">
+        <span class="prompt">$ </span>analyzing behavioral_manipulation_stack.js<br>
+        <span class="comment">// Loading: infinite_scroll.exe, variable_reward.dll, outrage_engine.so</span><br>
+        <span class="prompt">$ </span>estimated_revenue_per_trapped_user: <span style="color: var(--red);">$142/year</span><br>
+        <span class="comment">// Your attention is the product. Your identity loop is the factory.</span>
+      </div>
+    </div>
+
+    <div class="companies-row reveal">
+      <div class="company-tag">Meta</div>
+      <div class="company-tag">TikTok</div>
+      <div class="company-tag">Google</div>
+      <div class="company-tag">YouTube</div>
+      <div class="company-tag">X / Twitter</div>
+      <div class="company-tag">Netflix</div>
+      <div class="company-tag">Amazon</div>
+      <div class="company-tag">Spotify</div>
+    </div>
+
+    <div class="manipulation-grid reveal">
+      <div class="manip-card" data-num="01">
+        <div class="tag">Psychological Trigger</div>
+        <h4>Variable Reward Scheduling</h4>
+        <p>Slot machines pay out unpredictably — that randomness is the addiction. Every scroll, every refresh, every notification is engineered on the same Skinner Box principle. You don't check your phone because you want to. You check it because your dopamine system has been operantly conditioned to expect intermittent reward. Social media platforms deliberately withhold likes, space out notifications, and randomize content to keep your brain in a permanent low-grade seeking state.</p>
+      </div>
+      <div class="manip-card" data-num="02">
+        <div class="tag">Algorithmic Control</div>
+        <h4>Outrage Amplification Engine</h4>
+        <p>Internal research at major platforms confirms that content triggering anger, fear, and moral indignation drives 6× more engagement than neutral content. The algorithm does not care if the content is true or harmful — it only optimizes for time-on-platform. You are shown a world that is more extreme, more threatening, and more tribal than reality, because that version of the world keeps you scrolling. Your identity loop is fed content that confirms and intensifies your existing fears.</p>
+      </div>
+      <div class="manip-card" data-num="03">
+        <div class="tag">Identity Engineering</div>
+        <h4>The Echo Chamber Factory</h4>
+        <p>Recommendation algorithms are trained to show you content you're most likely to engage with — which means content you already agree with. Over time, your informational diet becomes a hall of mirrors. Dissenting views disappear. Nuance is flattened. You become more certain of things you were uncertain about before. This is not accidental: a user who feels they belong to a tribe is a user who returns daily, because the platform has weaponized your need for belonging.</p>
+      </div>
+      <div class="manip-card" data-num="04">
+        <div class="tag">Temporal Trap</div>
+        <h4>Infinite Scroll & Time Theft</h4>
+        <p>The removal of natural stopping cues — the bottom of a page, the end of a list — is a deliberate design choice pioneered by Aza Raskin in 2006 and immediately exploited by every major platform. There is no "done." There is no natural resting point. The interface is built to override your prefrontal cortex's ability to decide you've had enough. You intended to spend 5 minutes. You spent 45. This time-theft repeats 365 days a year.</p>
+      </div>
+      <div class="manip-card" data-num="05">
+        <div class="tag">Dark Pattern</div>
+        <h4>Social Comparison Architecture</h4>
+        <p>Public follower counts, visible like totals, and curated highlight reels are not neutral features — they are precision instruments designed to activate your status anxiety. Platforms know that social comparison drives compulsive checking behavior. Your brain cannot help evaluating itself against others; it evolved to do so in small tribes. Big Tech scales that mechanism to billions, manufacturing a permanent state of inadequacy that only more consumption can temporarily soothe.</p>
+      </div>
+      <div class="manip-card" data-num="06">
+        <div class="tag">Biological Exploit</div>
+        <h4>Notification Hijacking</h4>
+        <p>Every notification is a small intrusion into your prefrontal cortex — a forced context switch that takes an average of 23 minutes to fully recover from. Platforms send notifications strategically: at times of low activity, when you're most likely to re-engage, and for events calibrated to your personal emotional triggers. The notification permission you granted is a standing invitation for a corporation to interrupt your thoughts, redirect your attention, and pull you back into the loop whenever their models predict you might drift away.</p>
+      </div>
+    </div>
+
+    <!-- Dopamine chart -->
+    <div class="dopamine-chart-wrap reveal">
+      <h4>DOPAMINE SPIKE INDEX — Digital Triggers vs. Natural Activities</h4>
+      <div class="dopa-bar-group" id="dopaChart">
+        <div class="dopa-row">
+          <div class="dopa-label">Slot Machine / Scroll</div>
+          <div class="dopa-track"><div class="dopa-fill" data-width="92" style="background: linear-gradient(90deg, #c8321a, #ff6b4a);"></div></div>
+          <div class="dopa-val">92</div>
+        </div>
+        <div class="dopa-row">
+          <div class="dopa-label">Social Media Likes</div>
+          <div class="dopa-track"><div class="dopa-fill" data-width="78" style="background: linear-gradient(90deg, #c8321a, #ff6b4a);"></div></div>
+          <div class="dopa-val">78</div>
+        </div>
+        <div class="dopa-row">
+          <div class="dopa-label">Outrage Content</div>
+          <div class="dopa-track"><div class="dopa-fill" data-width="70" style="background: linear-gradient(90deg, #c8321a99, #ff6b4a88);"></div></div>
+          <div class="dopa-val">70</div>
+        </div>
+        <div class="dopa-row">
+          <div class="dopa-label">Exercise (natural)</div>
+          <div class="dopa-track"><div class="dopa-fill" data-width="65" style="background: linear-gradient(90deg, #7eb5a0, #a8d5c5);"></div></div>
+          <div class="dopa-val">65</div>
+        </div>
+        <div class="dopa-row">
+          <div class="dopa-label">Deep Conversation</div>
+          <div class="dopa-track"><div class="dopa-fill" data-width="55" style="background: linear-gradient(90deg, #7eb5a0, #a8d5c5);"></div></div>
+          <div class="dopa-val">55</div>
+        </div>
+        <div class="dopa-row">
+          <div class="dopa-label">Creative Work</div>
+          <div class="dopa-track"><div class="dopa-fill" data-width="48" style="background: linear-gradient(90deg, #d4a843, #f0c84a);"></div></div>
+          <div class="dopa-val">48</div>
+        </div>
+        <div class="dopa-row">
+          <div class="dopa-label">Learning / Reading</div>
+          <div class="dopa-track"><div class="dopa-fill" data-width="40" style="background: linear-gradient(90deg, #d4a843, #f0c84a);"></div></div>
+          <div class="dopa-val">40</div>
+        </div>
+        <div class="dopa-row">
+          <div class="dopa-label">Stillness / Meditation</div>
+          <div class="dopa-track"><div class="dopa-fill" data-width="22" style="background: linear-gradient(90deg, #d4a843, #f0c84a);"></div></div>
+          <div class="dopa-val">22</div>
+        </div>
+      </div>
+      <p style="font-size: 0.6rem; color: #4a5568; margin-top: 1.5rem; line-height: 1.8;">
+        NOTE: Higher spike = faster dopamine reward. Digital triggers outpace natural rewards by 30–70%, training the brain to find natural activities "boring." This is not accidental — it is the mechanism of dependency.
+      </p>
+    </div>
+
+    <div class="reveal" style="margin-top: 3rem; padding: 2rem; border: 1px solid rgba(200,50,26,0.3); border-radius: 4px; background: rgba(200,50,26,0.05);">
+      <h3 style="font-size: 1rem; color: var(--red); font-family: 'Space Mono', monospace; letter-spacing: 0.1em; margin-bottom: 1rem; text-transform: uppercase;">The Business Model, Clearly Stated:</h3>
+      <p style="font-family: 'Crimson Pro', serif; font-size: 1.15rem; line-height: 1.8; color: rgba(230,237,243,0.8);">
+        Big Tech companies do not sell you a product. They sell <em>your attention</em> to advertisers. 
+        The longer you stay inside the loop — scrolling, reacting, comparing, fearing — the more 
+        valuable you are. Your <strong style="color: var(--paper);">psychological stagnation is their revenue stream.</strong> 
+        They have spent billions of dollars and hired thousands of behavioral scientists to ensure 
+        you do not quit the loop. And it is working. Until you decide it isn't.
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════
+     RADAR / INTELLIGENCE TYPES
+════════════════════════════════ -->
+<section class="radar-section">
+  <div class="max-w">
+    <div class="section-label reveal" style="color: var(--gold);">The Intelligence Map</div>
+    <h2 class="reveal">What Kind of<br>Intelligence Are You?</h2>
+    <p class="reveal" style="font-family: 'Crimson Pro', serif; font-size: 1.2rem; color: rgba(245,240,232,0.6); margin-top: 0.5rem; max-width: 550px;">
+      True intelligence is not a score — it is a portfolio. Static knowledge is table stakes. Adaptive fluidity is the edge.
+    </p>
+
+    <div class="radar-grid">
+      <div class="reveal">
+        <canvas id="radarChart" width="380" height="380"></canvas>
+      </div>
+      <div class="reveal">
+        <ul class="intelligence-types">
+          <li>
+            <span style="flex: 0 0 140px; font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(245,240,232,0.9);">Adaptive Speed</span>
+            <div class="int-bar" style="--w: 90%"></div>
+            <span class="int-score">90</span>
+          </li>
+          <li>
+            <span style="flex: 0 0 140px; font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(245,240,232,0.9);">Pattern Disruption</span>
+            <div class="int-bar" style="--w: 85%"></div>
+            <span class="int-score">85</span>
+          </li>
+          <li>
+            <span style="flex: 0 0 140px; font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(245,240,232,0.9);">Systems Thinking</span>
+            <div class="int-bar" style="--w: 82%"></div>
+            <span class="int-score">82</span>
+          </li>
+          <li>
+            <span style="flex: 0 0 140px; font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(245,240,232,0.9);">Belief Fluidity</span>
+            <div class="int-bar" style="--w: 78%"></div>
+            <span class="int-score">78</span>
+          </li>
+          <li>
+            <span style="flex: 0 0 140px; font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(245,240,232,0.9);">IQ Score</span>
+            <div class="int-bar" style="--w: 60%; background: linear-gradient(90deg, rgba(245,240,232,0.3), transparent);"></div>
+            <span class="int-score" style="color: rgba(245,240,232,0.4);">60</span>
+          </li>
+          <li>
+            <span style="flex: 0 0 140px; font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(245,240,232,0.9);">Rote Knowledge</span>
+            <div class="int-bar" style="--w: 45%; background: linear-gradient(90deg, rgba(245,240,232,0.2), transparent);"></div>
+            <span class="int-score" style="color: rgba(245,240,232,0.3);">45</span>
+          </li>
+        </ul>
+
+        <p style="margin-top: 2rem; font-family: 'Crimson Pro', serif; font-size: 1.05rem; line-height: 1.8; color: rgba(245,240,232,0.65);">
+          The ability to update your own identity — to treat your beliefs as 
+          working hypotheses rather than sacred truths — scores higher on any 
+          real-world measure of success than a standardized test score ever will.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════
+     HOW TO QUIT THE LOOP
+════════════════════════════════ -->
+<section class="fluidity-section">
+  <div class="max-w">
+    <div class="section-label reveal">The Protocol</div>
+    <h2 class="pull-quote reveal" style="text-align: center; max-width: 700px; margin: 0 auto 1rem;">
+      How to <em>Actually</em><br>Quit the Loop
+    </h2>
+    <p class="reveal" style="font-family: 'Space Mono', monospace; font-size: 0.65rem; text-align: center; letter-spacing: 0.2em; text-transform: uppercase; color: var(--red); margin-bottom: 1rem;">A practical framework for identity update</p>
+
+    <div class="fluidity-grid">
+      <div>
+        <ol class="steps-list">
+          <li class="reveal">
+            <strong>Audit Your Loops</strong>
+            Spend one week writing down every recurring thought, fear, or reaction pattern you notice. You cannot exit a loop you haven't named. Most people discover they have between 3 and 7 dominant loops running simultaneously.
+          </li>
+          <li class="reveal">
+            <strong>Treat Beliefs as Hypotheses</strong>
+            Every fixed belief — "I'm not creative," "I'm bad with money," "I need external validation" — is a hypothesis formed under limited data. Design small experiments to test them. The scientific method applied to your own identity is the most powerful tool you have.
+          </li>
+          <li class="reveal">
+            <strong>Change Your Environment First</strong>
+            Willpower is a myth. Environment is architecture. If your phone is within reach, you will check it. If your social circle reinforces your old identity, your new identity will not survive. Change the environment before expecting the behavior to change.
+          </li>
+          <li class="reveal">
+            <strong>Repeat New Actions Until the Brain Notices</strong>
+            Your brain updates its identity model by observing your behavior — not your intentions. You don't think your way to a new identity; you act your way there. Repeat the new behavior 60–90 days until the brain concludes: this is who I am now.
+          </li>
+          <li class="reveal">
+            <strong>Dismantle the Digital Loop Deliberately</strong>
+            Schedule intentional disconnection. Audit your notification permissions. Choose what you consume instead of letting algorithms choose for you. Attention is a finite, non-renewable resource. Treat it as one.
+          </li>
+        </ol>
+      </div>
+
+      <div class="reveal">
+        <div style="background: var(--ink); padding: 2.5rem; border-radius: 4px; color: var(--paper);">
+          <div style="font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.2em; color: var(--gold); text-transform: uppercase; margin-bottom: 1.5rem;">The Loop Update Cycle</div>
+
+          <canvas id="loopChart" height="300"></canvas>
+
+          <div style="margin-top: 2rem; border-top: 1px solid rgba(245,240,232,0.1); padding-top: 1.5rem;">
+            <p style="font-family: 'Crimson Pro', serif; font-style: italic; font-size: 1.05rem; line-height: 1.7; color: rgba(245,240,232,0.7);">
+              "We are not born with a fixed self. We are a continuous process of adaptation. 
+              The loop is not a prison — it is just a default. 
+              <strong style="color: var(--paper);">Defaults can be changed.</strong>"
+            </p>
+          </div>
+        </div>
+
+        <div style="margin-top: 1.5rem; padding: 2rem; border: 1px solid rgba(10,10,8,0.1); border-left: 4px solid var(--gold);">
+          <div style="font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--ink); margin-bottom: 0.5rem;">The Identity Speed Test</div>
+          <p style="font-size: 1rem; line-height: 1.7; color: #444;">
+            How quickly can you update a deeply held belief when presented with clear contradictory evidence? 
+            That speed — measured in hours, days, or decades — is your true intelligence score. 
+            The fastest updaters are not the most educated. They are the most <em>humble.</em>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════
+     FINAL
+════════════════════════════════ -->
+<section class="final-section">
+  <div class="max-w">
+    <h2 class="reveal">
+      FIND<br>
+      THE<br>
+      <span>LOOP.</span>
+    </h2>
+    <h2 class="reveal" style="margin-top: -0.2em; opacity: 0.4;">
+      QUIT<br>
+      THE<br>
+      LOOP.
+    </h2>
+
+    <p class="final-tagline reveal" style="margin-top: 2rem;">
+      Your identity is not your destiny. It is your starting point.
+    </p>
+
+    <p class="reveal" style="font-family: 'Crimson Pro', serif; font-size: 1.15rem; line-height: 1.9; color: rgba(245,240,232,0.6); max-width: 600px; margin: 0 auto 3rem;">
+      The invisible systems governing your life — the loops of fear and habit in your mind, 
+      the algorithmic loops engineered by corporations — are not invisible once you know how 
+      to look. You are reading this because something in you already knows it is time to see them. 
+      That recognition is the beginning of the highest intelligence there is.
+    </p>
+
+    <div class="final-cta-group reveal">
+      <button class="cta-pill primary">Start Your Audit</button>
+      <button class="cta-pill">Share This Issue</button>
+      <button class="cta-pill">Read Next Issue</button>
+    </div>
+
+    <div class="footer-line reveal">
+      LOOP Magazine © 2026 · Find the Loop. Quit the Loop. · Intelligence Issue Vol. I
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════
+     SCRIPTS
+════════════════════════════════ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+  // ─── Progress bar
+  window.addEventListener('scroll', () => {
+    const scrolled = window.scrollY;
+    const total = document.documentElement.scrollHeight - window.innerHeight;
+    document.getElementById('progress').style.width = (scrolled / total * 100) + '%';
+  });
+
+  // ─── Reveal on scroll
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('visible'); }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+  reveals.forEach(el => observer.observe(el));
+
+  // ─── Dopamine bars animate
+  const dopaObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.querySelectorAll('.dopa-fill').forEach(bar => {
+          bar.style.width = bar.dataset.width + '%';
+        });
+      }
+    });
+  }, { threshold: 0.3 });
+  const dopaSection = document.getElementById('dopaChart');
+  if (dopaSection) dopaObserver.observe(dopaSection.closest('.dopamine-chart-wrap'));
+
+  // ─── Intelligence bar widths
+  document.querySelectorAll('.int-bar').forEach(bar => {
+    bar.style.width = bar.style.getPropertyValue('--w') || '60%';
+  });
+
+  // ─── Chart 1: Identity vs Life Outcomes (Line)
+  const ctx1 = document.getElementById('identityChart').getContext('2d');
+  new Chart(ctx1, {
+    type: 'line',
+    data: {
+      labels: ['Age 20', 'Age 25', 'Age 30', 'Age 35', 'Age 40', 'Age 45', 'Age 50'],
+      datasets: [
+        {
+          label: 'Rigid Identity Group',
+          data: [60, 62, 58, 55, 52, 50, 48],
+          borderColor: '#c8321a',
+          backgroundColor: 'rgba(200,50,26,0.08)',
+          borderWidth: 2.5,
+          tension: 0.4,
+          fill: true,
+          pointBackgroundColor: '#c8321a',
+          pointRadius: 5,
+        },
+        {
+          label: 'Adaptive Identity Group',
+          data: [58, 65, 74, 82, 88, 92, 95],
+          borderColor: '#7eb5a0',
+          backgroundColor: 'rgba(126,181,160,0.08)',
+          borderWidth: 2.5,
+          tension: 0.4,
+          fill: true,
+          pointBackgroundColor: '#7eb5a0',
+          pointRadius: 5,
+        },
+        {
+          label: 'Average (No intervention)',
+          data: [60, 63, 64, 65, 65, 64, 63],
+          borderColor: 'rgba(212,168,67,0.6)',
+          borderWidth: 1.5,
+          borderDash: [6, 4],
+          tension: 0.4,
+          fill: false,
+          pointBackgroundColor: 'rgba(212,168,67,0.6)',
+          pointRadius: 3,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          labels: {
+            color: '#2a2a24',
+            font: { family: 'Space Mono', size: 10 },
+            boxWidth: 16,
+            padding: 20
+          }
+        },
+        tooltip: {
+          backgroundColor: '#0a0a08',
+          titleFont: { family: 'Space Mono', size: 10 },
+          bodyFont: { family: 'Crimson Pro', size: 13 },
+        }
+      },
+      scales: {
+        y: {
+          min: 40, max: 100,
+          grid: { color: 'rgba(10,10,8,0.06)' },
+          ticks: {
+            color: '#888',
+            font: { family: 'Space Mono', size: 9 },
+            callback: v => v + '%'
+          },
+          title: { display: true, text: 'LIFE OUTCOME INDEX', color: '#aaa', font: { family: 'Space Mono', size: 8 } }
+        },
+        x: {
+          grid: { color: 'rgba(10,10,8,0.04)' },
+          ticks: { color: '#888', font: { family: 'Space Mono', size: 9 } }
+        }
+      }
+    }
+  });
+
+  // ─── Chart 2: Radar
+  const ctx2 = document.getElementById('radarChart').getContext('2d');
+  new Chart(ctx2, {
+    type: 'radar',
+    data: {
+      labels: ['Adaptive Speed', 'Systems View', 'Belief Fluidity', 'Pattern Break', 'Emotional Intel', 'Deep Focus'],
+      datasets: [
+        {
+          label: 'Loop-Aware Person',
+          data: [88, 82, 85, 90, 78, 80],
+          borderColor: '#d4a843',
+          backgroundColor: 'rgba(212,168,67,0.12)',
+          borderWidth: 2,
+          pointBackgroundColor: '#d4a843',
+          pointRadius: 5,
+        },
+        {
+          label: 'Looped Person',
+          data: [35, 40, 28, 25, 45, 55],
+          borderColor: 'rgba(200,50,26,0.7)',
+          backgroundColor: 'rgba(200,50,26,0.08)',
+          borderWidth: 2,
+          pointBackgroundColor: 'rgba(200,50,26,0.7)',
+          pointRadius: 5,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          labels: { color: 'rgba(245,240,232,0.7)', font: { family: 'Space Mono', size: 9 }, padding: 16 }
+        }
+      },
+      scales: {
+        r: {
+          min: 0, max: 100,
+          grid: { color: 'rgba(245,240,232,0.08)' },
+          angleLines: { color: 'rgba(245,240,232,0.06)' },
+          pointLabels: { color: 'rgba(245,240,232,0.5)', font: { family: 'Space Mono', size: 8 } },
+          ticks: { display: false }
+        }
+      }
+    }
+  });
+
+  // ─── Chart 3: Loop vs New Identity (Doughnut style — pie)
+  const ctx3 = document.getElementById('loopChart').getContext('2d');
+  new Chart(ctx3, {
+    type: 'bar',
+    data: {
+      labels: ['Awareness', 'Pattern Break', 'Env. Change', 'New Action', 'Identity Update'],
+      datasets: [{
+        label: 'Days Required',
+        data: [7, 14, 21, 66, 90],
+        backgroundColor: [
+          'rgba(212,168,67,0.8)',
+          'rgba(212,168,67,0.65)',
+          'rgba(126,181,160,0.75)',
+          'rgba(126,181,160,0.6)',
+          'rgba(245,240,232,0.15)',
+        ],
+        borderColor: [
+          'rgba(212,168,67,1)',
+          'rgba(212,168,67,0.9)',
+          'rgba(126,181,160,1)',
+          'rgba(126,181,160,0.9)',
+          'rgba(245,240,232,0.4)',
+        ],
+        borderWidth: 1,
+        borderRadius: 3,
+      }]
+    },
+    options: {
+      responsive: true,
+      indexAxis: 'y',
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#161b22',
+          titleFont: { family: 'Space Mono', size: 9 },
+          bodyFont: { family: 'Crimson Pro', size: 12 },
+          callbacks: { label: ctx => ctx.parsed.x + ' days' }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: 'rgba(245,240,232,0.04)' },
+          ticks: { color: 'rgba(245,240,232,0.3)', font: { family: 'Space Mono', size: 8 }, callback: v => v + 'd' }
+        },
+        y: {
+          grid: { display: false },
+          ticks: { color: 'rgba(245,240,232,0.6)', font: { family: 'Space Mono', size: 8 } }
+        }
+      }
+    }
+  });
+</script>
+</body>
+</html>
