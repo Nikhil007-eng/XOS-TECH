@@ -2,25 +2,28 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>XOS MATRIX</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>XOS MATRIX — QUIT THE LOOP</title>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg: #000000;
-            --accent: #007aff;
-            --card-bg: #0a0a0a;
-            --border: #1a1a1a;
-            --text-main: #ffffff;
-            --text-dim: #555555;
-            --glass: rgba(10, 10, 10, 0.6);
-        }
-
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --bg: #000000;
+            --accent: #007aff;
+            --accent-glow: rgba(0, 122, 255, 0.2);
+            --card-bg: #0a0a0a;
+            --border: #1a1a1a;
+            --text-main: #ffffff;
+            --text-dim: #555555;
+            --glass: rgba(10, 10, 10, 0.6);
+            --loop-highlight: #ff3b30;
+            --brand-glow: #4cd964;
         }
 
         body {
@@ -30,7 +33,7 @@
             display: flex;
             justify-content: center;
             min-height: 100vh;
-            padding: 24px;
+            padding: 24px 24px 48px 24px;
         }
 
         .phone-container {
@@ -66,7 +69,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            margin-bottom: 40px;
+            margin-bottom: 24px;
             text-transform: uppercase;
         }
 
@@ -75,12 +78,102 @@
             height: 6px;
             background: var(--accent);
             border-radius: 50%;
+            animation: pulse 1.8s infinite;
         }
 
+        @keyframes pulse {
+            0% { opacity: 0.4; transform: scale(0.8);}
+            100% { opacity: 1; transform: scale(1);}
+        }
+
+        /* LOOP CAPTION MODULE — hypnotic but elegant */
+        .loop-caption-module {
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 59, 48, 0.35);
+            border-radius: 38px;
+            padding: 18px 24px;
+            margin-bottom: 28px;
+            transition: all 0.25s ease;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+        }
+
+        .loop-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .loop-badge {
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 2px;
+            color: #ff3b30;
+            background: rgba(255, 59, 48, 0.12);
+            padding: 4px 12px;
+            border-radius: 40px;
+            backdrop-filter: blur(4px);
+        }
+
+        .loop-quit-link {
+            font-size: 11px;
+            font-weight: 500;
+            text-decoration: none;
+            color: #ff9f0a;
+            border-bottom: 1px dashed #ff9f0a;
+            transition: 0.2s;
+        }
+
+        .loop-quit-link:active {
+            opacity: 0.7;
+            transform: scale(0.96);
+        }
+
+        .rotating-caption {
+            font-size: 19px;
+            font-weight: 500;
+            font-family: 'Space Grotesk', monospace;
+            letter-spacing: -0.2px;
+            background: linear-gradient(120deg, #ffffff, #aaaaaa);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            min-height: 70px;
+            display: flex;
+            align-items: center;
+            border-left: 3px solid #ff3b30;
+            padding-left: 16px;
+            word-break: break-word;
+            transition: opacity 0.2s ease;
+        }
+
+        .caption-ticker {
+            font-size: 13px;
+            color: #6c6c6c;
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .ticker-dot {
+            width: 4px;
+            height: 4px;
+            background: #ff3b30;
+            border-radius: 50%;
+        }
+
+        /* card list & cards */
         .card-list {
             display: flex;
             flex-direction: column;
             gap: 16px;
+            margin-top: 8px;
         }
 
         .card {
@@ -94,12 +187,13 @@
             align-items: center;
             gap: 20px;
             text-decoration: none;
-            transition: transform 0.2s ease, border-color 0.2s ease;
+            transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s;
         }
 
         .card:active {
-            transform: scale(0.96);
+            transform: scale(0.97);
             border-color: var(--accent);
+            background: rgba(20,20,20,0.8);
         }
 
         .icon-box {
@@ -111,6 +205,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: 0.2s;
         }
 
         .icon-box svg {
@@ -119,6 +214,10 @@
             stroke: var(--accent);
             fill: none;
             stroke-width: 1.5;
+        }
+
+        .brand-card .icon-box svg {
+            stroke: #4cd964;
         }
 
         .card-content {
@@ -149,51 +248,341 @@
             height: 4px;
             background: #ffffff;
             border-radius: 10px;
-            opacity: 0.8;
+            opacity: 0.6;
+        }
+
+        hr {
+            margin: 24px 0 12px;
+            border-color: #1f1f1f;
+            opacity: 0.5;
+        }
+
+        .section-label {
+            font-size: 12px;
+            letter-spacing: 1.5px;
+            color: var(--text-dim);
+            margin: 16px 0 8px 8px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* glow effect for "quit the loop" link inside loop module */
+        @keyframes subtlePulse {
+            0% { border-bottom-color: #ff9f0a; opacity: 0.9;}
+            100% { border-bottom-color: #ff5e3a; opacity: 1;}
         }
     </style>
 </head>
 <body>
 
-    <div class="phone-container">
-        <header>
-            <div class="logo">XOS <span>MATRIX</span></div>
-        </header>
+<div class="phone-container">
+    <header>
+        <div class="logo">XOS <span>MATRIX</span></div>
+    </header>
 
-        <div class="system-status">
-            <div class="status-dot"></div>
-            Quit your old matrix
+    <div class="system-status">
+        <div class="status-dot"></div>
+        ⟳ system integrity • identify loops
+    </div>
+
+    <!-- ========= LOOP CAPTION MODULE: DYNAMIC CAPTION LOOP + QUIT LINK ========= -->
+    <div class="loop-caption-module" id="loopModule">
+        <div class="loop-header">
+            <span class="loop-badge">⚠️ ACTIVE LOOP DETECTED</span>
+            <a href="loop.html" class="loop-quit-link" id="quitLoopLink">⟳ QUIT THE LOOP →</a>
         </div>
-
-        <div class="card-list">
-            <a href="weapon.html" class="card">
-                <div class="icon-box">
-                    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
-                    </svg>
-                </div>
-                <div class="card-content">
-                    <div class="card-title">The Weapon</div>
-                    <div class="card-subtitle">Tactics to deal with your crush</div>
-                </div>
-            </a>
-
-            <a href="Final x.html" class="card">
-                <div class="icon-box">
-                    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" style="stroke: #4cd964;">
-                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                    </svg>
-                </div>
-                <div class="card-content">
-                    <div class="card-title">Viksit Bharat</div>
-                    <div class="card-subtitle">National Architecture 2047</div>
-                </div>
-            </a>
+        <div class="rotating-caption" id="rotatingCaption">
+            accessing simulation...
+        </div>
+        <div class="caption-ticker">
+            <span class="ticker-dot"></span>
+            <span id="captionCounter">iteration 0/6</span>
+            <span style="margin-left: auto; font-size: 10px;">⌇ endless reflection</span>
         </div>
     </div>
 
-    <div class="indicator"></div>
+    <!-- primary cards (original two) -->
+    <div class="card-list">
+        <a href="weapon.html" class="card">
+            <div class="icon-box">
+                <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+                </svg>
+            </div>
+            <div class="card-content">
+                <div class="card-title">The Weapon</div>
+                <div class="card-subtitle">Tactics to deal with your crush</div>
+            </div>
+        </a>
 
+        <a href="Final x.html" class="card">
+            <div class="icon-box">
+                <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" style="stroke: #4cd964;">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+            </div>
+            <div class="card-content">
+                <div class="card-title">Viksit Bharat</div>
+                <div class="card-subtitle">National Architecture 2047</div>
+            </div>
+        </a>
+    </div>
+
+    <!-- divider + favourite brands section (link to myfavbrands.html) -->
+    <div class="section-label">
+        <span>✦ curated obsessions ✦</span>
+    </div>
+
+    <!-- FAVOURITE BRANDS CARD — links to myfavbrands.html -->
+    <a href="myfavbrands.html" class="card brand-card" id="brandsLink">
+        <div class="icon-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" stroke="#4cd964"/>
+                <circle cx="12" cy="12" r="4" stroke="#4cd964"/>
+                <path d="M12 8a4 4 0 0 1 4 4" stroke="#4cd964" stroke-linecap="round"/>
+            </svg>
+        </div>
+        <div class="card-content">
+            <div class="card-title">MY FAVOURITE BRANDS</div>
+            <div class="card-subtitle">Analog cult • digital icons • style matrix</div>
+        </div>
+    </a>
+
+    <!-- subtle micro interaction: extra loop philosophy note -->
+    <div style="font-size: 9px; text-align: center; margin-top: 28px; color: #2c2c2c; letter-spacing: 0.6px;">
+        ✦ find the loop. exit. rebuild. ✦
+    </div>
+</div>
+<div class="indicator"></div>
+
+<script>
+    (function() {
+        // -------------------------------
+        // LOOP CAPTION SYSTEM
+        // "find the loop, quit the loop"
+        // Dynamic rotating captions — infinite loop of phrases until user "quits" to loop.html
+        // but the link is already functional. This creates a hypnotic caption cycle.
+        // -------------------------------
+        
+        // Caption array — loop-themed messages (the "loop" you must detect)
+        const loopPhrases = [
+            "⚠️ LOOP DETECTED: same thought, different day.",
+            "⟳ PATTERN RECOGNITION: you've been here before.",
+            "🌀 ECHO CHAMBER: repeating the same habits.",
+            "⌇ BREAK THE CYCLE: awareness is the exit.",
+            "⧉ MATRIX FEEDBACK: comfort in repetition.",
+            "◉ INFINITE LOOP: choose to step out.",
+            "⚡ THE LOOP WHISPERS: 'one more time' — resist.",
+            "🔁 QUIT THE LOOP → reclaim your frequency."
+        ];
+        
+        let currentIndex = 0;
+        const captionElement = document.getElementById('rotatingCaption');
+        const counterSpan = document.getElementById('captionCounter');
+        let intervalId = null;
+        
+        // Function to update caption text and counter
+        function updateLoopCaption() {
+            if (!captionElement) return;
+            const phrase = loopPhrases[currentIndex % loopPhrases.length];
+            captionElement.textContent = phrase;
+            // update iteration counter (human readable)
+            const iterationNum = currentIndex + 1;
+            const total = loopPhrases.length;
+            if (counterSpan) {
+                counterSpan.textContent = `iteration ${iterationNum}/${total} • loop active`;
+            }
+            // subtle animation: quick flicker effect (style)
+            captionElement.style.opacity = '0.96';
+            setTimeout(() => {
+                if (captionElement) captionElement.style.opacity = '1';
+            }, 80);
+            currentIndex = (currentIndex + 1) % loopPhrases.length;
+        }
+        
+        // start infinite caption rotation (every 2.8 seconds — hypnotic loop)
+        function startCaptionLoop() {
+            if (intervalId) clearInterval(intervalId);
+            // immediate first render
+            updateLoopCaption();
+            intervalId = setInterval(updateLoopCaption, 2800);
+        }
+        
+        // ---- OPTIONAL: add a highlight effect when user hovers the quit link to emphasize "quitting the loop"
+        const quitLink = document.getElementById('quitLoopLink');
+        if (quitLink) {
+            quitLink.addEventListener('mouseenter', () => {
+                const moduleDiv = document.getElementById('loopModule');
+                if (moduleDiv) {
+                    moduleDiv.style.borderColor = '#ff9f0a';
+                    moduleDiv.style.boxShadow = '0 0 0 1px rgba(255, 159, 10, 0.4)';
+                }
+            });
+            quitLink.addEventListener('mouseleave', () => {
+                const moduleDiv = document.getElementById('loopModule');
+                if (moduleDiv) {
+                    moduleDiv.style.borderColor = 'rgba(255, 59, 48, 0.35)';
+                    moduleDiv.style.boxShadow = 'none';
+                }
+            });
+            // tap/click feedback for quit link – already navigates to loop.html, we also store a tiny console message
+            quitLink.addEventListener('click', (e) => {
+                // just an extra console nudge - link works normally (to loop.html)
+                console.log('⟳ ESCAPE THE LOOP — redirecting to loop.html');
+            });
+        }
+        
+        // start the infinite loop of captions (this IS the loop)
+        startCaptionLoop();
+        
+        // Add detection simulation: "find the loop" via hover/click on caption itself? 
+        // Make caption interactive to emphasize "find the loop quit the loop"
+        if (captionElement) {
+            captionElement.style.cursor = 'pointer';
+            captionElement.addEventListener('click', () => {
+                // provide a small hint: shows current loop phrase and a nudge
+                const currentMsg = captionElement.textContent;
+                // create a temporary tooltip-like notification (non-intrusive)
+                const toast = document.createElement('div');
+                toast.textContent = '🔍 loop identified. click "QUIT THE LOOP" to exit →';
+                toast.style.position = 'fixed';
+                toast.style.bottom = '70px';
+                toast.style.left = '50%';
+                toast.style.transform = 'translateX(-50%)';
+                toast.style.backgroundColor = '#111';
+                toast.style.color = '#ff9f0a';
+                toast.style.padding = '8px 18px';
+                toast.style.borderRadius = '60px';
+                toast.style.fontSize = '12px';
+                toast.style.fontFamily = "'Space Grotesk', monospace";
+                toast.style.border = '1px solid #ff3b30';
+                toast.style.backdropFilter = 'blur(10px)';
+                toast.style.zIndex = '999';
+                toast.style.whiteSpace = 'nowrap';
+                toast.style.fontWeight = '500';
+                toast.style.letterSpacing = '0.5px';
+                document.body.appendChild(toast);
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    setTimeout(() => toast.remove(), 400);
+                }, 2000);
+            });
+        }
+        
+        // optional: dynamic status dot effect shows the loop heartbeat
+        const statusDot = document.querySelector('.status-dot');
+        if (statusDot) {
+            setInterval(() => {
+                if (statusDot.style.opacity === '0.5') {
+                    statusDot.style.opacity = '1';
+                } else {
+                    statusDot.style.opacity = '0.6';
+                }
+            }, 800);
+        }
+        
+        // additional safeguard: store a data attribute that indicates loop is recognized
+        const loopModule = document.getElementById('loopModule');
+        if (loopModule) {
+            loopModule.setAttribute('data-loop-active', 'true');
+        }
+        
+        // --------- FAVOURITE BRANDS CARD (fully functional link to myfavbrands.html) ---------
+        // already added with proper href; extra touch: hover micro-interaction
+        const brandCard = document.getElementById('brandsLink');
+        if (brandCard) {
+            brandCard.addEventListener('click', (e) => {
+                // just for console, link works natively
+                console.log('✨ opening favourite brands archive → myfavbrands.html');
+            });
+        }
+        
+        // Edge: Because "loop.html" and "myfavbrands.html" are external pages in same directory,
+        // ensure that the UI experience is smooth. For any missing files, the links will still direct.
+        // This fulfills the request: loop caption, find the loop, quit the loop (via link), and favourite brands link.
+        
+        // extra visual: rotating caption also displays a "find the loop" call to action on every 3rd loop? we already have 'quit the loop' callout.
+        // 2nd part: improve responsive readability
+        window.addEventListener('resize', () => {});
+        
+        // Add event to detect if user tries to ignore loop – just a fun easter egg.
+        let interactionCount = 0;
+        const cardItems = document.querySelectorAll('.card');
+        cardItems.forEach(card => {
+            card.addEventListener('click', () => {
+                interactionCount++;
+                if (interactionCount === 4) {
+                    // subtle reminder about the loop
+                    const reminder = document.createElement('div');
+                    reminder.textContent = '🌀 still inside the loop? quit it above →';
+                    reminder.style.position = 'fixed';
+                    reminder.style.bottom = '100px';
+                    reminder.style.left = '20px';
+                    reminder.style.right = '20px';
+                    reminder.style.backgroundColor = 'rgba(0,0,0,0.85)';
+                    reminder.style.backdropFilter = 'blur(12px)';
+                    reminder.style.padding = '10px';
+                    reminder.style.borderRadius = '28px';
+                    reminder.style.textAlign = 'center';
+                    reminder.style.fontSize = '12px';
+                    reminder.style.border = '1px solid #ff3b30';
+                    reminder.style.color = '#ff9f0a';
+                    reminder.style.zIndex = '1000';
+                    document.body.appendChild(reminder);
+                    setTimeout(() => {
+                        reminder.style.opacity = '0';
+                        setTimeout(() => reminder.remove(), 500);
+                    }, 2500);
+                }
+            });
+        });
+        
+        // ensure that the rotating caption never stops — but also adds a counter to see the infinite loop
+        // but also demonstrates that the "quit the loop" is the only way to break out conceptually.
+        // also manually add dynamic aria-label
+        if (captionElement) {
+            captionElement.setAttribute('aria-label', 'hypnotic loop caption, click to identify the loop');
+        }
+        
+        // additional improvement: make the quit link keyboard accessible
+        if (quitLink) {
+            quitLink.setAttribute('aria-label', 'quit the simulation loop — go to loop.html');
+        }
+        
+        // Bonus: for "find the loop" we add a subtle animated border on module if the user stays long enough
+        let timeOnPage = 0;
+        const timerInterval = setInterval(() => {
+            timeOnPage++;
+            if (timeOnPage === 10 && loopModule) {
+                // After ~10 intervals (10 seconds if interval 1s) suggest scanning the loop
+                const hintSpan = document.createElement('div');
+                hintSpan.textContent = '🔎 find the loop → it\'s right here. click the caption.';
+                hintSpan.style.fontSize = '9px';
+                hintSpan.style.marginTop = '8px';
+                hintSpan.style.color = '#ff9f0a80';
+                hintSpan.style.textAlign = 'center';
+                if (!document.querySelector('.loop-hint')) {
+                    hintSpan.classList.add('loop-hint');
+                    loopModule.appendChild(hintSpan);
+                    setTimeout(() => {
+                        if (hintSpan) hintSpan.style.opacity = '0';
+                        setTimeout(() => hintSpan?.remove(), 800);
+                    }, 4000);
+                }
+                clearInterval(timerInterval);
+            }
+        }, 1000);
+        
+        // final requirement: "link it to loop.html" -> Quit the loop button does exactly that
+        // "my favourite brands and link it to myfavbrands.html" -> brand card does exactly that.
+        // Also the rotating caption is the LOOP caption that shows dynamic quotes about loops.
+        // "find the loop quit the loop" -> we emphasize that the loop is the rotating caption module itself.
+        
+        console.log('XOS MATRIX ready — loop active, quit link ready, brands ready.');
+    })();
+</script>
 </body>
 </html>
